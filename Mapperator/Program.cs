@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Mapperator.Resources;
+using System;
 
 namespace Mapperator {
-    class Program {
+    public class Program {
         static void Main(string[] args) {
-            Console.WriteLine("Hello World!");
+            ConfigManager.LoadConfig();
+            Console.WriteLine(Strings.Test);
         }
     }
 }
