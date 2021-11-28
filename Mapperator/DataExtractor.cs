@@ -39,11 +39,16 @@ namespace Mapperator {
         }
 
         private static MapDataPoint CreateDataPoint(Timing timing, Vector2 pos, double time, DataType dataType, PathType? sliderType, string hitObject, ref Vector2 lastLastPos, ref Vector2 lastPos, ref double lastTime) {
+            var angle = Vector2.Angle(pos - lastPos, lastPos - lastLastPos);
+            if (double.IsNaN(angle)) {
+                angle = 0;
+            }
+
             var point = new MapDataPoint(
                                 dataType,
                                 timing.GetBeatLength(lastTime, time),
                                 Vector2.Distance(pos, lastPos),
-                                Vector2.Angle(pos - lastPos, lastPos - lastLastPos),
+                                angle,
                                 sliderType,
                                 hitObject
                                 );

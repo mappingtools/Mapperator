@@ -1,11 +1,8 @@
 ﻿using Mapperator.Resources;
+using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using System;
 using System.IO;
-using OsuParsers.Decoders;
 using System.Linq;
-using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
-using System.Collections.Generic;
-using Mapping_Tools_Core.BeatmapHelper;
 
 namespace Mapperator {
     public class Program {
