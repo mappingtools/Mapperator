@@ -117,7 +117,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="About" xml:space="preserve">
+    <value>Mapperator is a tool for automatically improving osu! beatmaps.
+Basic usage:
+-e "collection name" "output location"
+-c "data file" "beatmap file" "output location"</value>
+  </data>
+  <data name="CouldNotFindCollection" xml:space="preserve">
+    <value>Could not find collection named "{0}".</value>
+  </data>
+  <data name="NotEnoughArguments" xml:space="preserve">
+    <value>Not enough arguments provided. Expected {0} arguments.</value>
+  </data>
   <data name="Test" xml:space="preserve">
     <value>Hello world!</value>
+  </data>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>Unknown command: "{0}"</value>
   </data>
 </root>

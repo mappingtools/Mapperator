@@ -2,6 +2,10 @@
   "profiles": {
     "Mapperator": {
       "commandName": "Project"
+    },
+    "ConvertMaps": {
+      "commandName": "Project",
+      "commandLineArgs": "-e !Kroytz test"
     }
   }
 }

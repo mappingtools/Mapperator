@@ -61,11 +61,50 @@ namespace Mapperator.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Mapperator is a tool for automatically improving osu! beatmaps.
+        ///Basic usage:
+        ///-e &quot;collection name&quot; &quot;output location&quot;
+        ///-c &quot;data file&quot; &quot;beatmap file&quot; &quot;output location&quot;.
+        /// </summary>
+        internal static string About {
+            get {
+                return ResourceManager.GetString("About", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find collection named &quot;{0}&quot;..
+        /// </summary>
+        internal static string CouldNotFindCollection {
+            get {
+                return ResourceManager.GetString("CouldNotFindCollection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not enough arguments provided. Expected {0} arguments..
+        /// </summary>
+        internal static string NotEnoughArguments {
+            get {
+                return ResourceManager.GetString("NotEnoughArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hello world!.
         /// </summary>
         internal static string Test {
             get {
                 return ResourceManager.GetString("Test", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown command: &quot;{0}&quot;.
+        /// </summary>
+        internal static string UnknownCommand {
+            get {
+                return ResourceManager.GetString("UnknownCommand", resourceCulture);
             }
         }
     }
