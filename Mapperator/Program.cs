@@ -1,5 +1,8 @@
 ﻿using Mapperator.Resources;
+using Mapping_Tools_Core;
+using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
+using Mapping_Tools_Core.MathUtil;
 using System;
 using System.IO;
 using System.Linq;
@@ -27,16 +30,67 @@ namespace Mapperator {
                     DoDataExtraction(collectionName, outputName);
                     break;
                 case "-c":
-                    if (!CheckLength(args, 4)) return; ;
+                    if (!CheckLength(args, 4)) return;
                     dataName = args[1];
                     inputName = args[2];
                     outputName = args[3];
                     DoMapConvert(dataName, inputName, outputName);
                     break;
+                case "-s":
+                    if (!CheckLength(args, 2)) return;
+                    string pattern = args[1].Replace("\"", ""); ;
+                    DoPatternSearch(pattern);
+                    break;
                 default:
                     Console.WriteLine(string.Format(Strings.UnknownCommand, args[0]));
                     break;
             }
+        }
+
+        private static void DoPatternSearch(string pattern) {
+            int matches = 0;
+            int i = 0;
+            foreach (var path in Directory.EnumerateFiles(ConfigManager.Config.SongsPath, "*.osu",
+                new EnumerationOptions { IgnoreInaccessible = true, RecurseSubdirectories = true, ReturnSpecialDirectories = false })) {
+                PatternSearchMap(path, pattern, i++, ref matches);
+            }
+        }
+
+        private static bool PatternSearchMap(string path, string pattern, int i, ref int matches) {
+            if (i % 1000 == 0) {
+                Console.Write('.');
+            }
+            //Console.WriteLine(path);
+
+            var startBracketIndex = pattern.IndexOf("(", StringComparison.Ordinal);
+            var endBracketIndex = pattern.IndexOf(")", StringComparison.Ordinal);
+            double t = InputParsers.ParseOsuTimestamp(pattern).TotalMilliseconds;
+            int l = 0;
+            if (startBracketIndex != -1) {
+                if (endBracketIndex == -1) {
+                    endBracketIndex = pattern.Length - 1;
+                }
+
+                // Get the part of the code between the brackets
+                var comboNumbersString = pattern.Substring(startBracketIndex + 1, endBracketIndex - startBracketIndex - 1);
+
+                l = comboNumbersString.Split(',').Length;
+            }
+
+            try {
+                var beatmap = new BeatmapEditor(path).ReadFile();
+                var en = beatmap.QueryTimeCode(pattern);
+                var hos = en.ToArray();
+                if (hos.Length == l && Precision.AlmostEquals(hos[0].StartTime, t)) {
+                    matches++;
+                    Console.WriteLine($"Found match {matches} in beatmap: {path}");
+                    return true;
+                }
+            } catch (Exception e) {
+                Console.WriteLine("Can't parse this map: " + path);
+                Console.WriteLine(e);
+            }
+            return false;
         }
 
         private static void DoMapConvert(string dataName, string inputName, string outputName) {
