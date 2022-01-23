@@ -15,20 +15,32 @@ namespace Mapperator {
                 return;
             }
 
+            string collectionName;
+            string inputName;
+            string outputName;
+            string dataName;
             switch(args[0]) {
                 case "-e":
                     if (!CheckLength(args, 3)) return;                   ;
-                    string collectionName = args[1];
-                    string outputName = args[2];
+                    collectionName = args[1];
+                    outputName = args[2];
                     DoDataExtraction(collectionName, outputName);
                     break;
                 case "-c":
-                    throw new NotImplementedException();
+                    if (!CheckLength(args, 4)) return; ;
+                    dataName = args[1];
+                    inputName = args[2];
+                    outputName = args[3];
+                    DoMapConvert(dataName, inputName, outputName);
                     break;
                 default:
                     Console.WriteLine(string.Format(Strings.UnknownCommand, args[0]));
                     break;
             }
+        }
+
+        private static void DoMapConvert(string dataName, string inputName, string outputName) {
+            var data = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(dataName, ".txt")));
         }
 
         static void DoDataExtraction(string collectionName, string outputName) {

@@ -3,9 +3,13 @@
     "Mapperator": {
       "commandName": "Project"
     },
-    "ConvertMaps": {
+    "ExtractData": {
       "commandName": "Project",
       "commandLineArgs": "-e !Kroytz test"
+    },
+    "ConvertMap": {
+      "commandName": "Project",
+      "commandLineArgs": "-c test input output"
     }
   }
 }
