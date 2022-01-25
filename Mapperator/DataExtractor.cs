@@ -25,21 +25,25 @@ namespace Mapperator {
 
                         // Get middle and end positions too for every repeat
                         var path = slider.GetSliderPath();
-                        var startPos = slider.Pos;
-                        var middlePos = path.PositionAt(0.5);
+                        //var startPos = slider.Pos;
+                        //var middlePos = path.PositionAt(0.5);
                         var endPos = path.PositionAt(1);
 
-                        for (int i = 0; i < slider.RepeatCount + 1; i++) {
-                            yield return CreateDataPoint(timing, middlePos, slider.StartTime + slider.SpanDuration * (i + 0.5), DataType.Hold, slider.SliderType, null, ref lastLastPos, ref lastPos, ref lastTime);
-                            yield return CreateDataPoint(timing, i % 2 == 0 ? endPos : startPos, slider.StartTime + slider.SpanDuration * (i + 1), i == slider.RepeatCount ? DataType.Release : DataType.Hold, slider.SliderType, null, ref lastLastPos, ref lastPos, ref lastTime);
-                        }
+
+                        yield return CreateDataPoint(timing, endPos, slider.StartTime + slider.SpanDuration, DataType.Release, slider.SliderType, null, ref lastLastPos, ref lastPos, ref lastTime, slider.PixelLength);
+
+                        //for (int i = 0; i < slider.RepeatCount + 1; i++) {
+                        //    yield return CreateDataPoint(timing, middlePos, slider.StartTime + slider.SpanDuration * (i + 0.5), DataType.Hold, slider.SliderType, null, ref lastLastPos, ref lastPos, ref lastTime);
+                        //    yield return CreateDataPoint(timing, i % 2 == 0 ? endPos : startPos, slider.StartTime + slider.SpanDuration * (i + 1), i == slider.RepeatCount ? DataType.Release : DataType.Hold, slider.SliderType, null, ref lastLastPos, ref lastPos, ref lastTime);
+                        //}
                         break;
                 }
             }
         }
 
-        private static MapDataPoint CreateDataPoint(Timing timing, Vector2 pos, double time, DataType dataType, PathType? sliderType, string hitObject, ref Vector2 lastLastPos, ref Vector2 lastPos, ref double lastTime) {
-            var angle = Vector2.Angle(pos - lastPos, lastPos - lastLastPos);
+        private static MapDataPoint CreateDataPoint(Timing timing, Vector2 pos, double time, DataType dataType, PathType? sliderType, string hitObject, ref Vector2 lastLastPos, ref Vector2 lastPos, ref double lastTime, double? spacingOverride = null) {
+            //var angle = Vector2.Angle(pos - lastPos, lastPos - lastLastPos);
+            var angle = Helpers.Mod((pos - lastPos).Theta - (lastPos - lastLastPos).Theta + MathHelper.Pi, MathHelper.TwoPi) - MathHelper.Pi;
             if (double.IsNaN(angle)) {
                 angle = 0;
             }
@@ -47,7 +51,7 @@ namespace Mapperator {
             var point = new MapDataPoint(
                                 dataType,
                                 timing.GetBeatLength(lastTime, time),
-                                Vector2.Distance(pos, lastPos),
+                                spacingOverride ?? Vector2.Distance(pos, lastPos),
                                 angle,
                                 sliderType,
                                 hitObject

@@ -1,6 +1,8 @@
 ﻿using Mapperator.Resources;
 using Mapping_Tools_Core;
 using Mapping_Tools_Core.BeatmapHelper;
+using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
+using Mapping_Tools_Core.BeatmapHelper.IO.Decoding.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using Mapping_Tools_Core.MathUtil;
 using System;
@@ -25,7 +27,7 @@ namespace Mapperator {
             switch(args[0]) {
                 case "-e":
                     if (!CheckLength(args, 3)) return;                   ;
-                    collectionName = args[1];
+                    collectionName = args[1].Replace("\"", "");
                     outputName = args[2];
                     DoDataExtraction(collectionName, outputName);
                     break;
@@ -38,7 +40,7 @@ namespace Mapperator {
                     break;
                 case "-s":
                     if (!CheckLength(args, 2)) return;
-                    string pattern = args[1].Replace("\"", ""); ;
+                    string pattern = args[1].Replace("\"", "");
                     DoPatternSearch(pattern);
                     break;
                 default:
@@ -94,7 +96,52 @@ namespace Mapperator {
         }
 
         private static void DoMapConvert(string dataName, string inputName, string outputName) {
-            var data = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(dataName, ".txt")));
+            var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(dataName, ".txt"))).ToList();
+            var map = new BeatmapEditor(Path.ChangeExtension(inputName, ".osu")).ReadFile();
+            var input = DataExtractor.ExtractBeatmapData(map).ToList();
+            var matches = DataMatcher.FindSimilarData(trainData, input);
+
+            // Construct new beatmap
+            var decoder = new HitObjectDecoder();
+            int i = 0;
+            double t = 0;
+            Vector2 pos = map.HitObjects[0].Pos;
+            double a = 0;
+            map.Metadata.Version = "Converted";
+            map.HitObjects.Clear();
+            foreach (var match in matches) {
+                var original = input[i++];
+                var originalHo = string.IsNullOrWhiteSpace(original.HitObject) ? null : decoder.Decode(original.HitObject);
+
+                t += map.BeatmapTiming.GetMpBAtTime(t) * original.BeatsSince;
+                a += match.Angle;
+                var dir = Vector2.Rotate(Vector2.UnitX, a);
+                pos += match.Spacing * dir;
+                // Wrap pos
+                pos = new Vector2(Helpers.Mod(pos.X, 512), Helpers.Mod(pos.Y, 384));
+
+                if (string.IsNullOrWhiteSpace(match.HitObject)) continue;
+
+                var ho = decoder.Decode(match.HitObject);
+                if (ho is Slider slider) {
+                    slider.RepeatCount = 0;
+                    if (originalHo is Slider oSlider) {
+                        slider.RepeatCount = oSlider.RepeatCount;
+                        slider.Transform(Matrix2.CreateScale(oSlider.PixelLength / slider.PixelLength));
+                        slider.Transform(Matrix2.CreateRotation(a));
+                        slider.PixelLength = oSlider.PixelLength;
+                    }
+                }
+                ho.StartTime = t;
+                ho.Move(pos - ho.Pos);
+                ho.ResetHitsounds();
+                if (originalHo is not null) {
+                    ho.Hitsounds = originalHo.Hitsounds;
+                }
+
+                map.HitObjects.Add(ho);
+            }
+            new BeatmapEditor(Path.ChangeExtension(outputName, ".osu")).WriteFile(map);
         }
 
         static void DoDataExtraction(string collectionName, string outputName) {

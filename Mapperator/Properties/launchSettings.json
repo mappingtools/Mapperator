@@ -9,7 +9,7 @@
     },
     "ConvertMap": {
       "commandName": "Project",
-      "commandLineArgs": "-c test input output"
+      "commandLineArgs": "-c test Resources\\input output"
     },
     "Search": {
       "commandName": "Project",
