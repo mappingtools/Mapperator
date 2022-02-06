@@ -55,6 +55,9 @@ namespace Mapperator {
                     bestPoint = j;
                 }
             }
+            // TODO: Disqualify patterns which would result in current or future objects outside of the mapping bounding box
+            // TODO: Increase the amount of available data by also adding in mirrored versions of beatmaps
+            // TODO: Use topological data structures to decrease searching time hopefully to log(N)
 
             return trainData[bestPoint];
         }
