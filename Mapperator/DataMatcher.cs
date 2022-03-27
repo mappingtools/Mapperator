@@ -13,17 +13,8 @@ using System.Threading.Tasks;
 namespace Mapperator {
     public static class DataMatcher {
         public static IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> trainData, IReadOnlyList<MapDataPoint> pattern) {
-            var tasks = new List<Task<MapDataPoint>>();
             for (int i = 0; i < pattern.Count; i++) {
-                int i2 = i;
-                tasks.Add(Task.Run(() => {
-                    return FindBestMatch(trainData, pattern, i2);
-                }));
-            }
-            Task t = Task.WhenAll(tasks);
-            t.Wait();
-            foreach (var task in tasks) {
-                yield return task.Result;
+                yield return FindBestMatch(trainData, pattern, i);
             }
         }
 
@@ -31,7 +22,7 @@ namespace Mapperator {
             // Find the element of trainData which is locally the most similar to pattern at i
 
             // Normalize the weights for this offset
-            const int mid = 8;  // Middle index of the kernel
+            const int mid = 4;  // Middle index of the kernel
             int lm = Math.Min(mid, i);  // Left index of the kernel
             int rm = Math.Min(weights.Length - mid, pattern.Count - i) - 1;  // Right index of the kernel
             int l = lm + rm + 1;  // Length of the kernel
@@ -56,7 +47,6 @@ namespace Mapperator {
                 }
             }
             // TODO: Disqualify patterns which would result in current or future objects outside of the mapping bounding box
-            // TODO: Increase the amount of available data by also adding in mirrored versions of beatmaps
             // TODO: Use topological data structures to decrease searching time hopefully to log(N)
 
             return trainData[bestPoint];
@@ -71,6 +61,6 @@ namespace Mapperator {
             return typeLoss + beatsLoss + spacingLoss + angleLoss + sliderLoss;
         }
 
-        private static readonly double[] weights = new double[] { 0.125, 0.25, 0.5, 1, 2, 4, 9, 16, 9, 4, 2, 1 };
+        private static readonly double[] weights = new double[] { 1, 2, 4, 9, 16, 9, 4, 2, 1 };
     }
 }
