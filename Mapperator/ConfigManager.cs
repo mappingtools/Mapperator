@@ -1,8 +1,10 @@
-﻿using Microsoft.Win32;
+﻿using Mapperator.Resources;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace Mapperator {
     public class ConfigManager {
@@ -49,10 +51,14 @@ namespace Mapperator {
 
         public static void DefaultPaths() {
             if (string.IsNullOrWhiteSpace(Config.OsuPath)) {
-                try {
-                    var regKey = Registry.LocalMachine.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall");
-                    Config.OsuPath = FindByDisplayName(regKey, "osu!");
-                } catch (KeyNotFoundException) {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                    try {
+                        var regKey = Registry.LocalMachine.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall");
+                        Config.OsuPath = FindByDisplayName(regKey, "osu!");
+                    } catch (KeyNotFoundException) {
+                        Config.OsuPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu!");
+                    }
+                } else {
                     Config.OsuPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu!");
                 }
             }
@@ -65,6 +71,8 @@ namespace Mapperator {
         }
 
         private static string FindByDisplayName(RegistryKey parentKey, string name) {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) throw new InvalidOperationException(Strings.WindowsOnlyOperation);
+
             string[] nameList = parentKey.GetSubKeyNames();
             foreach (var t in nameList) {
                 RegistryKey regKey = parentKey.OpenSubKey(t);

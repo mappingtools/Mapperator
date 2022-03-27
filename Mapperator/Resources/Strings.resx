@@ -135,4 +135,7 @@ Basic usage:
   <data name="UnknownCommand" xml:space="preserve">
     <value>Unknown command: "{0}"</value>
   </data>
+  <data name="WindowsOnlyOperation" xml:space="preserve">
+    <value>This operation is only compatible with Windows.</value>
+  </data>
 </root>

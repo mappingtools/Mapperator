@@ -107,5 +107,14 @@ namespace Mapperator.Resources {
                 return ResourceManager.GetString("UnknownCommand", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This operation is only compatible with Windows..
+        /// </summary>
+        internal static string WindowsOnlyOperation {
+            get {
+                return ResourceManager.GetString("WindowsOnlyOperation", resourceCulture);
+            }
+        }
     }
 }
