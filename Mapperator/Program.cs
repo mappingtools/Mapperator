@@ -1,6 +1,7 @@
 ﻿using Mapperator.Resources;
 using Mapping_Tools_Core;
 using Mapping_Tools_Core.BeatmapHelper;
+using Mapping_Tools_Core.BeatmapHelper.Contexts;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
 using Mapping_Tools_Core.BeatmapHelper.IO.Decoding.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
@@ -98,9 +99,12 @@ namespace Mapperator {
         private static void DoMapConvert(string dataName, string inputName, string outputName) {
             var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(dataName, ".txt"))).ToList();
             var map = new BeatmapEditor(Path.ChangeExtension(inputName, ".osu")).ReadFile();
+            Console.WriteLine("Extracting data...");
             var input = new DataExtractor().ExtractBeatmapData(map).ToList();
-            var matches = DataMatcher.FindSimilarData(trainData, input);
+            Console.WriteLine("Searching matches...");
+            var matches = new DataMatcher().FindSimilarData2(trainData, input);
 
+            Console.WriteLine("Constructing beatmap...");
             // Construct new beatmap
             var decoder = new HitObjectDecoder();
             int i = 0;
@@ -120,26 +124,13 @@ namespace Mapperator {
                 // Wrap pos
                 pos = new Vector2(Helpers.Mod(pos.X, 512), Helpers.Mod(pos.Y, 384));
 
-                if (string.IsNullOrWhiteSpace(match.HitObject)) continue;
-
-                var ho = decoder.Decode(match.HitObject);
-                if (ho is Slider slider) {
-                    slider.RepeatCount = 0;
-                    if (originalHo is Slider oSlider) {
-                        slider.RepeatCount = oSlider.RepeatCount;
-                        slider.Transform(Matrix2.CreateScale(oSlider.PixelLength / slider.PixelLength));
-                        slider.Transform(Matrix2.CreateRotation(a));
-                        slider.PixelLength = oSlider.PixelLength;
-                    }
-                }
-                ho.StartTime = t;
-                ho.Move(pos - ho.Pos);
-                ho.ResetHitsounds();
-                if (originalHo is not null) {
-                    ho.Hitsounds = originalHo.Hitsounds;
+                if (match.DataType == DataType.Release) {
+                    map.HitObjects.Add(new HitCircle() { Pos = new Vector2(0,0), StartTime = t });
                 }
 
-                map.HitObjects.Add(ho);
+                if (match.DataType == DataType.Hit) {
+                    map.HitObjects.Add(new HitCircle() { Pos = new Vector2(256, 0), StartTime = t });
+                }
             }
             new BeatmapEditor(Path.ChangeExtension(outputName, ".osu")).WriteFile(map);
         }
