@@ -98,7 +98,7 @@ namespace Mapperator {
         private static void DoMapConvert(string dataName, string inputName, string outputName) {
             var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(dataName, ".txt"))).ToList();
             var map = new BeatmapEditor(Path.ChangeExtension(inputName, ".osu")).ReadFile();
-            var input = DataExtractor.ExtractBeatmapData(map).ToList();
+            var input = new DataExtractor().ExtractBeatmapData(map).ToList();
             var matches = DataMatcher.FindSimilarData(trainData, input);
 
             // Construct new beatmap
@@ -148,7 +148,7 @@ namespace Mapperator {
             File.WriteAllLines(Path.ChangeExtension(outputName, ".txt"),
                 DbManager.GetCollection(collectionName)
                 .Select(o => new BeatmapEditor(Path.Combine(ConfigManager.Config.SongsPath, o.FolderName, o.FileName)).ReadFile())
-                .SelectMany(DataExtractor.ExtractBeatmapData)
+                .SelectMany(new DataExtractor().ExtractBeatmapData)
                 .Select(DataSerializer.SerializeBeatmapDataSample));
         }
 
