@@ -19,9 +19,8 @@ namespace Mapperator {
             this.encoder = encoder;
         }
 
-        public IEnumerable<MapDataPoint> ExtractBeatmapData(IBeatmap beatmap) {
-            return ExtractBeatmapData(beatmap.HitObjects, beatmap.BeatmapTiming, false).Concat(
-                ExtractBeatmapData(beatmap.HitObjects, beatmap.BeatmapTiming, true));
+        public IEnumerable<MapDataPoint> ExtractBeatmapData(IBeatmap beatmap, bool mirror = false) {
+            return ExtractBeatmapData(beatmap.HitObjects, beatmap.BeatmapTiming, mirror);
         }
 
         public IEnumerable<MapDataPoint> ExtractBeatmapData(IEnumerable<HitObject> hitobjects, Timing timing, bool mirror = false) {

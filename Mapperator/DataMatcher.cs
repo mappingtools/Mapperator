@@ -16,9 +16,9 @@ namespace Mapperator {
         }
 
         private readonly double[] weightsNormalized;
-        private readonly double[] weights = new double[] { 1, 2, 4, 9, 16, 9, 4, 2, 1 };
+        private readonly double[] weights = new double[] { 4, 9, 16, 9, 4 };
         private readonly double[] weightsSums = new double[] { 16, 25, 34, 38, 42, 44, 46, 47, 48 };
-        private readonly int weightsMiddle = 4;
+        private readonly int weightsMiddle = 2;
 
         public DataMatcher() {
             double s = weights.Sum();
@@ -40,8 +40,10 @@ namespace Mapperator {
 
         private MapDataPoint FindBestMatch2(SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern, int i) {
             var result = graph.KNNSearch(GetNeighborhood(pattern, i), 1);
-            var best = result[0].Item;
-            return best[best.Length / 2];
+            var bestGroup = result[0].Item;
+            var best = bestGroup[bestGroup.Length / 2];
+            Console.WriteLine($"Match {i}, loss = {result[0].Distance}, type = {best.DataType}");
+            return best;
         }
 
         private MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> trainData, IReadOnlyList<MapDataPoint> pattern, int i) {
@@ -86,7 +88,7 @@ namespace Mapperator {
             return foldedData;
         }
 
-        private MapDataPoint[] GetNeighborhood(IReadOnlyList<MapDataPoint> data, int i) {
+        public MapDataPoint[] GetNeighborhood(IReadOnlyList<MapDataPoint> data, int i) {
             int lm = Math.Min(weightsMiddle, i);  // Left index of the kernel
             int rm = Math.Min(weights.Length - weightsMiddle, data.Count - i) - 1;  // Right index of the kernel
             lm = Math.Min(lm, rm + 1);
@@ -95,7 +97,7 @@ namespace Mapperator {
 
             MapDataPoint[] dataPoints = new MapDataPoint[l];
             for (int k = 0; k < l; k++) {
-                dataPoints[k] = data[i - lm];
+                dataPoints[k] = data[i + k - lm];
             }
             return dataPoints;
         }
@@ -115,9 +117,10 @@ namespace Mapperator {
 
         private static double ComputeLoss(MapDataPoint tp, MapDataPoint pp) {
             double typeLoss = tp.DataType == pp.DataType ? 0 : 1000;
+            //double beatsLoss = 100 * Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2));  // Gaps bigger than 2 beats are mostly equal
             double beatsLoss = 100 * Math.Abs(tp.BeatsSince - pp.BeatsSince);
-            double spacingLoss = 0 * Math.Abs(tp.Spacing - pp.Spacing);
-            double angleLoss = 0 * Math.Min(Helpers.Mod(tp.Angle - pp.Angle, MathHelper.TwoPi), Helpers.Mod(pp.Angle - tp.Angle, MathHelper.TwoPi));
+            double spacingLoss = 1 * Math.Abs(tp.Spacing - pp.Spacing);
+            double angleLoss = 1 * Math.Min(Helpers.Mod(tp.Angle - pp.Angle, MathHelper.TwoPi), Helpers.Mod(pp.Angle - tp.Angle, MathHelper.TwoPi));
             double sliderLoss = tp.SliderType == pp.SliderType ? 0 : 1;
             return typeLoss + beatsLoss + spacingLoss + angleLoss + sliderLoss;
         }
