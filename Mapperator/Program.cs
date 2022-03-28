@@ -102,7 +102,11 @@ namespace Mapperator {
             Console.WriteLine("Extracting data...");
             var input = new DataExtractor().ExtractBeatmapData(map).ToList();
             Console.WriteLine("Searching matches...");
-            var matches = new DataMatcher().FindSimilarData2(trainData, input);
+            var matcher = new DataMatcher();
+            //var graph = matcher.CreateGraph(trainData);
+            //matcher.SaveGraph(graph, Path.ChangeExtension(outputName, ".hnsw"));
+            var graph = matcher.LoadGraph(trainData, Path.ChangeExtension(outputName, ".hnsw"));
+            var matches = new DataMatcher().FindSimilarData2(graph, input);
 
             Console.WriteLine("Constructing beatmap...");
             // Construct new beatmap

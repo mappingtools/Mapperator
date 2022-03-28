@@ -3,6 +3,7 @@ using Mapperator.Model;
 using Mapping_Tools_Core.MathUtil;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Mapperator {
@@ -24,26 +25,13 @@ namespace Mapperator {
             weightsNormalized = weights.Select(o => o / s).ToArray();  // Normalized weights
         }
 
-
         public IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> trainData, IReadOnlyList<MapDataPoint> pattern) {
             for (int i = 0; i < pattern.Count; i++) {
                 yield return FindBestMatch(trainData, pattern, i);
             }
         }
 
-        public IEnumerable<MapDataPoint> FindSimilarData2(IReadOnlyList<MapDataPoint> trainData, IReadOnlyList<MapDataPoint> pattern) {
-            Console.WriteLine("Folding data...");
-            var foldedData = FoldData(trainData);
-
-            Console.WriteLine("Starting graph creation...");
-            var parameters = new SmallWorld<MapDataPoint[], double>.Parameters() {
-                M = 32,
-                LevelLambda = 1 / Math.Log(32),
-            };
-
-            var graph = new SmallWorld<MapDataPoint[], double>(WeightedComputeLoss, DefaultRandomGenerator.Instance, parameters);
-            graph.AddItems(foldedData, new ConsoleProgressReporter());
-
+        public IEnumerable<MapDataPoint> FindSimilarData2(SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern) {
             Console.WriteLine("Searching for matches");
             for (int i = 0; i < pattern.Count; i++) {
                 yield return FindBestMatch2(graph, pattern, i);
@@ -133,5 +121,38 @@ namespace Mapperator {
             double sliderLoss = tp.SliderType == pp.SliderType ? 0 : 1;
             return typeLoss + beatsLoss + spacingLoss + angleLoss + sliderLoss;
         }
+
+        #region Graph Creation
+
+        public SmallWorld<MapDataPoint[], double> CreateGraph(IReadOnlyList<MapDataPoint> data) {
+            Console.WriteLine("Folding data...");
+            var foldedData = FoldData(data);
+
+            Console.WriteLine("Starting graph creation...");
+            var parameters = new SmallWorld<MapDataPoint[], double>.Parameters() {
+                M = 32,
+                LevelLambda = 1 / Math.Log(32),
+            };
+
+            var graph = new SmallWorld<MapDataPoint[], double>(WeightedComputeLoss, DefaultRandomGenerator.Instance, parameters);
+            graph.AddItems(foldedData, new ConsoleProgressReporter());
+
+            return graph;
+        }
+
+        public void SaveGraph(SmallWorld<MapDataPoint[], double> graph, string path) {
+            using Stream file = File.Create(path);
+            graph.SerializeGraph(file);
+        }
+
+        public SmallWorld<MapDataPoint[], double> LoadGraph(IReadOnlyList<MapDataPoint> data, string path) {
+            Console.WriteLine("Folding data...");
+            var foldedData = FoldData(data);
+            Console.WriteLine("Loading graph from file...");
+            using Stream file = File.OpenRead(path);
+            return SmallWorld<MapDataPoint[], double>.DeserializeGraph(foldedData, WeightedComputeLoss, DefaultRandomGenerator.Instance, file);
+        }
+
+        #endregion
     }
 }
