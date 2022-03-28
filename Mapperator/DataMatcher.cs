@@ -31,19 +31,30 @@ namespace Mapperator {
             }
         }
 
-        public IEnumerable<MapDataPoint> FindSimilarData2(SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern) {
+        public IEnumerable<MapDataPoint> FindSimilarData2(SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc = null) {
             Console.WriteLine("Searching for matches");
+            // We want to replace the previous parts of the pattern with the matches we found so the next matches have a better chance
+            // of continuing the previous pattern
+            MapDataPoint[] newPattern = pattern.ToArray();
             for (int i = 0; i < pattern.Count; i++) {
-                yield return FindBestMatch2(graph, pattern, i);
+                var match = FindBestMatch2(graph, newPattern, i, isValidFunc);
+                newPattern[i] = match;
+                yield return match;
             }
         }
 
-        private MapDataPoint FindBestMatch2(SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern, int i) {
-            var result = graph.KNNSearch(GetNeighborhood(pattern, i), 1);
-            var bestGroup = result[0].Item;
-            var best = bestGroup[bestGroup.Length / 2];
-            Console.WriteLine($"Match {i}, loss = {result[0].Distance}, type = {best.DataType}");
-            return best;
+        private MapDataPoint FindBestMatch2(SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc = null) {
+            const int tries = 200;
+            var result = graph.KNNSearch(GetNeighborhood(pattern, i), isValidFunc is null ? 1 : tries);
+            for (int j = 0; j < result.Count; j++) {
+                var bestGroup = result[j];
+                var best = bestGroup.Item[bestGroup.Item.Length / 2];
+                if (isValidFunc is null || isValidFunc(best)) {
+                    Console.WriteLine($"Match {i}, loss = {result[0].Distance}, type = {best.DataType}");
+                    return best;
+                }
+            }
+            return result[0].Item[result[0].Item.Length / 2];
         }
 
         private MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> trainData, IReadOnlyList<MapDataPoint> pattern, int i) {
@@ -88,7 +99,7 @@ namespace Mapperator {
             return foldedData;
         }
 
-        public MapDataPoint[] GetNeighborhood(IReadOnlyList<MapDataPoint> data, int i) {
+        private MapDataPoint[] GetNeighborhood(IReadOnlyList<MapDataPoint> data, int i) {
             int lm = Math.Min(weightsMiddle, i);  // Left index of the kernel
             int rm = Math.Min(weights.Length - weightsMiddle, data.Count - i) - 1;  // Right index of the kernel
             lm = Math.Min(lm, rm + 1);
@@ -116,10 +127,10 @@ namespace Mapperator {
         }
 
         private static double ComputeLoss(MapDataPoint tp, MapDataPoint pp) {
-            double typeLoss = tp.DataType == pp.DataType ? 0 : 1000;
+            double typeLoss = tp.DataType == pp.DataType ? 0 : 50;
             //double beatsLoss = 100 * Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2));  // Gaps bigger than 2 beats are mostly equal
-            double beatsLoss = 100 * Math.Abs(tp.BeatsSince - pp.BeatsSince);
-            double spacingLoss = 1 * Math.Abs(tp.Spacing - pp.Spacing);
+            double beatsLoss = 100 * Math.Sqrt(Math.Abs(tp.BeatsSince - pp.BeatsSince));
+            double spacingLoss = 2 * Math.Sqrt(Math.Abs(tp.Spacing - pp.Spacing));
             double angleLoss = 1 * Math.Min(Helpers.Mod(tp.Angle - pp.Angle, MathHelper.TwoPi), Helpers.Mod(pp.Angle - tp.Angle, MathHelper.TwoPi));
             double sliderLoss = tp.SliderType == pp.SliderType ? 0 : 1;
             return typeLoss + beatsLoss + spacingLoss + angleLoss + sliderLoss;

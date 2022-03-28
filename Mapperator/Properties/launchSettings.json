@@ -15,6 +15,14 @@
     "BuildGraph": {
       "commandName": "Project",
       "commandLineArgs": "build -d test -h kgraph"
+    },
+    "BuildGraphAll": {
+      "commandName": "Project",
+      "commandLineArgs": "build -d AllMapsData -h allgraph"
+    },
+    "ConvertMapAll": {
+      "commandName": "Project",
+      "commandLineArgs": "convert -d AllMapsData -i Resources\\input -o output -g allgraph -h allgraph"
     }
   }
 }

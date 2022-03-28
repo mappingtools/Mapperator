@@ -150,33 +150,32 @@ namespace Mapperator {
                     matcher.SaveGraph(graph, Path.ChangeExtension(opts.OutputGraphName, ".hnsw"));
             }
 
-            var matches = new DataMatcher().FindSimilarData2(graph, input);
-
             // Construct new beatmap
             Console.WriteLine("Constructing beatmap...");
             var decoder = new HitObjectDecoder();
             int i = 0;
-            double t = 0;
+            double time = 0;
             Vector2 pos = map.HitObjects[0].Pos;
-            double a = 0;
+            double angle = 0;
             MapDataPoint? lastMatch = null;
             var controlChanges = new List<ControlChange>();
             map.Metadata.Version = "Converted";
             map.HitObjects.Clear();
             map.Editor.Bookmarks.Clear();
-            foreach (var match in matches) {
+            foreach (var match in matcher.FindSimilarData2(graph, input, m => IsInBounds(m, pos, angle, decoder))) {
                 var original = input[i++];
                 var originalHo = string.IsNullOrWhiteSpace(original.HitObject) ? null : decoder.Decode(original.HitObject);
 
-                t += map.BeatmapTiming.GetMpBAtTime(t) * original.BeatsSince;
-                a += match.Angle;
-                var dir = Vector2.Rotate(Vector2.UnitX, a);
+                time += map.BeatmapTiming.GetMpBAtTime(time) * original.BeatsSince;
+                angle += match.Angle;
+                var dir = Vector2.Rotate(Vector2.UnitX, angle);
                 pos += match.Spacing * dir;
                 // Wrap pos
-                pos = new Vector2(Helpers.Mod(pos.X, 512), Helpers.Mod(pos.Y, 384));
+                //pos = new Vector2(Helpers.Mod(pos.X, 512), Helpers.Mod(pos.Y, 384));
+                pos = Vector2.Clamp(pos, Vector2.Zero, new Vector2(512, 382));
 
                 if (match.DataType == DataType.Release) {
-                    map.Editor.Bookmarks.Add(t);
+                    map.Editor.Bookmarks.Add(time);
                     // Make sure the last object is a slider
                     if (map.HitObjects.LastOrDefault() is HitCircle lastCircle) {
                         map.HitObjects.RemoveAt(map.HitObjects.Count - 1);
@@ -194,8 +193,9 @@ namespace Mapperator {
                         // Adjust SV
                         var tp = map.BeatmapTiming.GetTimingPointAtTime(lastSlider.StartTime).Copy();
                         var mpb = map.BeatmapTiming.GetMpBAtTime(lastSlider.StartTime);
+                        tp.Offset = lastSlider.StartTime;
                         tp.Uninherited = false;
-                        tp.SetSliderVelocity(lastSlider.PixelLength / ((t - lastSlider.StartTime) / mpb * 100 * map.Difficulty.SliderMultiplier));
+                        tp.SetSliderVelocity(lastSlider.PixelLength / ((time - lastSlider.StartTime) / mpb * 100 * map.Difficulty.SliderMultiplier));
                         controlChanges.Add(new ControlChange(tp, true));
                     } 
                 }
@@ -212,12 +212,12 @@ namespace Mapperator {
                     var ho = decoder.Decode(match.HitObject);
                     if (ho is Slider slider) {
                         slider.RepeatCount = 0;
-                        slider.Transform(Matrix2.CreateRotation(a));
+                        slider.Transform(Matrix2.CreateRotation(angle));
                         if (originalHo is Slider oSlider) {
                             slider.RepeatCount = oSlider.RepeatCount;
                         }
                     }
-                    ho.StartTime = t;
+                    ho.StartTime = time;
                     ho.Move(pos - ho.Pos);
                     ho.ResetHitsounds();
                     if (originalHo is not null) {
@@ -231,6 +231,34 @@ namespace Mapperator {
             ControlChange.ApplyChanges(map.BeatmapTiming, controlChanges);
             new BeatmapEditor(Path.ChangeExtension(opts.OutputName, ".osu")).WriteFile(map);
             return 0;
+        }
+
+        private static bool IsInBounds(MapDataPoint match, Vector2 pos, double angle, HitObjectDecoder decoder) {
+            angle += match.Angle;
+            var dir = Vector2.Rotate(Vector2.UnitX, angle);
+            pos += match.Spacing * dir;
+
+            if (!PosInBounds(pos)) {
+                return false;
+            } 
+
+            if (!string.IsNullOrEmpty(match.HitObject)) {
+                var ho = decoder.Decode(match.HitObject);
+                if (ho is Slider slider) {
+                    slider.Transform(Matrix2.CreateRotation(angle));
+                    ho.Move(pos - ho.Pos);
+                    slider.RecalculateEndPosition();
+                    if (!PosInBounds(slider.EndPos)) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static bool PosInBounds(Vector2 pos) {
+            return pos.X >= -5 && pos.X <= 517 && pos.Y >= -5 && pos.Y <= 387;
         }
 
         static int DoDataExtraction(ExtractOptions opts) {
