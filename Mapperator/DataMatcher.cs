@@ -36,27 +36,29 @@ namespace Mapperator {
             // We want to replace the previous parts of the pattern with the matches we found so the next matches have a better chance
             // of continuing the previous pattern
             MapDataPoint[] newPattern = pattern.ToArray();
+            var items = graph.Items;
             int lastId = -1;
             int pogs = 0;
             for (int i = 0; i < pattern.Count; i++) {
-                var match = FindBestMatch2(graph, newPattern, i, ref lastId, ref pogs, isValidFunc);
+                var match = FindBestMatch2(items, graph, newPattern, i, ref lastId, ref pogs, isValidFunc);
                 newPattern[i] = match;
                 yield return match;
             }
             Console.WriteLine($"Pograte = {(float)pogs / pattern.Count}");
         }
 
-        private MapDataPoint FindBestMatch2(SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern, int i, ref int lastId, ref int pogs, Func<MapDataPoint, bool> isValidFunc = null) {
+        private MapDataPoint FindBestMatch2(IReadOnlyList<MapDataPoint[]> items, SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern, int i, ref int lastId, ref int pogs, Func<MapDataPoint, bool> isValidFunc = null) {
             const int tries = 200;
             var result = graph.KNNSearch(GetNeighborhood(pattern, i), isValidFunc is null ? 1 : tries);
 
             // Try to use the next ID instead of the result
-            if (lastId != -1 && lastId + 1 < pattern.Count) {
-                var nBestGroup = graph.GetItem(lastId + 1);
+            var bDist = result[0].Distance;
+            if (lastId != -1 && lastId + 1 < items.Count) {
+                var nBestGroup = items[lastId + 1];
                 var nBest = nBestGroup[nBestGroup.Length / 2];
                 var nDist = WeightedComputeLoss(nBestGroup, GetNeighborhood(pattern, i));
 
-                if ((isValidFunc is null || isValidFunc(nBest)) && nDist <= result[0].Distance * 2) {
+                if ((isValidFunc is null || isValidFunc(nBest)) && nDist <= bDist * 2) {
                     lastId++;
                     pogs++;
                     Console.WriteLine($"POGGERS match {i}, type = {nBest.DataType}, id = {lastId}, loss = {nDist}");
