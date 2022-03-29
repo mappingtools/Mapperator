@@ -58,7 +58,7 @@ namespace Mapperator {
                 var nBest = nBestGroup[nBestGroup.Length / 2];
                 var nDist = WeightedComputeLoss(nBestGroup, GetNeighborhood(pattern, i));
 
-                if ((isValidFunc is null || isValidFunc(nBest)) && nDist <= bDist * 2) {
+                if ((isValidFunc is null || isValidFunc(nBest)) && nDist <= bDist * 2 && nDist < 100) {
                     lastId++;
                     pogs++;
                     Console.WriteLine($"POGGERS match {i}, type = {nBest.DataType}, id = {lastId}, loss = {nDist}");
@@ -149,10 +149,11 @@ namespace Mapperator {
         }
 
         private static double ComputeLoss(MapDataPoint tp, MapDataPoint pp) {
-            double typeLoss = tp.DataType == pp.DataType ? 0 : 50;
-            //double beatsLoss = 100 * Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2));  // Gaps bigger than 2 beats are mostly equal
-            double beatsLoss = 100 * Math.Sqrt(Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2)));
-            double spacingLoss = 2 * Math.Sqrt(Math.Abs(tp.Spacing - pp.Spacing));
+            double typeLoss = tp.DataType == pp.DataType ? 0 : 100; 
+            double beatsLoss = 100 * Math.Sqrt(Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2)));  // Non-slider gaps bigger than 2 beats are mostly equal
+            double spacingLoss = tp.DataType == DataType.Release && pp.DataType == DataType.Release ?
+                4 * Math.Sqrt(Math.Abs(tp.Spacing - pp.Spacing)) :
+                2 * Math.Sqrt(Math.Abs(tp.Spacing - pp.Spacing));
             double angleLoss = 1 * Math.Min(Helpers.Mod(tp.Angle - pp.Angle, MathHelper.TwoPi), Helpers.Mod(pp.Angle - tp.Angle, MathHelper.TwoPi));
             double sliderLoss = tp.SliderType == pp.SliderType ? 0 : 10;
             return typeLoss + beatsLoss + spacingLoss + angleLoss + sliderLoss;
