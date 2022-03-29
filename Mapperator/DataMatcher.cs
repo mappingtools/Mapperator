@@ -49,22 +49,21 @@ namespace Mapperator {
         private MapDataPoint FindBestMatch2(SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern, int i, ref int lastId, ref int pogs, Func<MapDataPoint, bool> isValidFunc = null) {
             const int tries = 200;
             var result = graph.KNNSearch(GetNeighborhood(pattern, i), isValidFunc is null ? 1 : tries);
-            var bestLoss = result[0].Distance;
-            if (lastId != -1) {
-                foreach (var r in result) {
-                    var best = r.Item[r.Item.Length / 2];
-                    if (r.Id == lastId + 1) {
-                        if ((isValidFunc is null || isValidFunc(best)) && r.Distance <= bestLoss * 2) {
-                            lastId = r.Id;
-                            Console.WriteLine($"POGGERS match {i}, type = {best.DataType}, id = {r.Id}, loss = {r.Distance}");
-                            pogs++;
-                            return best;
-                        } else {
-                            break;
-                        }
-                    } 
+
+            // Try to use the next ID instead of the result
+            if (lastId != -1 && lastId + 1 < pattern.Count) {
+                var nBestGroup = graph.GetItem(lastId + 1);
+                var nBest = nBestGroup[nBestGroup.Length / 2];
+                var nDist = WeightedComputeLoss(nBestGroup, GetNeighborhood(pattern, i));
+
+                if ((isValidFunc is null || isValidFunc(nBest)) && nDist <= result[0].Distance * 2) {
+                    lastId++;
+                    pogs++;
+                    Console.WriteLine($"POGGERS match {i}, type = {nBest.DataType}, id = {lastId}, loss = {nDist}");
+                    return nBest;
                 }
             }
+
             for (int j = 0; j < result.Count; j++) {
                 var bestGroup = result[j];
                 var best = bestGroup.Item[bestGroup.Item.Length / 2];
