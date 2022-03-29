@@ -197,7 +197,16 @@ namespace Mapperator {
                         tp.Uninherited = false;
                         tp.SetSliderVelocity(lastSlider.PixelLength / ((time - lastSlider.StartTime) / mpb * 100 * map.Difficulty.SliderMultiplier));
                         controlChanges.Add(new ControlChange(tp, true));
-                    } 
+                        // Rotate the end towards the release pos
+                        lastSlider.RecalculateEndPosition();
+                        var ogPos = lastSlider.Pos;
+                        var ogTheta = (lastSlider.EndPos - ogPos).Theta;
+                        var newTheta = (pos - ogPos).Theta;
+                        if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
+                            lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
+                            lastSlider.Move(ogPos - lastSlider.Pos);
+                        }
+                    }
                 }
 
                 if (match.DataType == DataType.Hit) {
@@ -212,7 +221,6 @@ namespace Mapperator {
                     var ho = decoder.Decode(match.HitObject);
                     if (ho is Slider slider) {
                         slider.RepeatCount = 0;
-                        slider.Transform(Matrix2.CreateRotation(angle));
                         if (originalHo is Slider oSlider) {
                             slider.RepeatCount = oSlider.RepeatCount;
                         }
@@ -240,18 +248,6 @@ namespace Mapperator {
 
             if (!PosInBounds(pos)) {
                 return false;
-            } 
-
-            if (!string.IsNullOrEmpty(match.HitObject)) {
-                var ho = decoder.Decode(match.HitObject);
-                if (ho is Slider slider) {
-                    slider.Transform(Matrix2.CreateRotation(angle));
-                    ho.Move(pos - ho.Pos);
-                    slider.RecalculateEndPosition();
-                    if (!PosInBounds(slider.EndPos)) {
-                        return false;
-                    }
-                }
             }
 
             return true;

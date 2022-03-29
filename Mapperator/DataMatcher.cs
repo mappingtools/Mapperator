@@ -52,21 +52,24 @@ namespace Mapperator {
             var bestLoss = result[0].Distance;
             if (lastId != -1) {
                 foreach (var r in result) {
-                    if (r.Id == lastId + 1 && r.Distance <= bestLoss * 2) {
-                        lastId = r.Id;
-                        var best = r.Item[r.Item.Length / 2];
-                        Console.WriteLine($"POGGERS match {i}, loss = {r.Distance}, type = {best.DataType}, id = {r.Id}");
-                        pogs++;
-                        return best;
+                    var best = r.Item[r.Item.Length / 2];
+                    if (r.Id == lastId + 1) {
+                        if ((isValidFunc is null || isValidFunc(best)) && r.Distance <= bestLoss * 2) {
+                            lastId = r.Id;
+                            Console.WriteLine($"POGGERS match {i}, type = {best.DataType}, id = {r.Id}, loss = {r.Distance}");
+                            pogs++;
+                            return best;
+                        } else {
+                            break;
+                        }
                     } 
                 }
             }
-            
             for (int j = 0; j < result.Count; j++) {
                 var bestGroup = result[j];
                 var best = bestGroup.Item[bestGroup.Item.Length / 2];
                 if (isValidFunc is null || isValidFunc(best)) {
-                    Console.WriteLine($"Match {i}, loss = {bestGroup.Distance}, type = {best.DataType}, id = {bestGroup.Id}");
+                    Console.WriteLine($"Match {i}, type = {best.DataType}, id = {bestGroup.Id}, loss = {bestGroup.Distance}");
                     lastId = bestGroup.Id;
                     return best;
                 }
@@ -147,10 +150,10 @@ namespace Mapperator {
         private static double ComputeLoss(MapDataPoint tp, MapDataPoint pp) {
             double typeLoss = tp.DataType == pp.DataType ? 0 : 50;
             //double beatsLoss = 100 * Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2));  // Gaps bigger than 2 beats are mostly equal
-            double beatsLoss = 100 * Math.Sqrt(Math.Abs(tp.BeatsSince - pp.BeatsSince));
+            double beatsLoss = 100 * Math.Sqrt(Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2)));
             double spacingLoss = 2 * Math.Sqrt(Math.Abs(tp.Spacing - pp.Spacing));
             double angleLoss = 1 * Math.Min(Helpers.Mod(tp.Angle - pp.Angle, MathHelper.TwoPi), Helpers.Mod(pp.Angle - tp.Angle, MathHelper.TwoPi));
-            double sliderLoss = tp.SliderType == pp.SliderType ? 0 : 1;
+            double sliderLoss = tp.SliderType == pp.SliderType ? 0 : 10;
             return typeLoss + beatsLoss + spacingLoss + angleLoss + sliderLoss;
         }
 
