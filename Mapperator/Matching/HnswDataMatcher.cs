@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Mapperator {
-    public class DataMatcher {
+namespace Mapperator.Matching {
+    public class HnswDataMatcher : IDataMatcher, ISerializable {
         private class ConsoleProgressReporter : IProgressReporter {
             public void Progress(int current, int total) {
                 if (current % 1000 == 0 || current == total)
@@ -15,46 +15,57 @@ namespace Mapperator {
             }
         }
 
-        private readonly double[] weightsNormalized;
+        private SmallWorld<MapDataPoint[], double> graph;
+        private IReadOnlyList<MapDataPoint[]> points;
+        private int lastId;
+        private int pogs;
+
         private readonly double[] weights = new double[] { 4, 9, 16, 9, 4 };
         private readonly double[] weightsSums = new double[] { 16, 25, 34, 38, 42, 44, 46, 47, 48 };
         private readonly int weightsMiddle = 2;
 
-        public DataMatcher() {
-            double s = weights.Sum();
-            weightsNormalized = weights.Select(o => o / s).ToArray();  // Normalized weights
+        public HnswDataMatcher() {
+            var parameters = new SmallWorld<MapDataPoint[], double>.Parameters() {
+                M = 32,
+                LevelLambda = 1 / Math.Log(32),
+            };
+
+            graph = new SmallWorld<MapDataPoint[], double>(WeightedComputeLoss, DefaultRandomGenerator.Instance, parameters);
         }
 
-        public IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> trainData, IReadOnlyList<MapDataPoint> pattern) {
-            for (int i = 0; i < pattern.Count; i++) {
-                yield return FindBestMatch(trainData, pattern, i);
-            }
+        public void AddData(IEnumerable<MapDataPoint> data) {
+            Console.WriteLine("Folding data...");
+            var foldedData = FoldData(data.ToList());
+
+            Console.WriteLine("Adding items to graph...");
+            
+            graph.AddItems(foldedData, new ConsoleProgressReporter());
+            points = graph.Items;
         }
 
-        public IEnumerable<MapDataPoint> FindSimilarData2(SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc = null) {
+        public IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc = null) {
             Console.WriteLine("Searching for matches");
             // We want to replace the previous parts of the pattern with the matches we found so the next matches have a better chance
             // of continuing the previous pattern
-            MapDataPoint[] newPattern = pattern.ToArray();
-            var items = graph.Items;
-            int lastId = -1;
-            int pogs = 0;
+            var newPattern = pattern.ToArray();
+            lastId = -1;
+            pogs = 0;
             for (int i = 0; i < pattern.Count; i++) {
-                var match = FindBestMatch2(items, graph, newPattern, i, ref lastId, ref pogs, isValidFunc);
+                var match = FindBestMatch(newPattern, i, isValidFunc);
                 newPattern[i] = match;
                 yield return match;
             }
             Console.WriteLine($"Pograte = {(float)pogs / pattern.Count}");
         }
 
-        private MapDataPoint FindBestMatch2(IReadOnlyList<MapDataPoint[]> items, SmallWorld<MapDataPoint[], double> graph, IReadOnlyList<MapDataPoint> pattern, int i, ref int lastId, ref int pogs, Func<MapDataPoint, bool> isValidFunc = null) {
+        public MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc = null) {
             const int tries = 200;
             var result = graph.KNNSearch(GetNeighborhood(pattern, i), isValidFunc is null ? 1 : tries);
 
             // Try to use the next ID instead of the result
             var bDist = result[0].Distance;
-            if (lastId != -1 && lastId + 1 < items.Count) {
-                var nBestGroup = items[lastId + 1];
+            if (lastId != -1 && lastId + 1 < points.Count) {
+                var nBestGroup = points[lastId + 1];
                 var nBest = nBestGroup[nBestGroup.Length / 2];
                 var nDist = WeightedComputeLoss(nBestGroup, GetNeighborhood(pattern, i));
 
@@ -79,42 +90,8 @@ namespace Mapperator {
             return result[0].Item[result[0].Item.Length / 2];
         }
 
-        private MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> trainData, IReadOnlyList<MapDataPoint> pattern, int i) {
-            // Find the element of trainData which is locally the most similar to pattern at i
-
-            // Normalize the weights for this offset
-            const int mid = 4;  // Middle index of the kernel
-            int lm = Math.Min(mid, i);  // Left index of the kernel
-            int rm = Math.Min(weights.Length - mid, pattern.Count - i) - 1;  // Right index of the kernel
-            int l = lm + rm + 1;  // Length of the kernel
-            double s = 0;
-            for (int k = mid - lm; k < mid + rm; k++) {
-                s += weights[k];
-            }
-            double[] normalizedWeights = weights.Select(o => o / s).ToArray();  // Normalized weights
-
-            double bestLoss = double.PositiveInfinity;
-            int bestPoint = 0;
-            for (int j = lm; j < trainData.Count - rm; j++) {
-                double loss = 0;
-                for (int k = j - lm; k < j + rm; k++) {
-                    var w = normalizedWeights[k - j + mid];
-                    loss += w * ComputeLoss(trainData[k], pattern[k - j + i]);
-                }
-
-                if (loss < bestLoss) {
-                    bestLoss = loss;
-                    bestPoint = j;
-                }
-            }
-            // TODO: Disqualify patterns which would result in current or future objects outside of the mapping bounding box
-            // TODO: Use topological data structures to decrease searching time hopefully to log(N)
-
-            return trainData[bestPoint];
-        }
-
         private List<MapDataPoint[]> FoldData(IReadOnlyList<MapDataPoint> data) {
-            List<MapDataPoint[]> foldedData = new List<MapDataPoint[]>(data.Count);
+            var foldedData = new List<MapDataPoint[]>(data.Count);
             for (int i = 0; i < data.Count; i++) {
                 foldedData.Add(GetNeighborhood(data, i));
             }
@@ -128,7 +105,7 @@ namespace Mapperator {
             rm = Math.Min(rm, lm);
             int l = lm + rm + 1;  // Length of the kernel
 
-            MapDataPoint[] dataPoints = new MapDataPoint[l];
+            var dataPoints = new MapDataPoint[l];
             for (int k = 0; k < l; k++) {
                 dataPoints[k] = data[i + k - lm];
             }
@@ -149,7 +126,7 @@ namespace Mapperator {
         }
 
         private static double ComputeLoss(MapDataPoint tp, MapDataPoint pp) {
-            double typeLoss = tp.DataType == pp.DataType ? 0 : 100; 
+            double typeLoss = tp.DataType == pp.DataType ? 0 : 100;
             double beatsLoss = 100 * Math.Sqrt(Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2)));  // Non-slider gaps bigger than 2 beats are mostly equal
             double spacingLoss = tp.DataType == DataType.Release && pp.DataType == DataType.Release ?
                 4 * Math.Sqrt(Math.Abs(tp.Spacing - pp.Spacing)) :
@@ -159,35 +136,21 @@ namespace Mapperator {
             return typeLoss + beatsLoss + spacingLoss + angleLoss + sliderLoss;
         }
 
-        #region Graph Creation
+        #region Graph Serialization
 
-        public SmallWorld<MapDataPoint[], double> CreateGraph(IReadOnlyList<MapDataPoint> data) {
-            Console.WriteLine("Folding data...");
-            var foldedData = FoldData(data);
+        public string DefaultExtension => ".hnsw";
 
-            Console.WriteLine("Starting graph creation...");
-            var parameters = new SmallWorld<MapDataPoint[], double>.Parameters() {
-                M = 32,
-                LevelLambda = 1 / Math.Log(32),
-            };
-
-            var graph = new SmallWorld<MapDataPoint[], double>(WeightedComputeLoss, DefaultRandomGenerator.Instance, parameters);
-            graph.AddItems(foldedData, new ConsoleProgressReporter());
-
-            return graph;
+        public void Save(Stream stream) {
+            graph.SerializeGraph(stream);
         }
 
-        public void SaveGraph(SmallWorld<MapDataPoint[], double> graph, string path) {
-            using Stream file = File.Create(path);
-            graph.SerializeGraph(file);
-        }
-
-        public SmallWorld<MapDataPoint[], double> LoadGraph(IReadOnlyList<MapDataPoint> data, string path) {
+        public void Load(IEnumerable<MapDataPoint> data, Stream stream) {
             Console.WriteLine("Folding data...");
-            var foldedData = FoldData(data);
+            var foldedData = FoldData(data.ToList());
+
             Console.WriteLine("Loading graph from file...");
-            using Stream file = File.OpenRead(path);
-            return SmallWorld<MapDataPoint[], double>.DeserializeGraph(foldedData, WeightedComputeLoss, DefaultRandomGenerator.Instance, file);
+            graph = SmallWorld<MapDataPoint[], double>.DeserializeGraph(foldedData, WeightedComputeLoss, DefaultRandomGenerator.Instance, stream);
+            points = graph.Items;
         }
 
         #endregion

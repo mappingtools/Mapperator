@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using HNSW.Net;
+using Mapperator.Matching;
 using Mapperator.Model;
 using Mapperator.Resources;
 using Mapping_Tools_Core;
@@ -30,13 +31,16 @@ namespace Mapperator {
             public string OutputName { get; set; }
         }
 
-        [Verb("build", HelpText = "Build a HNSW graph using extracted beatmap data.")]
+        [Verb("build", HelpText = "Build a data structure using extracted beatmap data.")]
         class BuildOptions {
             [Option('d', "data", Required = true, HelpText = "Input extracted beatmap data for the graph.")]
             public string DataPath { get; set; }
 
-            [Option('h', "graphOutput", Required = true, HelpText = "Filename for the generated HNSW graph data.")]
-            public string OutputGraphName { get; set; }
+            [Option('h', "structOutput", Required = true, HelpText = "Filename for the generated data structure.")]
+            public string OutputStructName { get; set; }
+
+            [Option('m', "matcher", Default = MatcherType.HNSW, HelpText = "The type of data matcher to use.")]
+            public MatcherType MatcherType { get; set; }
         }
 
         [Verb("convert", HelpText = "Reconstruct a beatmap using extracted beatmap data.")]
@@ -50,11 +54,14 @@ namespace Mapperator {
             [Option('o', "output", Required = true, HelpText = "Filename of the output.")]
             public string OutputName { get; set; }
 
-            [Option('g', "graph", HelpText = "HNSW graph data file to speed up conversion.")]
-            public string GraphPath { get; set; }
+            [Option('g', "structInput", HelpText = "Serialized data structure file to speed up matching.")]
+            public string InputStructName { get; set; }
 
-            [Option('h', "graphOutput", HelpText = "Filename for the generated HNSW graph data.")]
-            public string OutputGraphName { get; set; }
+            [Option('h', "structOutput", HelpText = "Filename for the generated data structure.")]
+            public string OutputStructName { get; set; }
+
+            [Option('m', "matcher", Default = MatcherType.HNSW, HelpText = "The type of data matcher to use.")]
+            public MatcherType MatcherType { get; set; }
         }
 
         [Verb("search", HelpText = "Search your entire Songs folder for a specific pattern.")]
@@ -126,28 +133,49 @@ namespace Mapperator {
             return false;
         }
 
+        private static IDataMatcher GetDataMatcher(MatcherType matcherType) {
+            return matcherType switch {
+                MatcherType.Simple => new SimpleDataMatcher(),
+                MatcherType.HNSW => new HnswDataMatcher(),
+                _ => throw new NotImplementedException()
+            };
+        }
+
         private static int DoBuildGraph(BuildOptions opts) {
             var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt"))).ToList();
-            var matcher = new DataMatcher();
-            var graph = matcher.CreateGraph(trainData);
-            matcher.SaveGraph(graph, Path.ChangeExtension(opts.OutputGraphName, ".hnsw"));
+            IDataMatcher matcher = GetDataMatcher(opts.MatcherType);
+
+            if (matcher is not ISerializable sMatcher) {
+                Console.WriteLine($"The {opts.MatcherType} matcher is not compatible with building.");
+                return 0;
+            }
+
+            matcher.AddData(trainData);
+            using Stream file = File.Create(Path.ChangeExtension(opts.OutputStructName, sMatcher.DefaultExtension));
+            sMatcher.Save(file);
             return 0;
         }
 
         private static int DoMapConvert(ConvertOptions opts) {
             Console.WriteLine("Extracting data...");
-            var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt"))).ToList();
+            var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt")));
             var map = new BeatmapEditor(Path.ChangeExtension(opts.InputBeatmapPath, ".osu")).ReadFile();
             var input = new DataExtractor().ExtractBeatmapData(map).ToList();
 
-            var matcher = new DataMatcher();
-            SmallWorld<MapDataPoint[], double> graph;
-            if (!string.IsNullOrEmpty(opts.GraphPath) && File.Exists(Path.ChangeExtension(opts.GraphPath, ".hnsw"))) {
-                graph = matcher.LoadGraph(trainData, Path.ChangeExtension(opts.GraphPath, ".hnsw"));
+            IDataMatcher matcher = GetDataMatcher(opts.MatcherType);
+
+            // Add the data to the matcher or load the data
+            if (matcher is ISerializable sMatcher && 
+                !string.IsNullOrEmpty(opts.InputStructName) && 
+                File.Exists(Path.ChangeExtension(opts.InputStructName, sMatcher.DefaultExtension))) {
+                using Stream file = File.OpenRead(Path.ChangeExtension(opts.InputStructName, sMatcher.DefaultExtension));
+                sMatcher.Load(trainData, file);
             } else {
-                graph = matcher.CreateGraph(trainData);
-                if (!string.IsNullOrEmpty(opts.OutputGraphName))
-                    matcher.SaveGraph(graph, Path.ChangeExtension(opts.OutputGraphName, ".hnsw"));
+                matcher.AddData(trainData);
+                if (matcher is ISerializable sMatcher2 && !string.IsNullOrEmpty(opts.OutputStructName)) {
+                    using Stream file = File.Create(Path.ChangeExtension(opts.OutputStructName, sMatcher2.DefaultExtension));
+                    sMatcher2.Save(file);
+                }
             }
 
             // Construct new beatmap
@@ -162,7 +190,7 @@ namespace Mapperator {
             map.Metadata.Version = "Converted";
             map.HitObjects.Clear();
             map.Editor.Bookmarks.Clear();
-            foreach (var match in matcher.FindSimilarData2(graph, input, m => IsInBounds(m, pos, angle, decoder))) {
+            foreach (var match in matcher.FindSimilarData(input, m => IsInBounds(m, pos, angle, decoder))) {
                 var original = input[i++];
                 var originalHo = string.IsNullOrWhiteSpace(original.HitObject) ? null : decoder.Decode(original.HitObject);
 
