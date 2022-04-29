@@ -77,13 +77,19 @@ namespace Mapperator.Matching {
             var best = new WordPosition<int>(0, 0);
             var bestLength = -1;
             while (searchLength > 0 && result.Count == 0) {
-                var lookBack = searchLength / 2;
+                var lookBack = Math.Min(i, searchLength / 2);
                 result = rhythmTrie
                     .RetrieveSubstrings(localPatternRhythmString.Span.Slice(i - lookBack, searchLength))
                     .ToList();
 
                 // Find the best match
                 foreach (var wordPosition in result) {
+                    Console.WriteLine(wordPosition.CharPosition);
+                    Console.WriteLine(lookBack);
+                    Console.WriteLine(searchLength);
+                    Console.WriteLine(GetMatchLength(wordPosition, localPatternRhythmString.Span.Slice(i - lookBack, searchLength)));
+                    Console.WriteLine(string.Join('-', Enumerable.Range(0, searchLength+10).Select(o => ToRhythmToken(GetMapDataPoint(wordPosition, o)))));
+                    Console.WriteLine(string.Join('-', localPatternRhythmString.Span.Slice(i - lookBack, searchLength + 10).ToArray()));
                     // Get the position of the middle data point
                     var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
 
@@ -107,6 +113,7 @@ namespace Mapperator.Matching {
                 searchLength--;
             }
 
+            lastId = best;
             Console.WriteLine($"match {i}, id = {lastId}, length = {bestLength}");
 
             return GetMapDataPoint(best);
@@ -139,6 +146,12 @@ namespace Mapperator.Matching {
 
         private MapDataPoint GetMapDataPoint(WordPosition<int> wordPosition, int offset = 0) {
             return mapDataPoints[wordPosition.Value][(int) wordPosition.CharPosition + offset];
+        }
+
+        private bool WordPositionInRange(WordPosition<int> wordPosition, int offset = 0) {
+            return wordPosition.Value < mapDataPoints.Count && wordPosition.Value >= 0 &&
+                wordPosition.CharPosition + offset < mapDataPoints[wordPosition.Value].Count &&
+                wordPosition.CharPosition + offset >= 0;
         }
 
         private int GetMatchLength(WordPosition<int> wordPosition, ReadOnlySpan<byte> pattern) {

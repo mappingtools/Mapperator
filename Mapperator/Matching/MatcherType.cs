@@ -2,5 +2,6 @@
     public enum MatcherType {
         Simple,
         HNSW,
+        Trie
     }
 }

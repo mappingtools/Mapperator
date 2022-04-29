@@ -138,6 +138,7 @@ namespace Mapperator {
             return matcherType switch {
                 MatcherType.Simple => new SimpleDataMatcher(),
                 MatcherType.HNSW => new HnswDataMatcher(),
+                MatcherType.Trie => new TrieDataMatcher(),
                 _ => throw new NotImplementedException()
             };
         }

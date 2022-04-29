@@ -6,7 +6,7 @@
     },
     "ConvertMap": {
       "commandName": "Project",
-      "commandLineArgs": "convert -d test -i \"Resources\\input\" -o output -g kgraph -h kgraph"
+      "commandLineArgs": "convert -d test -i \"Resources\\input\" -o output -g kgraph -h kgraph -m Trie"
     },
     "Search": {
       "commandName": "Project",
