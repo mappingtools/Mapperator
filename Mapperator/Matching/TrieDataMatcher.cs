@@ -88,7 +88,7 @@ namespace Mapperator.Matching {
                     var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
                     var dataPoint = GetMapDataPoint(middlePos);
 
-                    if (isValidFunc is not null && isValidFunc(dataPoint)) {
+                    if (isValidFunc is not null && !IsValidSeries(middlePos, searchLength - lookBack, isValidFunc)) {
                         continue;
                     }
 
@@ -111,6 +111,30 @@ namespace Mapperator.Matching {
             Console.WriteLine($"match {i}, id = {lastId}, length = {bestLength}");
 
             return GetMapDataPoint(best);
+        }
+
+        private bool IsValidSeries(WordPosition<int> wordPosition, int count, Func<MapDataPoint, bool> isValidFunc) {
+            double cumulativeAngle = 0;
+            Vector2 pos = Vector2.Zero;
+            double beatsSince = 0;
+            for (int i = 0; i < count; i++) {
+                var dataPoint = GetMapDataPoint(wordPosition, i);
+
+                cumulativeAngle += dataPoint.Angle;
+                var dir = Vector2.Rotate(Vector2.UnitX, cumulativeAngle);
+                pos += dataPoint.Spacing * dir;
+                beatsSince += dataPoint.BeatsSince;
+
+                // Create a new datapoint with the cumulated angle and distance and gap
+                var cumulativeDataPoint = new MapDataPoint(dataPoint.DataType, beatsSince, pos.Length, pos.Theta,
+                    dataPoint.SliderType, dataPoint.Repeats, dataPoint.HitObject);
+
+                if (!isValidFunc(cumulativeDataPoint)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private MapDataPoint GetMapDataPoint(WordPosition<int> wordPosition, int offset = 0) {
