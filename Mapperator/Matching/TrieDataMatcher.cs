@@ -124,11 +124,12 @@ namespace Mapperator.Matching {
                 pos += dataPoint.Spacing * dir;
                 beatsSince += dataPoint.BeatsSince;
 
-                // Create a new datapoint with the cumulated angle and distance and gap
-                var cumulativeDataPoint = new MapDataPoint(dataPoint.DataType, beatsSince, pos.Length, pos.Theta,
-                    dataPoint.SliderType, dataPoint.Repeats, dataPoint.HitObject);
+                // Test a new datapoint with the cumulated angle and distance and gap
+                dataPoint.BeatsSince = beatsSince;
+                dataPoint.Spacing = pos.Length;
+                dataPoint.Angle = pos.Theta;
 
-                if (!isValidFunc(cumulativeDataPoint)) {
+                if (!isValidFunc(dataPoint)) {
                     return false;
                 }
             }

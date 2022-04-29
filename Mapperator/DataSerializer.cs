@@ -11,7 +11,7 @@ namespace Mapperator {
         }
 
         public static string SerializeBeatmapDataSample(MapDataPoint data) {
-            return $"{(int)data.DataType} {data.BeatsSince:N4} {data.Spacing:N0} {data.Angle:N4} {(data.SliderType.HasValue ? (int) data.SliderType : string.Empty)} {data.Repeats} {data.HitObject}";
+            return $"{(int)data.DataType} {data.BeatsSince:N4} {data.Spacing:N0} {data.Angle:N4} {(data.NewCombo ? 1 : 0)} {(data.SliderType.HasValue ? (int) data.SliderType : string.Empty)} {data.Repeats} {data.HitObject}";
         }
 
         public static IEnumerable<MapDataPoint> DeserializeBeatmapData(IEnumerable<string> data) {
@@ -27,9 +27,10 @@ namespace Mapperator {
                 double.Parse(split[1]),
                 double.Parse(split[2]),
                 double.Parse(split[3]),
-                string.IsNullOrEmpty(split[4]) ? null : (PathType)int.Parse(split[4]),
-                string.IsNullOrEmpty(split[5]) ? null : int.Parse(split[5]),
-                split[6]
+                split[4] == "1",
+                string.IsNullOrEmpty(split[5]) ? null : (PathType)int.Parse(split[5]),
+                string.IsNullOrEmpty(split[6]) ? null : int.Parse(split[6]),
+                split[7]
                 );
         }
     }

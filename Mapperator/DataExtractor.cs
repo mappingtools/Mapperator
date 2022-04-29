@@ -7,7 +7,6 @@ using Mapping_Tools_Core.BeatmapHelper.IO.Encoding.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.TimingStuff;
 using Mapping_Tools_Core.MathUtil;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Mapperator {
     public class DataExtractor {
@@ -80,6 +79,7 @@ namespace Mapperator {
                                 timing.GetBeatLength(lastTime, time),
                                 spacingOverride ?? Vector2.Distance(pos, lastPos),
                                 mirror ? -angle : angle,
+                                dataType == DataType.Hit && ho.NewCombo,
                                 sliderType,
                                 repeats,
                                 hoString
