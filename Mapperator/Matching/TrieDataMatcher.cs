@@ -86,7 +86,6 @@ namespace Mapperator.Matching {
                 foreach (var wordPosition in result) {
                     // Get the position of the middle data point
                     var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
-                    var dataPoint = GetMapDataPoint(middlePos);
 
                     if (isValidFunc is not null && !IsValidSeries(middlePos, searchLength - lookBack, isValidFunc)) {
                         continue;
