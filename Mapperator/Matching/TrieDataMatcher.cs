@@ -69,38 +69,43 @@ namespace Mapperator.Matching {
         }
 
         public MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc = null) {
-            const int firstSearchLength = 8;
+            const int firstSearchLength = 16;
 
             var localPatternRhythmString = patternRhythmString ?? ToRhythmString(pattern);
-            int searchLength = firstSearchLength;
-            List<WordPosition<int>> result = new List<WordPosition<int>>();
+            var searchLength = firstSearchLength;
+            var result = new List<WordPosition<int>>();
+            var best = new WordPosition<int>(0, 0);
+            var bestLength = -1;
             while (searchLength > 0 && result.Count == 0) {
-                result = rhythmTrie.RetrieveSubstrings(localPatternRhythmString.Span.Slice(i - searchLength / 2, searchLength)).ToList();
+                result = rhythmTrie
+                    .RetrieveSubstrings(localPatternRhythmString.Span.Slice(i - searchLength / 2, searchLength))
+                    .ToList();
+
+                // Find the best match
+                foreach (var wordPosition in result) {
+                    var dataPoint = GetMapDataPoint(wordPosition);
+
+                    if (isValidFunc is not null && isValidFunc(dataPoint)) {
+                        continue;
+                    }
+
+                    if (lastId.HasValue && wordPosition.Value == lastId.Value.Value &&
+                        wordPosition.CharPosition == lastId.Value.CharPosition + 1) {
+                        bestLength = searchLength;
+                        best = wordPosition;
+                        pogs++;
+                        break;
+                    }
+
+                    if (searchLength > bestLength) {
+                        bestLength = searchLength;
+                        best = wordPosition;
+                    }
+                }
                 searchLength--;
             }
 
-            if (result.Count == 0) {
-                return mapDataPoints[0][0];
-            }
-            
-            searchLength++;
-            var best = result.First();
-            var bestLength = 0;
-            foreach (var wordPosition in result) {
-                int length = GetMatchLength(wordPosition, localPatternRhythmString.Span[(i - searchLength)..]);
-                if (lastId.HasValue && wordPosition.Value == lastId.Value.Value &&
-                    wordPosition.CharPosition == lastId.Value.CharPosition + 1) {
-                    pogs++;
-                    best = wordPosition;
-                    break;
-                }
-                if (length > bestLength) {
-                    bestLength = length;
-                    best = wordPosition;
-                }
-            }
-
-            lastId = best;
+            Console.WriteLine($"match {i}, id = {lastId}, length = {bestLength}");
 
             return GetMapDataPoint(best);
         }
