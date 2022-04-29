@@ -77,29 +77,32 @@ namespace Mapperator.Matching {
             var best = new WordPosition<int>(0, 0);
             var bestLength = -1;
             while (searchLength > 0 && result.Count == 0) {
+                var lookBack = searchLength / 2;
                 result = rhythmTrie
-                    .RetrieveSubstrings(localPatternRhythmString.Span.Slice(i - searchLength / 2, searchLength))
+                    .RetrieveSubstrings(localPatternRhythmString.Span.Slice(i - lookBack, searchLength))
                     .ToList();
 
                 // Find the best match
                 foreach (var wordPosition in result) {
-                    var dataPoint = GetMapDataPoint(wordPosition);
+                    // Get the position of the middle data point
+                    var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
+                    var dataPoint = GetMapDataPoint(middlePos);
 
                     if (isValidFunc is not null && isValidFunc(dataPoint)) {
                         continue;
                     }
 
                     if (lastId.HasValue && wordPosition.Value == lastId.Value.Value &&
-                        wordPosition.CharPosition == lastId.Value.CharPosition + 1) {
+                        middlePos.CharPosition == lastId.Value.CharPosition + 1) {
                         bestLength = searchLength;
-                        best = wordPosition;
+                        best = middlePos;
                         pogs++;
                         break;
                     }
 
                     if (searchLength > bestLength) {
                         bestLength = searchLength;
-                        best = wordPosition;
+                        best = middlePos;
                     }
                 }
                 searchLength--;
