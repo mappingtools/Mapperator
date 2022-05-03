@@ -88,8 +88,8 @@ namespace Mapperator.Matching {
                     Console.WriteLine(lookBack);
                     Console.WriteLine(searchLength);
                     Console.WriteLine(GetMatchLength(wordPosition, localPatternRhythmString.Span.Slice(i - lookBack, searchLength)));
-                    Console.WriteLine(string.Join('-', Enumerable.Range(0, searchLength+10).Select(o => ToRhythmToken(GetMapDataPoint(wordPosition, o)))));
-                    Console.WriteLine(string.Join('-', localPatternRhythmString.Span.Slice(i - lookBack, searchLength + 10).ToArray()));
+                    Console.WriteLine(string.Join('-', Enumerable.Range(0, searchLength).Select(o => ToRhythmToken(GetMapDataPoint(wordPosition, o)))));
+                    Console.WriteLine(string.Join('-', localPatternRhythmString.Span.Slice(i - lookBack, searchLength).ToArray()));
                     // Get the position of the middle data point
                     var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
 
