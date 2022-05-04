@@ -29,7 +29,7 @@ namespace MapperatorTests.Matching {
         [TestCase(new byte[] { 9, 10, 11 }, new int[] { })]
         public void TestSubstrings(byte[] pattern, int[] positions) {
             var result = rhythmTrie.RetrieveSubstrings(pattern).ToList();
-            CollectionAssert.AreEquivalent(positions, result.Select(o => (int) o.CharPosition).ToArray());
+            CollectionAssert.AreEquivalent(positions, result.Select(o => o.CharPosition).ToArray());
         }
     }
 }

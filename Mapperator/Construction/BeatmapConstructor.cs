@@ -76,6 +76,10 @@ namespace Mapperator.Construction {
                                 lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
                                 lastSlider.Move(ogPos - lastSlider.Pos);
                             }
+                            // Add the right number of repeats
+                            if (original.Repeats.HasValue) {
+                                lastSlider.RepeatCount = original.Repeats.Value;
+                            }
                         }
                     } else if (lastMatch is { DataType: DataType.Spin }) {
                         // Make sure the last object is a spinner
@@ -108,8 +112,8 @@ namespace Mapperator.Construction {
                     var ho = decoder.Decode(match.HitObject);
                     if (ho is Slider slider) {
                         slider.RepeatCount = 0;
-                        if (originalHo is Slider oSlider) {
-                            slider.RepeatCount = oSlider.RepeatCount;
+                        if (original.Repeats.HasValue) {
+                            slider.RepeatCount = original.Repeats.Value;
                         }
                     }
                     ho.StartTime = time;

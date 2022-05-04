@@ -7,6 +7,13 @@ using Mapping_Tools_Core.MathUtil;
 
 namespace Mapperator.Matching {
     public class TrieDataMatcher : IDataMatcher {
+        private const int FirstSearchLength = 32;
+        private const double PogBonus = 100;
+        private const double LengthBonus = 50;
+        private const double SpacingWeight = 5;
+        private const double NcLoss = 10;
+        private const double WeightDeviation = 2;
+
         private readonly List<List<MapDataPoint>> mapDataPoints = new();
         private readonly UkkonenTrie<byte, int> rhythmTrie = new(1);
 
@@ -70,14 +77,13 @@ namespace Mapperator.Matching {
         }
 
         public MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc = null) {
-            const int firstSearchLength = 32;
-
             var localPatternRhythmString = patternRhythmString ?? ToRhythmString(pattern);
-            var searchLength = Math.Min(firstSearchLength, localPatternRhythmString.Length);
+            var searchLength = Math.Min(FirstSearchLength, localPatternRhythmString.Length);
             var best = new WordPosition<int>(0, 0);
-            var bestLength = -1;
-            while (searchLength > 0 && bestLength == -1) {
-                var lookBack = MathHelper.Clamp(searchLength / 2, i + searchLength - localPatternRhythmString.Length, i);
+            var bestScore = double.NegativeInfinity;
+            var pogUsed = false;
+            while (searchLength > 0 && bestScore < BestPossibleScore(searchLength, pogUsed)) {
+                var lookBack = MathHelper.Clamp(Math.Min(searchLength / 2, 5), i + searchLength - localPatternRhythmString.Length, i);
                 var query = localPatternRhythmString.Span.Slice(i - lookBack, searchLength);
 
                 var result = rhythmTrie
@@ -92,26 +98,74 @@ namespace Mapperator.Matching {
                         continue;
                     }
 
+                    // Rate the quality of the match
+                    var score = RateMatchQuality(middlePos, pattern, i, searchLength, lookBack);
+
                     if (lastId.HasValue && wordPosition.Value == lastId.Value.Value &&
-                        middlePos.CharPosition == lastId.Value.CharPosition + 1) {
-                        bestLength = searchLength;
-                        best = middlePos;
-                        pogs++;
-                        break;
+                        wordPosition.CharPosition == lastId.Value.CharPosition + 1) {
+                        // Apply pog bonus
+                        score += PogBonus;
+                        pogUsed = true;
                     }
 
-                    if (searchLength > bestLength) {
-                        bestLength = searchLength;
-                        best = middlePos;
-                    }
+                    if (!(score > bestScore)) continue;
+
+                    bestScore = score;
+                    best = middlePos;
                 }
                 searchLength--;
             }
 
+            if (lastId.HasValue && best.Value == lastId.Value.Value &&
+                best.CharPosition == lastId.Value.CharPosition + 1) {
+                pogs++;
+            }
+
             lastId = best;
-            Console.WriteLine($"match {i}, id = {lastId}, length = {bestLength}");
+            Console.WriteLine($"match {i}, id = {lastId}, length = {bestScore}");
 
             return GetMapDataPoint(best);
+        }
+
+        private double BestPossibleScore(int length, bool pogUsed) {
+            double score = 0;
+
+            if (!pogUsed) {
+                score += PogBonus;
+            }
+
+            for (var i = 0; i < length; i++) {
+                // Get a weight factor using the gaussian formula
+                var weight = Math.Exp(-(i * i) / (2 * WeightDeviation * WeightDeviation));
+
+                // Apply match length bonus
+                score += weight * LengthBonus;
+            }
+
+            return score;
+        }
+
+        private double RateMatchQuality(WordPosition<int> pos, IReadOnlyList<MapDataPoint> pattern, int index, int length, int lookBack) {
+            double score = 0;
+
+            for (var i = -lookBack; i < length - lookBack; i++) {
+                var dataPoint = GetMapDataPoint(pos, i);
+                var patternPoint = pattern[index + i];
+
+                // Get a weight factor using the gaussian formula
+                var weight = Math.Exp(-(i * i) / (2 * WeightDeviation * WeightDeviation));
+
+                // Apply match length bonus
+                score += weight * LengthBonus;
+
+                // Subtract loss by difference in data points
+                score -= weight * SpacingWeight * Math.Pow(Math.Abs(dataPoint.Spacing - patternPoint.Spacing), 0.5);
+
+                // Subtract points for having different combo's
+                score -= weight * (dataPoint.NewCombo != patternPoint.NewCombo ? NcLoss : 0);
+            }
+
+            return score;
         }
 
         private bool IsValidSeries(WordPosition<int> wordPosition, int count, Func<MapDataPoint, bool> isValidFunc) {

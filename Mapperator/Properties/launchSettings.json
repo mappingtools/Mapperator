@@ -2,7 +2,7 @@
   "profiles": {
     "ExtractData": {
       "commandName": "Project",
-      "commandLineArgs": "extract -c test -o test"
+      "commandLineArgs": "extract -c !Kroytz -o test"
     },
     "ConvertMap": {
       "commandName": "Project",
