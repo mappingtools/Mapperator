@@ -7,7 +7,6 @@ using System.Linq;
 
 namespace MapperatorTests.Matching {
     public class TrieTests {
-        private readonly List<List<MapDataPoint>> mapDataPoints = new();
         private readonly UkkonenTrie<byte, int> rhythmTrie = new(1);
 
         [OneTimeSetUp]

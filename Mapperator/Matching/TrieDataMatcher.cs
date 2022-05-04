@@ -17,11 +17,12 @@ namespace Mapperator.Matching {
         public void AddData(IEnumerable<MapDataPoint> data) {
             var dataList = data.ToList();
             var index = mapDataPoints.Count;
+            var rhythmString = ToRhythmString(dataList);
             mapDataPoints.Add(dataList);
-            rhythmTrie.Add(ToRhythmString(dataList), index);
+            rhythmTrie.Add(rhythmString, index);
         }
 
-        private ReadOnlyMemory<byte> ToRhythmString(IReadOnlyCollection<MapDataPoint> data) {
+        public static ReadOnlyMemory<byte> ToRhythmString(IReadOnlyCollection<MapDataPoint> data) {
             byte[] rhythmString = new byte[data.Count];
             int i = 0;
 
@@ -34,7 +35,7 @@ namespace Mapperator.Matching {
             return rhythmString.AsMemory();
         }
 
-        private byte ToRhythmToken(MapDataPoint mapDataPoint) {
+        public static byte ToRhythmToken(MapDataPoint mapDataPoint) {
             const int gapResolution = 6;
             const int gapRange = 9;
             byte gap = (byte) MathHelper.Clamp((int) Math.Log2(mapDataPoint.BeatsSince) + gapResolution, 0, gapRange - 1);
@@ -69,27 +70,21 @@ namespace Mapperator.Matching {
         }
 
         public MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc = null) {
-            const int firstSearchLength = 16;
+            const int firstSearchLength = 32;
 
             var localPatternRhythmString = patternRhythmString ?? ToRhythmString(pattern);
-            var searchLength = firstSearchLength;
-            var result = new List<WordPosition<int>>();
+            var searchLength = Math.Min(firstSearchLength, localPatternRhythmString.Length);
             var best = new WordPosition<int>(0, 0);
             var bestLength = -1;
-            while (searchLength > 0 && result.Count == 0) {
-                var lookBack = Math.Min(i, searchLength / 2);
-                result = rhythmTrie
-                    .RetrieveSubstrings(localPatternRhythmString.Span.Slice(i - lookBack, searchLength))
-                    .ToList();
+            while (searchLength > 0 && bestLength == -1) {
+                var lookBack = MathHelper.Clamp(searchLength / 2, i + searchLength - localPatternRhythmString.Length, i);
+                var query = localPatternRhythmString.Span.Slice(i - lookBack, searchLength);
+
+                var result = rhythmTrie
+                    .RetrieveSubstrings(query);
 
                 // Find the best match
                 foreach (var wordPosition in result) {
-                    Console.WriteLine(wordPosition.CharPosition);
-                    Console.WriteLine(lookBack);
-                    Console.WriteLine(searchLength);
-                    Console.WriteLine(GetMatchLength(wordPosition, localPatternRhythmString.Span.Slice(i - lookBack, searchLength)));
-                    Console.WriteLine(string.Join('-', Enumerable.Range(0, searchLength).Select(o => ToRhythmToken(GetMapDataPoint(wordPosition, o)))));
-                    Console.WriteLine(string.Join('-', localPatternRhythmString.Span.Slice(i - lookBack, searchLength).ToArray()));
                     // Get the position of the middle data point
                     var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
 
