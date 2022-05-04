@@ -42,35 +42,50 @@ namespace Mapperator.Construction {
 
                 if (match.DataType == DataType.Release) {
                     beatmap.Editor.Bookmarks.Add(time);
-                    // Make sure the last object is a slider
-                    if (beatmap.HitObjects.LastOrDefault() is HitCircle lastCircle) {
-                        beatmap.HitObjects.RemoveAt(beatmap.HitObjects.Count - 1);
-                        var slider = new Slider {
-                            Pos = lastCircle.Pos,
-                            StartTime = lastCircle.StartTime,
-                            SliderType = PathType.Linear,
-                            PixelLength = Vector2.Distance(lastCircle.Pos, pos),
-                            CurvePoints = { pos }
-                        };
-                        beatmap.HitObjects.Add(slider);
-                    }
-                    // Make sure the last object ends at time t and around pos
-                    if (beatmap.HitObjects.LastOrDefault() is Slider lastSlider) {
-                        // Adjust SV
-                        var tp = beatmap.BeatmapTiming.GetTimingPointAtTime(lastSlider.StartTime).Copy();
-                        var mpb = beatmap.BeatmapTiming.GetMpBAtTime(lastSlider.StartTime);
-                        tp.Offset = lastSlider.StartTime;
-                        tp.Uninherited = false;
-                        tp.SetSliderVelocity(lastSlider.PixelLength / ((time - lastSlider.StartTime) / mpb * 100 * beatmap.Difficulty.SliderMultiplier));
-                        controlChanges.Add(new ControlChange(tp, true));
-                        // Rotate the end towards the release pos
-                        lastSlider.RecalculateEndPosition();
-                        var ogPos = lastSlider.Pos;
-                        var ogTheta = (lastSlider.EndPos - ogPos).Theta;
-                        var newTheta = (pos - ogPos).Theta;
-                        if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
-                            lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
-                            lastSlider.Move(ogPos - lastSlider.Pos);
+                    if (lastMatch is { DataType: DataType.Hit }) {
+                        // Make sure the last object is a slider
+                        if (beatmap.HitObjects.LastOrDefault() is HitCircle lastCircle) {
+                            beatmap.HitObjects.RemoveAt(beatmap.HitObjects.Count - 1);
+                            var slider = new Slider {
+                                Pos = lastCircle.Pos,
+                                StartTime = lastCircle.StartTime,
+                                SliderType = PathType.Linear,
+                                PixelLength = Vector2.Distance(lastCircle.Pos, pos),
+                                CurvePoints = { pos }
+                            };
+                            beatmap.HitObjects.Add(slider);
+                        }
+
+                        // Make sure the last object ends at time t and around pos
+                        if (beatmap.HitObjects.LastOrDefault() is Slider lastSlider) {
+                            // Adjust SV
+                            var tp = beatmap.BeatmapTiming.GetTimingPointAtTime(lastSlider.StartTime).Copy();
+                            var mpb = beatmap.BeatmapTiming.GetMpBAtTime(lastSlider.StartTime);
+                            tp.Offset = lastSlider.StartTime;
+                            tp.Uninherited = false;
+                            tp.SetSliderVelocity(lastSlider.PixelLength / ((time - lastSlider.StartTime) / mpb * 100 *
+                                                                           beatmap.Difficulty.SliderMultiplier));
+                            controlChanges.Add(new ControlChange(tp, true));
+                            // Rotate the end towards the release pos
+                            lastSlider.RecalculateEndPosition();
+                            var ogPos = lastSlider.Pos;
+                            var ogTheta = (lastSlider.EndPos - ogPos).Theta;
+                            var newTheta = (pos - ogPos).Theta;
+                            if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
+                                lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
+                                lastSlider.Move(ogPos - lastSlider.Pos);
+                            }
+                        }
+                    } else if (lastMatch is { DataType: DataType.Spin }) {
+                        // Make sure the last object is a spinner
+                        if (beatmap.HitObjects.LastOrDefault() is HitCircle lastCircle) {
+                            beatmap.HitObjects.RemoveAt(beatmap.HitObjects.Count - 1);
+                            var spinner = new Spinner {
+                                Pos = new Vector2(256, 196),
+                                StartTime = lastCircle.StartTime,
+                            };
+                            spinner.SetEndTime(time);
+                            beatmap.HitObjects.Add(spinner);
                         }
                     }
                 }
@@ -83,7 +98,7 @@ namespace Mapperator.Construction {
                     }
                 }
 
-                if (!string.IsNullOrEmpty(match.HitObject)) {
+                if (!string.IsNullOrEmpty(match.HitObject) && match.DataType == DataType.Hit) {
                     var ho = decoder.Decode(match.HitObject);
                     if (ho is Slider slider) {
                         slider.RepeatCount = 0;
