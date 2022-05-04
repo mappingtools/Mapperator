@@ -51,7 +51,7 @@ namespace Mapperator {
                     case Spinner spinner:
                         yield return CreateDataPoint(timing, ho.Pos, ho.StartTime, DataType.Spin, null, null, ho,
                             ref lastLastPos, ref lastPos, ref lastTime, mirror);
-                        yield return CreateDataPoint(timing, ho.Pos, spinner.EndTime, DataType.Release, null, null, ho,
+                        yield return CreateDataPoint(timing, ho.Pos, spinner.EndTime, DataType.Release, null, 0, ho,
                             ref lastLastPos, ref lastPos, ref lastTime, mirror);
                         break;
                 }

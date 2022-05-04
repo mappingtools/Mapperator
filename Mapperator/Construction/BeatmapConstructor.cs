@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Mapperator.Matching;
@@ -87,6 +88,11 @@ namespace Mapperator.Construction {
                             spinner.SetEndTime(time);
                             beatmap.HitObjects.Add(spinner);
                         }
+
+                        // Make sure the last object ends at time t
+                        if (beatmap.HitObjects.LastOrDefault() is Spinner lastSpinner) {
+                            lastSpinner.SetEndTime(time);
+                        }
                     }
                 }
 
@@ -98,7 +104,7 @@ namespace Mapperator.Construction {
                     }
                 }
 
-                if (!string.IsNullOrEmpty(match.HitObject) && match.DataType == DataType.Hit) {
+                if (!string.IsNullOrEmpty(match.HitObject) && match.DataType != DataType.Release) {
                     var ho = decoder.Decode(match.HitObject);
                     if (ho is Slider slider) {
                         slider.RepeatCount = 0;
