@@ -39,7 +39,7 @@ namespace Mapperator.ConsoleApp.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Mapperator.Resources.Strings", typeof(Strings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Mapperator.ConsoleApp.Resources.Strings", typeof(Strings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -87,6 +87,51 @@ namespace Mapperator.ConsoleApp.Resources {
         internal static string NotEnoughArguments {
             get {
                 return ResourceManager.GetString("NotEnoughArguments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {0} matcher is not compatible with building..
+        /// </summary>
+        internal static string Program_DoBuildGraph_The__0__matcher_is_not_compatible_with_building_ {
+            get {
+                return ResourceManager.GetString("Program_DoBuildGraph_The__0__matcher_is_not_compatible_with_building_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Constructing beatmap....
+        /// </summary>
+        internal static string Program_DoMapConvert_Constructing_beatmap___ {
+            get {
+                return ResourceManager.GetString("Program_DoMapConvert_Constructing_beatmap___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extracting data....
+        /// </summary>
+        internal static string Program_DoMapConvert_Extracting_data___ {
+            get {
+                return ResourceManager.GetString("Program_DoMapConvert_Extracting_data___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t parse this map: .
+        /// </summary>
+        internal static string Program_PatternSearchMap_Can_t_parse_this_map__ {
+            get {
+                return ResourceManager.GetString("Program_PatternSearchMap_Can_t_parse_this_map__", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Found match {0} in beatmap: {1}.
+        /// </summary>
+        internal static string Program_PatternSearchMap_Found_match__0__in_beatmap___1_ {
+            get {
+                return ResourceManager.GetString("Program_PatternSearchMap_Found_match__0__in_beatmap___1_", resourceCulture);
             }
         }
         

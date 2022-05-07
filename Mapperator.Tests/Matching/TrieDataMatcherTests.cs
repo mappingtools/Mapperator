@@ -57,7 +57,7 @@ public class TrieDataMatcherTests {
     }
 
     private int GetMatchLength(WordPosition<int> wordPosition, ReadOnlySpan<byte> pattern) {
-        int length = 0;
+        var length = 0;
         while (wordPosition.CharPosition + length < mapDataPoints[wordPosition.Value].Count &&
                length < pattern.Length &&
                TrieDataMatcher.ToRhythmToken(GetMapDataPoint(wordPosition, length)) ==

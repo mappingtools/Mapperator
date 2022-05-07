@@ -8,8 +8,8 @@ using Mapperator.ConsoleApp.Exceptions;
 namespace Mapperator.ConsoleApp {
     public static class DbManager {
         public static IEnumerable<DbBeatmap> GetCollection(string collectionName) {
-            string osuDbPath = Path.Join(ConfigManager.Config.OsuPath, "osu!.db");
-            string collectionPath = Path.Join(ConfigManager.Config.OsuPath, "collection.db");
+            var osuDbPath = Path.Join(ConfigManager.Config.OsuPath, "osu!.db");
+            var collectionPath = Path.Join(ConfigManager.Config.OsuPath, "collection.db");
 
             var db = DatabaseDecoder.DecodeOsu(osuDbPath);
             var collections = DatabaseDecoder.DecodeCollection(collectionPath);

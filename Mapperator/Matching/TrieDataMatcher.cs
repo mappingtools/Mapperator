@@ -27,11 +27,11 @@ namespace Mapperator.Matching {
         }
 
         public static ReadOnlyMemory<byte> ToRhythmString(IReadOnlyCollection<MapDataPoint> data) {
-            byte[] rhythmString = new byte[data.Count];
-            int i = 0;
+            var rhythmString = new byte[data.Count];
+            var i = 0;
 
             foreach (var mapDataPoint in data) {
-                byte ho = ToRhythmToken(mapDataPoint);
+                var ho = ToRhythmToken(mapDataPoint);
                 rhythmString[i] = ho;
                 i++;
             }
@@ -42,7 +42,7 @@ namespace Mapperator.Matching {
         public static byte ToRhythmToken(MapDataPoint mapDataPoint) {
             const int gapResolution = 6;
             const int gapRange = 9;
-            byte gap = (byte) MathHelper.Clamp((int) Math.Log2(mapDataPoint.BeatsSince) + gapResolution, 0, gapRange - 1);
+            var gap = (byte) MathHelper.Clamp((int) Math.Log2(mapDataPoint.BeatsSince) + gapResolution, 0, gapRange - 1);
             return mapDataPoint.DataType switch {
                 DataType.Hit => gap,
                 DataType.Spin => (byte)(gapRange + gap),
@@ -63,7 +63,7 @@ namespace Mapperator.Matching {
             var newPattern = pattern.ToArray();
             lastId = null;
             pogs = 0;
-            for (int i = 0; i < pattern.Count; i++) {
+            for (var i = 0; i < pattern.Count; i++) {
                 var match = FindBestMatch(newPattern, i, isValidFunc);
                 newPattern[i] = match;
                 yield return match;
@@ -167,9 +167,9 @@ namespace Mapperator.Matching {
 
         private bool IsValidSeries(WordPosition<int> wordPosition, int count, Func<MapDataPoint, bool> isValidFunc) {
             double cumulativeAngle = 0;
-            Vector2 pos = Vector2.Zero;
+            var pos = Vector2.Zero;
             double beatsSince = 0;
-            for (int i = 0; i < count; i++) {
+            for (var i = 0; i < count; i++) {
                 var dataPoint = GetMapDataPoint(wordPosition, i);
 
                 cumulativeAngle += dataPoint.Angle;
@@ -201,7 +201,7 @@ namespace Mapperator.Matching {
         }
 
         private int GetMatchLength(WordPosition<int> wordPosition, ReadOnlySpan<byte> pattern) {
-            int length = 0;
+            var length = 0;
             while (wordPosition.CharPosition + length < mapDataPoints[wordPosition.Value].Count &&
                    length < pattern.Length &&
                 ToRhythmToken(GetMapDataPoint(wordPosition, length)) ==

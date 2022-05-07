@@ -46,7 +46,7 @@ namespace Mapperator.Matching {
             var newPattern = pattern.ToArray();
             lastId = -1;
             pogs = 0;
-            for (int i = 0; i < pattern.Count; i++) {
+            for (var i = 0; i < pattern.Count; i++) {
                 var match = FindBestMatch(newPattern, i, isValidFunc);
                 newPattern[i] = match;
                 yield return match;
@@ -73,7 +73,7 @@ namespace Mapperator.Matching {
                 }
             }
 
-            for (int j = 0; j < result.Count; j++) {
+            for (var j = 0; j < result.Count; j++) {
                 var bestGroup = result[j];
                 var best = bestGroup.Item[bestGroup.Item.Length / 2];
                 if (isValidFunc is null || isValidFunc(best)) {
@@ -88,33 +88,33 @@ namespace Mapperator.Matching {
 
         private List<MapDataPoint[]> FoldData(IReadOnlyList<MapDataPoint> data) {
             var foldedData = new List<MapDataPoint[]>(data.Count);
-            for (int i = 0; i < data.Count; i++) {
+            for (var i = 0; i < data.Count; i++) {
                 foldedData.Add(GetNeighborhood(data, i));
             }
             return foldedData;
         }
 
         private MapDataPoint[] GetNeighborhood(IReadOnlyList<MapDataPoint> data, int i) {
-            int lm = Math.Min(weightsMiddle, i);  // Left index of the kernel
-            int rm = Math.Min(weights.Length - weightsMiddle, data.Count - i) - 1;  // Right index of the kernel
+            var lm = Math.Min(weightsMiddle, i);  // Left index of the kernel
+            var rm = Math.Min(weights.Length - weightsMiddle, data.Count - i) - 1;  // Right index of the kernel
             lm = Math.Min(lm, rm + 1);
             rm = Math.Min(rm, lm);
-            int l = lm + rm + 1;  // Length of the kernel
+            var l = lm + rm + 1;  // Length of the kernel
 
             var dataPoints = new MapDataPoint[l];
-            for (int k = 0; k < l; k++) {
+            for (var k = 0; k < l; k++) {
                 dataPoints[k] = data[i + k - lm];
             }
             return dataPoints;
         }
 
         private double WeightedComputeLoss(MapDataPoint[] tp, MapDataPoint[] pp) {
-            int l = Math.Min(tp.Length, pp.Length);
-            int tOffset = Math.Max((tp.Length - pp.Length) / 2, 0);
-            int pOffset = Math.Max((pp.Length - tp.Length) / 2, 0);
-            int weightOffset = (weights.Length - l) / 2;
+            var l = Math.Min(tp.Length, pp.Length);
+            var tOffset = Math.Max((tp.Length - pp.Length) / 2, 0);
+            var pOffset = Math.Max((pp.Length - tp.Length) / 2, 0);
+            var weightOffset = (weights.Length - l) / 2;
             double loss = 0;
-            for (int k = 0; k < l; k++) {
+            for (var k = 0; k < l; k++) {
                 var w = weights[k + weightOffset] / weightsSums[l - 1];
                 loss += w * ComputeLoss(tp[k + tOffset], pp[k + pOffset]);
             }
@@ -123,11 +123,11 @@ namespace Mapperator.Matching {
 
         private static double ComputeLoss(MapDataPoint tp, MapDataPoint pp) {
             double typeLoss = tp.DataType == pp.DataType ? 0 : 100;
-            double beatsLoss = 100 * Math.Sqrt(Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2)));  // Non-slider gaps bigger than 2 beats are mostly equal
-            double spacingLoss = tp.DataType == DataType.Release && pp.DataType == DataType.Release ?
+            var beatsLoss = 100 * Math.Sqrt(Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2)));  // Non-slider gaps bigger than 2 beats are mostly equal
+            var spacingLoss = tp.DataType == DataType.Release && pp.DataType == DataType.Release ?
                 4 * Math.Sqrt(Math.Abs(tp.Spacing - pp.Spacing)) :
                 2 * Math.Sqrt(Math.Abs(tp.Spacing - pp.Spacing));
-            double angleLoss = 1 * Math.Min(Helpers.Mod(tp.Angle - pp.Angle, MathHelper.TwoPi), Helpers.Mod(pp.Angle - tp.Angle, MathHelper.TwoPi));
+            var angleLoss = 1 * Math.Min(Helpers.Mod(tp.Angle - pp.Angle, MathHelper.TwoPi), Helpers.Mod(pp.Angle - tp.Angle, MathHelper.TwoPi));
             double sliderLoss = tp.SliderType == pp.SliderType ? 0 : 10;
             return typeLoss + beatsLoss + spacingLoss + angleLoss + sliderLoss;
         }

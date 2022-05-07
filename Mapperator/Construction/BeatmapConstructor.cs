@@ -20,9 +20,9 @@ namespace Mapperator.Construction {
 
         [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
         public void PopulateBeatmap(IBeatmap beatmap, IReadOnlyList<MapDataPoint> input, IDataMatcher matcher) {
-            int i = 0;
+            var i = 0;
             double time = 0;
-            Vector2 pos = new Vector2(256, 196);
+            var pos = new Vector2(256, 196);
             double angle = 0;
             MapDataPoint? lastMatch = null;
             var controlChanges = new List<ControlChange>();

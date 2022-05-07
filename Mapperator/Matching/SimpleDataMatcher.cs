@@ -15,7 +15,7 @@ namespace Mapperator.Matching {
         }
 
         public IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc = null) {
-            for (int i = 0; i < pattern.Count; i++) {
+            for (var i = 0; i < pattern.Count; i++) {
                 yield return FindBestMatch(pattern, i, isValidFunc);
             }
         }
@@ -25,20 +25,20 @@ namespace Mapperator.Matching {
 
             // Normalize the weights for this offset
             const int mid = 3;  // Middle index of the kernel
-            int lm = Math.Min(mid, i);  // Left index of the kernel
-            int rm = Math.Min(weights.Length - mid, pattern.Count - i) - 1;  // Right index of the kernel
-            int l = lm + rm + 1;  // Length of the kernel
+            var lm = Math.Min(mid, i);  // Left index of the kernel
+            var rm = Math.Min(weights.Length - mid, pattern.Count - i) - 1;  // Right index of the kernel
+            var l = lm + rm + 1;  // Length of the kernel
             double s = 0;
-            for (int k = mid - lm; k < mid + rm; k++) {
+            for (var k = mid - lm; k < mid + rm; k++) {
                 s += weights[k];
             }
-            double[] normalizedWeights = weights.Select(o => o / s).ToArray();  // Normalized weights
+            var normalizedWeights = weights.Select(o => o / s).ToArray();  // Normalized weights
 
-            double bestLoss = double.PositiveInfinity;
-            int bestPoint = 0;
-            for (int j = lm; j < mapDataPoints.Count - rm; j++) {
+            var bestLoss = double.PositiveInfinity;
+            var bestPoint = 0;
+            for (var j = lm; j < mapDataPoints.Count - rm; j++) {
                 double loss = 0;
-                for (int k = j - lm; k < j + rm; k++) {
+                for (var k = j - lm; k < j + rm; k++) {
                     var w = normalizedWeights[k - j + mid];
                     loss += w * ComputeLoss(mapDataPoints[k], pattern[k - j + i]);
                 }
@@ -54,11 +54,11 @@ namespace Mapperator.Matching {
 
         private static double ComputeLoss(MapDataPoint tp, MapDataPoint pp) {
             double typeLoss = tp.DataType == pp.DataType ? 0 : 100;
-            double beatsLoss = 100 * Math.Sqrt(Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2)));  // Non-slider gaps bigger than 2 beats are mostly equal
-            double spacingLoss = tp.DataType == DataType.Release && pp.DataType == DataType.Release ?
+            var beatsLoss = 100 * Math.Sqrt(Math.Abs(Math.Min(tp.BeatsSince, 2) - Math.Min(pp.BeatsSince, 2)));  // Non-slider gaps bigger than 2 beats are mostly equal
+            var spacingLoss = tp.DataType == DataType.Release && pp.DataType == DataType.Release ?
                 4 * Math.Sqrt(Math.Abs(tp.Spacing - pp.Spacing)) :
                 2 * Math.Sqrt(Math.Abs(tp.Spacing - pp.Spacing));
-            double angleLoss = 1 * Math.Min(Helpers.Mod(tp.Angle - pp.Angle, MathHelper.TwoPi), Helpers.Mod(pp.Angle - tp.Angle, MathHelper.TwoPi));
+            var angleLoss = 1 * Math.Min(Helpers.Mod(tp.Angle - pp.Angle, MathHelper.TwoPi), Helpers.Mod(pp.Angle - tp.Angle, MathHelper.TwoPi));
             double sliderLoss = tp.SliderType == pp.SliderType ? 0 : 10;
             return typeLoss + beatsLoss + spacingLoss + angleLoss + sliderLoss;
         }

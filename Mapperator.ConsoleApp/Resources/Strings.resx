@@ -138,4 +138,19 @@ Basic usage:
   <data name="WindowsOnlyOperation" xml:space="preserve">
     <value>This operation is only compatible with Windows.</value>
   </data>
+  <data name="Program_PatternSearchMap_Found_match__0__in_beatmap___1_" xml:space="preserve">
+    <value>Found match {0} in beatmap: {1}</value>
+  </data>
+  <data name="Program_PatternSearchMap_Can_t_parse_this_map__" xml:space="preserve">
+    <value>Can't parse this map: </value>
+  </data>
+  <data name="Program_DoBuildGraph_The__0__matcher_is_not_compatible_with_building_" xml:space="preserve">
+    <value>The {0} matcher is not compatible with building.</value>
+  </data>
+  <data name="Program_DoMapConvert_Extracting_data___" xml:space="preserve">
+    <value>Extracting data...</value>
+  </data>
+  <data name="Program_DoMapConvert_Constructing_beatmap___" xml:space="preserve">
+    <value>Constructing beatmap...</value>
+  </data>
 </root>

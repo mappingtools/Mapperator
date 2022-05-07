@@ -22,8 +22,8 @@ namespace Mapperator {
         }
 
         public IEnumerable<MapDataPoint> ExtractBeatmapData(IEnumerable<HitObject> hitobjects, Timing timing, bool mirror = false) {
-            Vector2 lastPos = new Vector2(256, 192);  // Playfield centre
-            Vector2 lastLastPos = new Vector2(0, 192);  // Playfield left-centre
+            var lastPos = new Vector2(256, 192);  // Playfield centre
+            var lastLastPos = new Vector2(0, 192);  // Playfield left-centre
             double lastTime = 0;
             foreach (var ho in hitobjects) {
                 switch (ho) {
