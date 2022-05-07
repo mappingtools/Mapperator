@@ -11,6 +11,7 @@ using Mapperator.ConsoleApp.Resources;
 using Mapperator.Construction;
 using Mapperator.Matching;
 using Mapperator.Matching.Matchers;
+using Mapping_Tools_Core.BeatmapHelper.Enums;
 
 namespace Mapperator.ConsoleApp {
     public static class Program {
@@ -55,7 +56,7 @@ namespace Mapperator.ConsoleApp {
             [Option('h', "structOutput", HelpText = "Filename for the generated data structure.")]
             public string? OutputStructName { get; set; }
 
-            [Option('m', "matcher", Default = MatcherType.HNSW, HelpText = "The type of data matcher to use.")]
+            [Option('m', "matcher", Default = MatcherType.Trie, HelpText = "The type of data matcher to use.")]
             public MatcherType MatcherType { get; set; }
         }
 
@@ -132,7 +133,7 @@ namespace Mapperator.ConsoleApp {
                 MatcherType.Simple => new SimpleDataMatcher(),
                 MatcherType.HNSW => new HnswDataMatcher(),
                 MatcherType.Trie => new TrieDataMatcher(),
-                _ => throw new NotImplementedException()
+                _ => new TrieDataMatcher()
             };
         }
 
