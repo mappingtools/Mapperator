@@ -153,4 +153,7 @@ Basic usage:
   <data name="Program_DoMapConvert_Constructing_beatmap___" xml:space="preserve">
     <value>Constructing beatmap...</value>
   </data>
+  <data name="Program_DoMapConvert_Adding_data___" xml:space="preserve">
+    <value>Adding data...</value>
+  </data>
 </root>
