@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Gma.DataStructures.StringSearch;
-using Mapperator.ConsoleApp;
 using Mapperator.Matching;
 using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
