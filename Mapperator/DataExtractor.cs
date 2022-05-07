@@ -59,7 +59,7 @@ namespace Mapperator {
 
         private MapDataPoint CreateDataPoint(Timing timing, Vector2 pos, double time, DataType dataType, PathType? sliderType, int? repeats, bool nc, HitObject? hitObject, ref Vector2 lastLastPos, ref Vector2 lastPos, ref double lastTime, bool mirror = false, double? spacingOverride = null) {
             //var angle = Vector2.Angle(pos - lastPos, lastPos - lastLastPos);
-            var angle = Helpers.Mod((pos - lastPos).Theta - (lastPos - lastLastPos).Theta + MathHelper.Pi, MathHelper.TwoPi) - MathHelper.Pi;
+            var angle = Helpers.AngleDifference((lastPos - lastLastPos).Theta, (pos - lastPos).Theta);
             if (double.IsNaN(angle)) {
                 angle = 0;
             }

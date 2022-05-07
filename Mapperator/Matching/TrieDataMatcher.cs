@@ -7,9 +7,12 @@ namespace Mapperator.Matching {
         private const int FirstSearchLength = 32;
         private const double PogBonus = 100;
         private const double LengthBonus = 50;
-        private const double SpacingWeight = 5;
-        private const double NcLoss = 10;
+        private const double SpacingWeight = 10;
+        private const double AngleWeight = 5;
+        private const double NcLoss = 25;
         private const double WeightDeviation = 2;
+        private const int MaxLookBack = 4;
+        private const int MaxSearch = 400;
 
         private readonly List<List<MapDataPoint>> mapDataPoints = new();
         private readonly UkkonenTrie<byte, int> rhythmTrie = new(1);
@@ -79,8 +82,9 @@ namespace Mapperator.Matching {
             var best = new WordPosition<int>(0, 0);
             var bestScore = double.NegativeInfinity;
             var pogUsed = false;
+            var numSearched = 0;
             while (searchLength > 0 && bestScore < BestPossibleScore(searchLength, pogUsed)) {
-                var lookBack = MathHelper.Clamp(Math.Min(searchLength / 2, 5), i + searchLength - localPatternRhythmString.Length, i);
+                var lookBack = MathHelper.Clamp(Math.Min(searchLength / 2, MaxLookBack), i + searchLength - localPatternRhythmString.Length, i);
                 var query = localPatternRhythmString.Span.Slice(i - lookBack, searchLength);
 
                 var result = rhythmTrie
@@ -88,6 +92,10 @@ namespace Mapperator.Matching {
 
                 // Find the best match
                 foreach (var wordPosition in result) {
+                    if (numSearched++ >= MaxSearch) {
+                        break;
+                    }
+
                     // Get the position of the middle data point
                     var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
 
@@ -111,6 +119,10 @@ namespace Mapperator.Matching {
                     best = middlePos;
                 }
                 searchLength--;
+
+                if (numSearched >= MaxSearch) {
+                    break;
+                }
             }
 
             if (lastId.HasValue && best.Value == lastId.Value.Value &&
@@ -119,7 +131,7 @@ namespace Mapperator.Matching {
             }
 
             lastId = best;
-            Console.WriteLine($"match {i}, id = {lastId}, length = {bestScore}");
+            Console.WriteLine($"match {i}, id = {lastId}, score = {bestScore}");
 
             return GetMapDataPoint(best);
         }
@@ -157,6 +169,7 @@ namespace Mapperator.Matching {
 
                 // Subtract loss by difference in data points
                 score -= weight * SpacingWeight * Math.Pow(Math.Abs(dataPoint.Spacing - patternPoint.Spacing), 0.5);
+                score -= weight * AngleWeight * Math.Abs(dataPoint.Angle - patternPoint.Angle);
 
                 // Subtract points for having different combo's
                 score -= weight * (dataPoint.NewCombo != patternPoint.NewCombo ? NcLoss : 0);
