@@ -165,6 +165,7 @@ namespace Mapperator.ConsoleApp {
             var matcher = GetDataMatcher(opts.MatcherType);
 
             // Add the data to the matcher or load the data
+            Console.WriteLine(Strings.Program_DoMapConvert_Adding_data___);
             if (matcher is ISerializable sMatcher && 
                 !string.IsNullOrEmpty(opts.InputStructName) && 
                 File.Exists(Path.ChangeExtension(opts.InputStructName, sMatcher.DefaultExtension))) {
