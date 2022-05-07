@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Gma.DataStructures.StringSearch;
-using Mapperator;
+using Mapperator.Console;
 using Mapperator.Matching;
 using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using NUnit.Framework;
 
-namespace MapperatorTests.Matching;
+namespace Mapperator.Tests.Matching;
 
 public class TrieDataMatcherTests {
     private readonly List<List<MapDataPoint>> mapDataPoints = new();

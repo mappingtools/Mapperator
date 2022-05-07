@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Gma.DataStructures.StringSearch;
+﻿using Gma.DataStructures.StringSearch;
 using Mapperator.Model;
 using Mapping_Tools_Core.MathUtil;
 
@@ -59,7 +56,7 @@ namespace Mapperator.Matching {
         }
 
         public IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc = null) {
-            Console.WriteLine("Searching for matches");
+            System.Console.WriteLine("Searching for matches");
             // We want to replace the previous parts of the pattern with the matches we found so the next matches have a better chance
             // of continuing the previous pattern
             patternRhythmString = ToRhythmString(pattern);
@@ -73,7 +70,7 @@ namespace Mapperator.Matching {
             }
 
             patternRhythmString = null;
-            Console.WriteLine($"Pograte = {(float)pogs / pattern.Count}");
+            System.Console.WriteLine($"Pograte = {(float)pogs / pattern.Count}");
         }
 
         public MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc = null) {
@@ -122,7 +119,7 @@ namespace Mapperator.Matching {
             }
 
             lastId = best;
-            Console.WriteLine($"match {i}, id = {lastId}, length = {bestScore}");
+            System.Console.WriteLine($"match {i}, id = {lastId}, length = {bestScore}");
 
             return GetMapDataPoint(best);
         }

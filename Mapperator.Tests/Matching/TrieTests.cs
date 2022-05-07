@@ -1,11 +1,10 @@
 using Gma.DataStructures.StringSearch;
-using Mapperator.Model;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MapperatorTests.Matching {
+namespace Mapperator.Tests.Matching {
     public class TrieTests {
         private readonly UkkonenTrie<byte, int> rhythmTrie = new(1);
 

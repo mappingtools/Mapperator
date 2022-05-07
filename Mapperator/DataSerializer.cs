@@ -1,6 +1,5 @@
 ﻿using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper.Enums;
-using System.Collections.Generic;
 
 namespace Mapperator {
     public static class DataSerializer {

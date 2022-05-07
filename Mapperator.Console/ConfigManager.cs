@@ -1,12 +1,12 @@
-﻿using Mapperator.Resources;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using Mapperator.Console.Resources;
 
-namespace Mapperator {
+namespace Mapperator.Console {
     public class ConfigManager {
         private static readonly JsonSerializer Serializer = new JsonSerializer {
             NullValueHandling = NullValueHandling.Ignore,
@@ -31,7 +31,7 @@ namespace Mapperator {
                 using JsonReader reader = new JsonTextReader(sr);
                 Config = Serializer.Deserialize<Config>(reader);
             } catch (Exception ex) {
-                Console.WriteLine(ex);
+                System.Console.WriteLine(ex);
                 return false;
             }
             return true;
@@ -43,7 +43,7 @@ namespace Mapperator {
                 using JsonWriter writer = new JsonTextWriter(sw);
                 Serializer.Serialize(writer, Config);
             } catch (Exception ex) {
-                Console.WriteLine(ex);
+                System.Console.WriteLine(ex);
                 return false;
             }
             return true;
@@ -95,7 +95,7 @@ namespace Mapperator {
                     }
                 }
             } catch (Exception exception) {
-                Console.WriteLine(exception);
+                System.Console.WriteLine(exception);
             }
 
             return "Songs";

@@ -1,6 +1,4 @@
 ﻿using Mapperator.Model;
-using System;
-using System.Collections.Generic;
 
 namespace Mapperator.Matching {
     public interface IDataMatcher {

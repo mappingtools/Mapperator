@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31424.327
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mapperator", "Mapperator\Mapperator.csproj", "{C7EC4D11-5550-470C-924B-A37608F82368}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mapperator.Console", "Mapperator.Console\Mapperator.Console.csproj", "{C7EC4D11-5550-470C-924B-A37608F82368}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapperatorTests", "MapperatorTests\MapperatorTests.csproj", "{92180762-2C87-4338-B6C5-EA69E12E5853}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator.Tests", "Mapperator.Tests\Mapperator.Tests.csproj", "{92180762-2C87-4338-B6C5-EA69E12E5853}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator", "Mapperator\Mapperator.csproj", "{1CA31E19-96B0-4BCE-8EA9-351A0D46524A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{92180762-2C87-4338-B6C5-EA69E12E5853}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92180762-2C87-4338-B6C5-EA69E12E5853}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92180762-2C87-4338-B6C5-EA69E12E5853}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CA31E19-96B0-4BCE-8EA9-351A0D46524A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CA31E19-96B0-4BCE-8EA9-351A0D46524A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CA31E19-96B0-4BCE-8EA9-351A0D46524A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CA31E19-96B0-4BCE-8EA9-351A0D46524A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

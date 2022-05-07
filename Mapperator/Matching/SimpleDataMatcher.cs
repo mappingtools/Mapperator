@@ -1,10 +1,5 @@
-﻿using HNSW.Net;
-using Mapperator.Model;
+﻿using Mapperator.Model;
 using Mapping_Tools_Core.MathUtil;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Mapperator.Matching {
     public class SimpleDataMatcher : IDataMatcher {

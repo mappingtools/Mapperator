@@ -1,9 +1,7 @@
 ﻿using Mapperator.Model;
-using System.Collections.Generic;
-using System.IO;
 
 namespace Mapperator.Matching {
-    internal interface ISerializable {
+    public interface ISerializable {
         string DefaultExtension { get; }
 
         void Save(Stream stream);

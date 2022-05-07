@@ -6,7 +6,6 @@ using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
 using Mapping_Tools_Core.BeatmapHelper.IO.Encoding.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.TimingStuff;
 using Mapping_Tools_Core.MathUtil;
-using System.Collections.Generic;
 
 namespace Mapperator {
     public class DataExtractor {

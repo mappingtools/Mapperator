@@ -1,17 +1,13 @@
 ﻿using HNSW.Net;
 using Mapperator.Model;
 using Mapping_Tools_Core.MathUtil;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Mapperator.Matching {
     public class HnswDataMatcher : IDataMatcher, ISerializable {
         private class ConsoleProgressReporter : IProgressReporter {
             public void Progress(int current, int total) {
                 if (current % 1000 == 0 || current == total)
-                    Console.WriteLine($"Progress: {current}/{total}");
+                    System.Console.WriteLine($"Progress: {current}/{total}");
             }
         }
 
@@ -34,17 +30,17 @@ namespace Mapperator.Matching {
         }
 
         public void AddData(IEnumerable<MapDataPoint> data) {
-            Console.WriteLine("Folding data...");
+            System.Console.WriteLine("Folding data...");
             var foldedData = FoldData(data.ToList());
 
-            Console.WriteLine("Adding items to graph...");
+            System.Console.WriteLine("Adding items to graph...");
             
             graph.AddItems(foldedData, new ConsoleProgressReporter());
             points = graph.Items;
         }
 
         public IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc = null) {
-            Console.WriteLine("Searching for matches");
+            System.Console.WriteLine("Searching for matches");
             // We want to replace the previous parts of the pattern with the matches we found so the next matches have a better chance
             // of continuing the previous pattern
             var newPattern = pattern.ToArray();
@@ -55,7 +51,7 @@ namespace Mapperator.Matching {
                 newPattern[i] = match;
                 yield return match;
             }
-            Console.WriteLine($"Pograte = {(float)pogs / pattern.Count}");
+            System.Console.WriteLine($"Pograte = {(float)pogs / pattern.Count}");
         }
 
         public MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc = null) {
@@ -72,7 +68,7 @@ namespace Mapperator.Matching {
                 if ((isValidFunc is null || isValidFunc(nBest)) && nDist <= bDist * 2 && nDist < 100) {
                     lastId++;
                     pogs++;
-                    Console.WriteLine($"POGGERS match {i}, type = {nBest.DataType}, id = {lastId}, loss = {nDist}");
+                    System.Console.WriteLine($"POGGERS match {i}, type = {nBest.DataType}, id = {lastId}, loss = {nDist}");
                     return nBest;
                 }
             }
@@ -81,7 +77,7 @@ namespace Mapperator.Matching {
                 var bestGroup = result[j];
                 var best = bestGroup.Item[bestGroup.Item.Length / 2];
                 if (isValidFunc is null || isValidFunc(best)) {
-                    Console.WriteLine($"Match {i}, type = {best.DataType}, id = {bestGroup.Id}, loss = {bestGroup.Distance}");
+                    System.Console.WriteLine($"Match {i}, type = {best.DataType}, id = {bestGroup.Id}, loss = {bestGroup.Distance}");
                     lastId = bestGroup.Id;
                     return best;
                 }
@@ -145,10 +141,10 @@ namespace Mapperator.Matching {
         }
 
         public void Load(IEnumerable<MapDataPoint> data, Stream stream) {
-            Console.WriteLine("Folding data...");
+            System.Console.WriteLine("Folding data...");
             var foldedData = FoldData(data.ToList());
 
-            Console.WriteLine("Loading graph from file...");
+            System.Console.WriteLine("Loading graph from file...");
             graph = SmallWorld<MapDataPoint[], double>.DeserializeGraph(foldedData, WeightedComputeLoss, DefaultRandomGenerator.Instance, stream);
             points = graph.Items;
         }

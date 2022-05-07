@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Mapperator.Matching;
+﻿using Mapperator.Matching;
 using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper;
 

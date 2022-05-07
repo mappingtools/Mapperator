@@ -1,24 +1,16 @@
 ﻿using CommandLine;
-using HNSW.Net;
-using Mapperator.Matching;
-using Mapperator.Model;
-using Mapperator.Resources;
 using Mapping_Tools_Core;
 using Mapping_Tools_Core.BeatmapHelper;
-using Mapping_Tools_Core.BeatmapHelper.Contexts;
-using Mapping_Tools_Core.BeatmapHelper.Enums;
-using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
-using Mapping_Tools_Core.BeatmapHelper.IO.Decoding.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using Mapping_Tools_Core.MathUtil;
-using Mapping_Tools_Core.ToolHelpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mapperator.Construction;
+using Mapperator.Matching;
 
-namespace Mapperator {
+namespace Mapperator.Console {
     public class Program {
         [Verb("extract", HelpText = "Extract beatmap data from an osu! collection.")]
         class ExtractOptions {
@@ -99,7 +91,7 @@ namespace Mapperator {
 
         private static bool PatternSearchMap(string path, string pattern, int i, ref int matches) {
             if (i % 1000 == 0) {
-                Console.Write('.');
+                System.Console.Write('.');
             }
             //Console.WriteLine(path);
 
@@ -124,12 +116,12 @@ namespace Mapperator {
                 var hos = en.ToArray();
                 if (hos.Length == l && Precision.AlmostEquals(hos[0].StartTime, t)) {
                     matches++;
-                    Console.WriteLine($"Found match {matches} in beatmap: {path}");
+                    System.Console.WriteLine($"Found match {matches} in beatmap: {path}");
                     return true;
                 }
             } catch (Exception e) {
-                Console.WriteLine("Can't parse this map: " + path);
-                Console.WriteLine(e);
+                System.Console.WriteLine("Can't parse this map: " + path);
+                System.Console.WriteLine(e);
             }
             return false;
         }
@@ -148,7 +140,7 @@ namespace Mapperator {
             IDataMatcher matcher = GetDataMatcher(opts.MatcherType);
 
             if (matcher is not ISerializable sMatcher) {
-                Console.WriteLine($"The {opts.MatcherType} matcher is not compatible with building.");
+                System.Console.WriteLine($"The {opts.MatcherType} matcher is not compatible with building.");
                 return 0;
             }
 
@@ -159,7 +151,7 @@ namespace Mapperator {
         }
 
         private static int DoMapConvert(ConvertOptions opts) {
-            Console.WriteLine("Extracting data...");
+            System.Console.WriteLine("Extracting data...");
             var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt")));
             var map = new BeatmapEditor(Path.ChangeExtension(opts.InputBeatmapPath, ".osu")).ReadFile();
             var input = new DataExtractor().ExtractBeatmapData(map).ToList();
@@ -181,7 +173,7 @@ namespace Mapperator {
             }
 
             // Construct new beatmap
-            Console.WriteLine("Constructing beatmap...");
+            System.Console.WriteLine("Constructing beatmap...");
             map.Metadata.Version = "Converted";
             map.HitObjects.Clear();
             map.Editor.Bookmarks.Clear();
