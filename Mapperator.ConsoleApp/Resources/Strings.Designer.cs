@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Mapperator.Console.Resources {
+namespace Mapperator.ConsoleApp.Resources {
     using System;
     
     

@@ -10,7 +10,7 @@ using System.Linq;
 using Mapperator.Construction;
 using Mapperator.Matching;
 
-namespace Mapperator.Console {
+namespace Mapperator.ConsoleApp {
     public class Program {
         [Verb("extract", HelpText = "Extract beatmap data from an osu! collection.")]
         class ExtractOptions {
@@ -91,7 +91,7 @@ namespace Mapperator.Console {
 
         private static bool PatternSearchMap(string path, string pattern, int i, ref int matches) {
             if (i % 1000 == 0) {
-                System.Console.Write('.');
+                Console.Write('.');
             }
             //Console.WriteLine(path);
 
@@ -116,12 +116,12 @@ namespace Mapperator.Console {
                 var hos = en.ToArray();
                 if (hos.Length == l && Precision.AlmostEquals(hos[0].StartTime, t)) {
                     matches++;
-                    System.Console.WriteLine($"Found match {matches} in beatmap: {path}");
+                    Console.WriteLine($"Found match {matches} in beatmap: {path}");
                     return true;
                 }
             } catch (Exception e) {
-                System.Console.WriteLine("Can't parse this map: " + path);
-                System.Console.WriteLine(e);
+                Console.WriteLine("Can't parse this map: " + path);
+                Console.WriteLine(e);
             }
             return false;
         }
@@ -140,7 +140,7 @@ namespace Mapperator.Console {
             IDataMatcher matcher = GetDataMatcher(opts.MatcherType);
 
             if (matcher is not ISerializable sMatcher) {
-                System.Console.WriteLine($"The {opts.MatcherType} matcher is not compatible with building.");
+                Console.WriteLine($"The {opts.MatcherType} matcher is not compatible with building.");
                 return 0;
             }
 
@@ -151,7 +151,7 @@ namespace Mapperator.Console {
         }
 
         private static int DoMapConvert(ConvertOptions opts) {
-            System.Console.WriteLine("Extracting data...");
+            Console.WriteLine("Extracting data...");
             var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt")));
             var map = new BeatmapEditor(Path.ChangeExtension(opts.InputBeatmapPath, ".osu")).ReadFile();
             var input = new DataExtractor().ExtractBeatmapData(map).ToList();
@@ -173,7 +173,7 @@ namespace Mapperator.Console {
             }
 
             // Construct new beatmap
-            System.Console.WriteLine("Constructing beatmap...");
+            Console.WriteLine("Constructing beatmap...");
             map.Metadata.Version = "Converted";
             map.HitObjects.Clear();
             map.Editor.Bookmarks.Clear();

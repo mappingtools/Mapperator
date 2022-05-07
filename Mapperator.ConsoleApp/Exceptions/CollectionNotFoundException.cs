@@ -1,7 +1,7 @@
 ﻿using System;
-using Mapperator.Console.Resources;
+using Mapperator.ConsoleApp.Resources;
 
-namespace Mapperator.Console.Exceptions {
+namespace Mapperator.ConsoleApp.Exceptions {
     public class CollectionNotFoundException : Exception {
         public CollectionNotFoundException(string collectionName) : base(string.Format(Strings.CouldNotFindCollection, collectionName)) { }
     }

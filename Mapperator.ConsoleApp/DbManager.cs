@@ -3,9 +3,9 @@ using OsuParsers.Decoders;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Mapperator.Console.Exceptions;
+using Mapperator.ConsoleApp.Exceptions;
 
-namespace Mapperator.Console {
+namespace Mapperator.ConsoleApp {
     public static class DbManager {
         public static IEnumerable<DbBeatmap> GetCollection(string collectionName) {
             string osuDbPath = Path.Join(ConfigManager.Config.OsuPath, "osu!.db");

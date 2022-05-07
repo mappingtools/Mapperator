@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mapperator.Console\Mapperator.Console.csproj" />
+    <ProjectReference Include="..\Mapperator.ConsoleApp\Mapperator.ConsoleApp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

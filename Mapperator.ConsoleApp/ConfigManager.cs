@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using Mapperator.Console.Resources;
+using Mapperator.ConsoleApp.Resources;
 
-namespace Mapperator.Console {
+namespace Mapperator.ConsoleApp {
     public static class ConfigManager {
         private static readonly JsonSerializer Serializer = new() {
             NullValueHandling = NullValueHandling.Ignore,
@@ -30,7 +30,7 @@ namespace Mapperator.Console {
                 using var reader = new JsonTextReader(sr);
                 Config = Serializer.Deserialize<Config>(reader);
             } catch (Exception ex) {
-                System.Console.WriteLine(ex);
+                Console.WriteLine(ex);
             }
         }
 
@@ -40,7 +40,7 @@ namespace Mapperator.Console {
                 using var writer = new JsonTextWriter(sw);
                 Serializer.Serialize(writer, Config);
             } catch (Exception ex) {
-                System.Console.WriteLine(ex);
+                Console.WriteLine(ex);
             }
         }
 
@@ -101,7 +101,7 @@ namespace Mapperator.Console {
                     }
                 }
             } catch (Exception exception) {
-                System.Console.WriteLine(exception);
+                Console.WriteLine(exception);
             }
 
             return "Songs";
