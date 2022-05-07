@@ -36,7 +36,7 @@ public class SuperJudge : IJudge {
     public double BestPossibleScore(int length, int lookBack) {
         double score = 0;
 
-        for (var i = 0; i < length; i++) {
+        for (var i = -lookBack; i < length - lookBack; i++) {
             // Get a weight factor using the gaussian formula
             var weight = Math.Exp(-(i * i) / (2 * WeightDeviation * WeightDeviation));
 

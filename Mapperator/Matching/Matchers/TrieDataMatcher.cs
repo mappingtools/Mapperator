@@ -106,7 +106,7 @@ namespace Mapperator.Matching.Matchers {
             }
             PogTried:
 
-            while (searchLength > 0 && bestScore < BestPossibleScore(i, searchLength, localPatternRhythmString.Length)) {
+            while (searchLength > 0 && bestScore < 0.5 * BestPossibleScore(i, searchLength, localPatternRhythmString.Length)) {
                 var lookBack = GetLookBack(i, searchLength, localPatternRhythmString.Length);
                 var query = localPatternRhythmString.Span.Slice(i - lookBack, searchLength);
 
