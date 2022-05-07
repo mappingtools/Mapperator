@@ -7,49 +7,44 @@ using System.Runtime.InteropServices;
 using Mapperator.Console.Resources;
 
 namespace Mapperator.Console {
-    public class ConfigManager {
-        private static readonly JsonSerializer Serializer = new JsonSerializer {
+    public static class ConfigManager {
+        private static readonly JsonSerializer Serializer = new() {
             NullValueHandling = NullValueHandling.Ignore,
             Formatting = Formatting.Indented
         };
 
-        public static Config Config { get; set; } = new();
-        public static bool InstanceComplete { get; private set; }
+        public static Config Config { get; private set; } = new();
 
         public static void LoadConfig() {
             if (File.Exists(Constants.ConfigPath)) {
-                InstanceComplete = LoadFromJson();
+                LoadFromJson();
             } else {
                 DefaultPaths();
-                InstanceComplete = CreateJson();
+                CreateJson();
             }
         }
 
-        private static bool LoadFromJson() {
+        private static void LoadFromJson() {
             try {
-                using StreamReader sr = new StreamReader(Constants.ConfigPath);
-                using JsonReader reader = new JsonTextReader(sr);
+                using var sr = new StreamReader(Constants.ConfigPath);
+                using var reader = new JsonTextReader(sr);
                 Config = Serializer.Deserialize<Config>(reader);
             } catch (Exception ex) {
                 System.Console.WriteLine(ex);
-                return false;
             }
-            return true;
         }
 
-        private static bool CreateJson() {
+        private static void CreateJson() {
             try {
-                using StreamWriter sw = new StreamWriter(Constants.ConfigPath);
-                using JsonWriter writer = new JsonTextWriter(sw);
+                using var sw = new StreamWriter(Constants.ConfigPath);
+                using var writer = new JsonTextWriter(sw);
                 Serializer.Serialize(writer, Config);
             } catch (Exception ex) {
                 System.Console.WriteLine(ex);
-                return false;
             }
-            return true;
         }
 
-        public static void DefaultPaths() {
+        private static void DefaultPaths() {
             if (string.IsNullOrWhiteSpace(Config.OsuPath)) {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                     try {
@@ -81,14 +76,17 @@ namespace Mapperator.Console {
         private static string FindByDisplayName(RegistryKey parentKey, string name) {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) throw new InvalidOperationException(Strings.WindowsOnlyOperation);
 
-            string[] nameList = parentKey.GetSubKeyNames();
+            var nameList = parentKey.GetSubKeyNames();
             foreach (var t in nameList) {
-                RegistryKey regKey = parentKey.OpenSubKey(t);
-                try {
-                    if (regKey?.GetValue("DisplayName") != null && regKey.GetValue("DisplayName").ToString() == name) {
-                        return Path.GetDirectoryName(regKey.GetValue("UninstallString").ToString());
-                    }
-                } catch (NullReferenceException) { }
+                var regKey = parentKey.OpenSubKey(t);
+                var displayName = regKey?.GetValue("DisplayName");
+                var uninstallString = regKey?.GetValue("UninstallString");
+
+                if (displayName is not null &&
+                    displayName.ToString() == name &&
+                    uninstallString is not null) {
+                    return Path.GetDirectoryName(uninstallString.ToString());
+                }
             }
 
             throw new KeyNotFoundException($"Could not find registry key with display name \"{name}\".");
