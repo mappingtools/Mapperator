@@ -199,6 +199,7 @@ namespace Mapperator.ConsoleApp {
                 (opts.CollectionName is null ? opts.InputFiles! :
                 DbManager.GetCollection(opts.CollectionName).Select(o => Path.Combine(ConfigManager.Config.SongsPath, o.FolderName, o.FileName)))
                 .Select(o => new BeatmapEditor(o).ReadFile())
+                .Where(o => o.General.Mode == GameMode.Standard)
                 .SelectMany(b => extractor.ExtractBeatmapData(b).Concat(extractor.ExtractBeatmapData(b, true)))
                 .Select(DataSerializer.SerializeBeatmapDataSample));
             return 0;
