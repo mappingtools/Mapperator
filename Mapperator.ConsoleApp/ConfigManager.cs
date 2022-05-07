@@ -28,7 +28,7 @@ namespace Mapperator.ConsoleApp {
             try {
                 using var sr = new StreamReader(Constants.ConfigPath);
                 using var reader = new JsonTextReader(sr);
-                Config = Serializer.Deserialize<Config>(reader);
+                Config = Serializer.Deserialize<Config>(reader) ?? Config;
             } catch (Exception ex) {
                 Console.WriteLine(ex);
             }
@@ -46,30 +46,36 @@ namespace Mapperator.ConsoleApp {
 
         private static void DefaultPaths() {
             if (string.IsNullOrWhiteSpace(Config.OsuPath)) {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    try {
-                        var regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-                        Config.OsuPath = FindByDisplayName(regKey, "osu!");
-                    } catch (KeyNotFoundException) {
-                        try {
-#pragma warning disable CA1416
-                            var regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-#pragma warning restore CA1416
-                            Config.OsuPath = FindByDisplayName(regKey, "osu!");
-                        }
-                        catch (KeyNotFoundException) {
-                            Config.OsuPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu!");
-                        }
-                    }
-                } else {
-                    Config.OsuPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu!");
-                }
+                Config.OsuPath = TryFindOsuPath(out var osuPath) ? osuPath : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu!");
             }
 
-            if (string.IsNullOrWhiteSpace(Config.SongsPath)) {
-                var beatmapDirectory =
-                    GetBeatmapDirectory(Path.Combine(Config.OsuPath, $"osu!.{Environment.UserName}.cfg"));
-                Config.SongsPath = Path.Combine(Config.OsuPath, beatmapDirectory);
+            if (!string.IsNullOrWhiteSpace(Config.SongsPath)) return;
+            var beatmapDirectory = GetBeatmapDirectory(Path.Combine(Config.OsuPath, $"osu!.{Environment.UserName}.cfg"));
+            Config.SongsPath = Path.Combine(Config.OsuPath, beatmapDirectory);
+        }
+
+        private static bool TryFindOsuPath(out string osuPath) {
+            osuPath = string.Empty;
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return false;
+
+            try {
+                var regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+                if (regKey is null) return false;
+                osuPath = FindByDisplayName(regKey, "osu!");
+                return true;
+            } catch (KeyNotFoundException) {
+                try {
+#pragma warning disable CA1416
+                    var regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
+#pragma warning restore CA1416
+                    if (regKey is null) return false;
+                    osuPath = FindByDisplayName(regKey, "osu!");
+                    return true;
+                }
+                catch (KeyNotFoundException) {
+                    return false;
+                }
             }
         }
 
@@ -85,7 +91,7 @@ namespace Mapperator.ConsoleApp {
                 if (displayName is not null &&
                     displayName.ToString() == name &&
                     uninstallString is not null) {
-                    return Path.GetDirectoryName(uninstallString.ToString());
+                    return Path.GetDirectoryName(uninstallString.ToString())!;
                 }
             }
 

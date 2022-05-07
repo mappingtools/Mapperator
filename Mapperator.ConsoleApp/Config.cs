@@ -1,6 +1,6 @@
 ﻿namespace Mapperator.ConsoleApp {
     public class Config {
-        public string OsuPath { get; set; } 
-        public string SongsPath { get; set; }
+        public string OsuPath { get; set; } = null!;
+        public string SongsPath { get; set; } = null!;
     }
 }
