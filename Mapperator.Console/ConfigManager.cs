@@ -53,10 +53,18 @@ namespace Mapperator.Console {
             if (string.IsNullOrWhiteSpace(Config.OsuPath)) {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                     try {
-                        var regKey = Registry.LocalMachine.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall");
+                        var regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
                         Config.OsuPath = FindByDisplayName(regKey, "osu!");
                     } catch (KeyNotFoundException) {
-                        Config.OsuPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu!");
+                        try {
+#pragma warning disable CA1416
+                            var regKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
+#pragma warning restore CA1416
+                            Config.OsuPath = FindByDisplayName(regKey, "osu!");
+                        }
+                        catch (KeyNotFoundException) {
+                            Config.OsuPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu!");
+                        }
                     }
                 } else {
                     Config.OsuPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "osu!");
