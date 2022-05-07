@@ -9,9 +9,9 @@ namespace Mapperator.Model {
         public bool NewCombo;  // Whether this is on a new combo, only applies to Hit types
         public PathType? SliderType;  // If on a slider hit, this shows the type of the slider
         public int? Repeats;  // The number of repeats on a slider
-        public string HitObject;  // The hit object data
+        public string? HitObject;  // The hit object data
 
-        public MapDataPoint(DataType dataType, double beatsSince, double spacing, double angle, bool newCombo = false, PathType? sliderType = null, int? repeats = null, string hitObject = null) {
+        public MapDataPoint(DataType dataType, double beatsSince, double spacing, double angle, bool newCombo = false, PathType? sliderType = null, int? repeats = null, string? hitObject = null) {
             DataType = dataType;
             BeatsSince = beatsSince;
             Spacing = spacing;

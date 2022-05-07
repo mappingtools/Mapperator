@@ -55,8 +55,8 @@ namespace Mapperator.Matching {
             };
         }
 
-        public IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc = null) {
-            System.Console.WriteLine("Searching for matches");
+        public IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc) {
+            Console.WriteLine("Searching for matches");
             // We want to replace the previous parts of the pattern with the matches we found so the next matches have a better chance
             // of continuing the previous pattern
             patternRhythmString = ToRhythmString(pattern);
@@ -70,10 +70,10 @@ namespace Mapperator.Matching {
             }
 
             patternRhythmString = null;
-            System.Console.WriteLine($"Pograte = {(float)pogs / pattern.Count}");
+            Console.WriteLine($"Pograte = {(float)pogs / pattern.Count}");
         }
 
-        public MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc = null) {
+        public MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc) {
             var localPatternRhythmString = patternRhythmString ?? ToRhythmString(pattern);
             var searchLength = Math.Min(FirstSearchLength, localPatternRhythmString.Length);
             var best = new WordPosition<int>(0, 0);
@@ -119,7 +119,7 @@ namespace Mapperator.Matching {
             }
 
             lastId = best;
-            System.Console.WriteLine($"match {i}, id = {lastId}, length = {bestScore}");
+            Console.WriteLine($"match {i}, id = {lastId}, length = {bestScore}");
 
             return GetMapDataPoint(best);
         }
@@ -191,7 +191,7 @@ namespace Mapperator.Matching {
         }
 
         private MapDataPoint GetMapDataPoint(WordPosition<int> wordPosition, int offset = 0) {
-            return mapDataPoints[wordPosition.Value][(int) wordPosition.CharPosition + offset];
+            return mapDataPoints[wordPosition.Value][wordPosition.CharPosition + offset];
         }
 
         private bool WordPositionInRange(WordPosition<int> wordPosition, int offset = 0) {

@@ -4,9 +4,7 @@ using Mapping_Tools_Core.BeatmapHelper.Enums;
 namespace Mapperator {
     public static class DataSerializer {
         public static IEnumerable<string> SerializeBeatmapData(IEnumerable<MapDataPoint> data) {
-            foreach (var d in data) {
-                yield return SerializeBeatmapDataSample(d);
-            }
+            return data.Select(SerializeBeatmapDataSample);
         }
 
         public static string SerializeBeatmapDataSample(MapDataPoint data) {
@@ -14,13 +12,11 @@ namespace Mapperator {
         }
 
         public static IEnumerable<MapDataPoint> DeserializeBeatmapData(IEnumerable<string> data) {
-            foreach (var d in data) {
-                yield return DeserializeBeatmapDataSample(d);
-            }
+            return data.Select(DeserializeBeatmapDataSample);
         }
 
         public static MapDataPoint DeserializeBeatmapDataSample(string data) {
-            var split = data.Split(' ', System.StringSplitOptions.None);
+            var split = data.Split(' ');
             return new MapDataPoint(
                 (DataType)int.Parse(split[0]),
                 double.Parse(split[1]),

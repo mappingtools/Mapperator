@@ -189,7 +189,7 @@ namespace Mapperator.ConsoleApp {
             return 0;
         }
 
-        static int DoDataExtraction(ExtractOptions opts) {
+        private static int DoDataExtraction(ExtractOptions opts) {
             if (opts.OutputName is null) throw new ArgumentNullException(nameof(opts));
             if (opts.InputFiles is null && opts.CollectionName is null) throw new ArgumentNullException(nameof(opts));
 

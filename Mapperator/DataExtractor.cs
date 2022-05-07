@@ -28,10 +28,10 @@ namespace Mapperator {
             foreach (var ho in hitobjects) {
                 switch (ho) {
                     case HitCircle:
-                        yield return CreateDataPoint(timing, ho.Pos, ho.StartTime, DataType.Hit, null, null, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror);
+                        yield return CreateDataPoint(timing, ho.Pos, ho.StartTime, DataType.Hit, null, null, ho.NewCombo, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror);
                         break;
                     case Slider slider:
-                        yield return CreateDataPoint(timing, ho.Pos, ho.StartTime, DataType.Hit, slider.SliderType, slider.RepeatCount, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror);
+                        yield return CreateDataPoint(timing, ho.Pos, ho.StartTime, DataType.Hit, slider.SliderType, slider.RepeatCount, ho.NewCombo, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror);
 
                         // Get middle and end positions too for every repeat
                         var path = slider.GetSliderPath();
@@ -40,7 +40,7 @@ namespace Mapperator {
                         var endPos = path.PositionAt(1);
 
 
-                        yield return CreateDataPoint(timing, endPos, slider.StartTime + slider.SpanDuration, DataType.Release, slider.SliderType, slider.RepeatCount, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror, slider.PixelLength);
+                        yield return CreateDataPoint(timing, endPos, slider.StartTime + slider.SpanDuration, DataType.Release, slider.SliderType, slider.RepeatCount, false, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror, slider.PixelLength);
 
                         //for (int i = 0; i < slider.RepeatCount + 1; i++) {
                         //    yield return CreateDataPoint(timing, middlePos, slider.StartTime + slider.SpanDuration * (i + 0.5), DataType.Hold, slider.SliderType, null, ref lastLastPos, ref lastPos, ref lastTime, reverseRotation);
@@ -48,16 +48,16 @@ namespace Mapperator {
                         //}
                         break;
                     case Spinner spinner:
-                        yield return CreateDataPoint(timing, ho.Pos, ho.StartTime, DataType.Spin, null, null, ho,
+                        yield return CreateDataPoint(timing, ho.Pos, ho.StartTime, DataType.Spin, null, null, true, ho,
                             ref lastLastPos, ref lastPos, ref lastTime, mirror);
-                        yield return CreateDataPoint(timing, ho.Pos, spinner.EndTime, DataType.Release, null, 0, ho,
+                        yield return CreateDataPoint(timing, ho.Pos, spinner.EndTime, DataType.Release, null, 0, false, ho,
                             ref lastLastPos, ref lastPos, ref lastTime, mirror);
                         break;
                 }
             }
         }
 
-        private MapDataPoint CreateDataPoint(Timing timing, Vector2 pos, double time, DataType dataType, PathType? sliderType, int? repeats, HitObject hitObject, ref Vector2 lastLastPos, ref Vector2 lastPos, ref double lastTime, bool mirror = false, double? spacingOverride = null) {
+        private MapDataPoint CreateDataPoint(Timing timing, Vector2 pos, double time, DataType dataType, PathType? sliderType, int? repeats, bool nc, HitObject? hitObject, ref Vector2 lastLastPos, ref Vector2 lastPos, ref double lastTime, bool mirror = false, double? spacingOverride = null) {
             //var angle = Vector2.Angle(pos - lastPos, lastPos - lastLastPos);
             var angle = Helpers.Mod((pos - lastPos).Theta - (lastPos - lastLastPos).Theta + MathHelper.Pi, MathHelper.TwoPi) - MathHelper.Pi;
             if (double.IsNaN(angle)) {
@@ -78,7 +78,7 @@ namespace Mapperator {
                                 timing.GetBeatLength(lastTime, time),
                                 spacingOverride ?? Vector2.Distance(pos, lastPos),
                                 mirror ? -angle : angle,
-                                dataType == DataType.Hit && ho.NewCombo,
+                                nc,
                                 sliderType,
                                 repeats,
                                 hoString
