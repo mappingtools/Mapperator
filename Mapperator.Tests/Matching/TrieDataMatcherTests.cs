@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Gma.DataStructures.StringSearch;
-using Mapperator.Matching;
+using Mapperator.Matching.Matchers;
 using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using NUnit.Framework;
@@ -10,7 +10,7 @@ using NUnit.Framework;
 namespace Mapperator.Tests.Matching;
 
 public class TrieDataMatcherTests {
-    private readonly List<List<MapDataPoint>> mapDataPoints = new();
+    private readonly List<MapDataPoint[]> mapDataPoints = new();
     private readonly UkkonenTrie<byte, int> rhythmTrie = new(1);
 
     [OneTimeSetUp]
@@ -18,7 +18,7 @@ public class TrieDataMatcherTests {
         const string path = "Resources/input.osu";
         var data = new DataExtractor().ExtractBeatmapData(new BeatmapEditor(path).ReadFile()).ToList();
 
-        var dataList = data.ToList();
+        var dataList = data.ToArray();
         var index = mapDataPoints.Count;
         var rhythmString = TrieDataMatcher.ToRhythmString(dataList);
         mapDataPoints.Add(dataList);
@@ -51,13 +51,13 @@ public class TrieDataMatcherTests {
 
     private bool WordPositionInRange(WordPosition<int> wordPosition, int offset = 0) {
         return wordPosition.Value < mapDataPoints.Count && wordPosition.Value >= 0 &&
-               wordPosition.CharPosition + offset < mapDataPoints[wordPosition.Value].Count &&
+               wordPosition.CharPosition + offset < mapDataPoints[wordPosition.Value].Length &&
                wordPosition.CharPosition + offset >= 0;
     }
 
     private int GetMatchLength(WordPosition<int> wordPosition, ReadOnlySpan<byte> pattern) {
         var length = 0;
-        while (wordPosition.CharPosition + length < mapDataPoints[wordPosition.Value].Count &&
+        while (wordPosition.CharPosition + length < mapDataPoints[wordPosition.Value].Length &&
                length < pattern.Length &&
                TrieDataMatcher.ToRhythmToken(GetMapDataPoint(wordPosition, length)) ==
                pattern[length]) {

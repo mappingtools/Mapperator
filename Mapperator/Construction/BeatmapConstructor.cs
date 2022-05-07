@@ -19,7 +19,7 @@ namespace Mapperator.Construction {
         }
 
         [SuppressMessage("ReSharper", "AccessToModifiedClosure")]
-        public void PopulateBeatmap(IBeatmap beatmap, IReadOnlyList<MapDataPoint> input, IDataMatcher matcher) {
+        public void PopulateBeatmap(IBeatmap beatmap, ReadOnlyMemory<MapDataPoint> input, IDataMatcher matcher) {
             var i = 0;
             double time = 0;
             var pos = new Vector2(256, 196);
@@ -27,7 +27,7 @@ namespace Mapperator.Construction {
             MapDataPoint? lastMatch = null;
             var controlChanges = new List<ControlChange>();
             foreach (var match in matcher.FindSimilarData(input, m => IsInBounds(m, pos, angle))) {
-                var original = input[i++];
+                var original = input.Span[i++];
                 var originalHo = string.IsNullOrWhiteSpace(original.HitObject) ? null : decoder.Decode(original.HitObject);
 
                 time += beatmap.BeatmapTiming.GetMpBAtTime(time) * original.BeatsSince;

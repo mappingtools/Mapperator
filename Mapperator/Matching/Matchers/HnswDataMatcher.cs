@@ -2,7 +2,7 @@
 using Mapperator.Model;
 using Mapping_Tools_Core.MathUtil;
 
-namespace Mapperator.Matching {
+namespace Mapperator.Matching.Matchers {
     public class HnswDataMatcher : IDataMatcher, ISerializable {
         private class ConsoleProgressReporter : IProgressReporter {
             public void Progress(int current, int total) {
@@ -32,7 +32,7 @@ namespace Mapperator.Matching {
 
         public void AddData(IEnumerable<MapDataPoint> data) {
             Console.WriteLine("Folding data...");
-            var foldedData = FoldData(data.ToList());
+            var foldedData = FoldData(data.ToArray());
 
             Console.WriteLine("Adding items to graph...");
             
@@ -40,22 +40,22 @@ namespace Mapperator.Matching {
             points = graph.Items;
         }
 
-        public IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc) {
+        public IEnumerable<MapDataPoint> FindSimilarData(ReadOnlyMemory<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc) {
             Console.WriteLine("Searching for matches");
             // We want to replace the previous parts of the pattern with the matches we found so the next matches have a better chance
             // of continuing the previous pattern
             var newPattern = pattern.ToArray();
             lastId = -1;
             pogs = 0;
-            for (var i = 0; i < pattern.Count; i++) {
+            for (var i = 0; i < pattern.Length; i++) {
                 var match = FindBestMatch(newPattern, i, isValidFunc);
                 newPattern[i] = match;
                 yield return match;
             }
-            Console.WriteLine($"Pograte = {(float)pogs / pattern.Count}");
+            Console.WriteLine($"Pograte = {(float)pogs / pattern.Length}");
         }
 
-        public MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc) {
+        public MapDataPoint FindBestMatch(ReadOnlySpan<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc) {
             const int tries = 200;
             var result = graph.KNNSearch(GetNeighborhood(pattern, i), tries);
 
@@ -85,15 +85,17 @@ namespace Mapperator.Matching {
             return result[0].Item[result[0].Item.Length / 2];
         }
 
-        private List<MapDataPoint[]> FoldData(IReadOnlyList<MapDataPoint> data) {
-            var foldedData = new List<MapDataPoint[]>(data.Count);
-            foldedData.AddRange(data.Select((_, i) => GetNeighborhood(data, i)));
+        private List<MapDataPoint[]> FoldData(ReadOnlySpan<MapDataPoint> data) {
+            var foldedData = new List<MapDataPoint[]>(data.Length);
+            for (var i = 0; i < data.Length; i++) {
+                foldedData.Add(GetNeighborhood(data, i));
+            }
             return foldedData;
         }
 
-        private MapDataPoint[] GetNeighborhood(IReadOnlyList<MapDataPoint> data, int i) {
+        private MapDataPoint[] GetNeighborhood(ReadOnlySpan<MapDataPoint> data, int i) {
             var lm = Math.Min(WeightsMiddle, i);  // Left index of the kernel
-            var rm = Math.Min(weights.Length - WeightsMiddle, data.Count - i) - 1;  // Right index of the kernel
+            var rm = Math.Min(weights.Length - WeightsMiddle, data.Length - i) - 1;  // Right index of the kernel
             lm = Math.Min(lm, rm + 1);
             rm = Math.Min(rm, lm);
             var l = lm + rm + 1;  // Length of the kernel
@@ -139,7 +141,7 @@ namespace Mapperator.Matching {
 
         public void Load(IEnumerable<MapDataPoint> data, Stream stream) {
             Console.WriteLine("Folding data...");
-            var foldedData = FoldData(data.ToList());
+            var foldedData = FoldData(data.ToArray());
 
             Console.WriteLine("Loading graph from file...");
             graph = SmallWorld<MapDataPoint[], double>.DeserializeGraph(foldedData, WeightedComputeLoss, DefaultRandomGenerator.Instance, stream);

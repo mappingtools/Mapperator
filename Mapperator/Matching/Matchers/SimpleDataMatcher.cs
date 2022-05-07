@@ -1,7 +1,7 @@
 ﻿using Mapperator.Model;
 using Mapping_Tools_Core.MathUtil;
 
-namespace Mapperator.Matching {
+namespace Mapperator.Matching.Matchers {
     public class SimpleDataMatcher : IDataMatcher {
         private readonly List<MapDataPoint> mapDataPoints = new();
 
@@ -11,17 +11,19 @@ namespace Mapperator.Matching {
             mapDataPoints.AddRange(data);
         }
 
-        public IEnumerable<MapDataPoint> FindSimilarData(IReadOnlyList<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc) {
-            return pattern.Select((_, i) => FindBestMatch(pattern, i, isValidFunc));
+        public IEnumerable<MapDataPoint> FindSimilarData(ReadOnlyMemory<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc) {
+            for (var i = 0; i < pattern.Length; i++) {
+                yield return FindBestMatch(pattern.Span, i, isValidFunc);
+            }
         }
 
-        public MapDataPoint FindBestMatch(IReadOnlyList<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc) {
+        public MapDataPoint FindBestMatch(ReadOnlySpan<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc) {
             // Find the element of mapDataPoints which is locally the most similar to pattern at i
 
             // Normalize the weights for this offset
             const int mid = 3;  // Middle index of the kernel
             var lm = Math.Min(mid, i);  // Left index of the kernel
-            var rm = Math.Min(weights.Length - mid, pattern.Count - i) - 1;  // Right index of the kernel
+            var rm = Math.Min(weights.Length - mid, pattern.Length - i) - 1;  // Right index of the kernel
             double s = 0;
             for (var k = mid - lm; k < mid + rm; k++) {
                 s += weights[k];

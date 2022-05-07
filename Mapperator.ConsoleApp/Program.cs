@@ -10,6 +10,7 @@ using System.Linq;
 using Mapperator.ConsoleApp.Resources;
 using Mapperator.Construction;
 using Mapperator.Matching;
+using Mapperator.Matching.Matchers;
 
 namespace Mapperator.ConsoleApp {
     public static class Program {
@@ -159,7 +160,7 @@ namespace Mapperator.ConsoleApp {
             Console.WriteLine(Strings.Program_DoMapConvert_Extracting_data___);
             var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt")));
             var map = new BeatmapEditor(Path.ChangeExtension(opts.InputBeatmapPath, ".osu")).ReadFile();
-            var input = new DataExtractor().ExtractBeatmapData(map).ToList();
+            var input = new DataExtractor().ExtractBeatmapData(map).ToArray();
 
             var matcher = GetDataMatcher(opts.MatcherType);
 
