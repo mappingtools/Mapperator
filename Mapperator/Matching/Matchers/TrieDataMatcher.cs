@@ -7,8 +7,8 @@ namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher : IDataMatcher {
         private const int FirstSearchLength = 32;
         private const double PogBonus = 25;
-        private const int MaxLookBack = 4;
-        private const int MaxSearch = 400;
+        private const int MaxLookBack = 8;
+        private const int MaxSearch = 100000;
 
         private readonly List<MapDataPoint[]> mapDataPoints = new();
         private readonly UkkonenTrie<byte, int> rhythmTrie = new(1);
@@ -17,6 +17,7 @@ namespace Mapperator.Matching.Matchers {
         private WordPosition<int>? lastId;
         private int? lastLength;
         private int pogs;
+        private double totalScore;
         private ReadOnlyMemory<byte>? patternRhythmString;
 
         public TrieDataMatcher() : this(new SuperJudge()) { }
@@ -70,6 +71,7 @@ namespace Mapperator.Matching.Matchers {
             var newPattern = pattern.ToArray();
             lastId = null;
             pogs = 0;
+            totalScore = 0;
             for (var i = 0; i < pattern.Length; i++) {
                 var match = FindBestMatch(newPattern, i, isValidFunc);
                 newPattern[i] = match;
@@ -78,6 +80,7 @@ namespace Mapperator.Matching.Matchers {
 
             patternRhythmString = null;
             Console.WriteLine($"Pograte = {(float)pogs / pattern.Length}");
+            Console.WriteLine($"Score = {totalScore / pattern.Length}");
         }
 
         public MapDataPoint FindBestMatch(ReadOnlySpan<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc) {
@@ -142,6 +145,7 @@ namespace Mapperator.Matching.Matchers {
                 }
             }
 
+            totalScore += bestScore;
             if (lastId.HasValue && best.Value == lastId.Value.Value &&
                 best.CharPosition == lastId.Value.CharPosition + 1) {
                 pogs++;
@@ -149,7 +153,7 @@ namespace Mapperator.Matching.Matchers {
 
             lastId = best;
             lastLength = bestLength;
-            Console.WriteLine($"match {i}, id = {lastId}, score = {bestScore}");
+            Console.WriteLine($"match {i}, id = {lastId}, length = {bestLength}, score = {bestScore}");
 
             return GetMapDataPoint(best);
         }
