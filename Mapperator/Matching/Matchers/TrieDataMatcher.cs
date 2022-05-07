@@ -6,7 +6,7 @@ using Mapping_Tools_Core.MathUtil;
 namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher : IDataMatcher {
         private const int FirstSearchLength = 32;
-        private const double PogBonus = 100;
+        private const double PogBonus = 25;
         private const int MaxLookBack = 4;
         private const int MaxSearch = 400;
 
@@ -15,6 +15,7 @@ namespace Mapperator.Matching.Matchers {
         private readonly IJudge judge;
 
         private WordPosition<int>? lastId;
+        private int? lastLength;
         private int pogs;
         private ReadOnlyMemory<byte>? patternRhythmString;
 
@@ -82,11 +83,30 @@ namespace Mapperator.Matching.Matchers {
         public MapDataPoint FindBestMatch(ReadOnlySpan<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc) {
             var localPatternRhythmString = patternRhythmString ?? ToRhythmString(pattern);
             var searchLength = Math.Min(FirstSearchLength, localPatternRhythmString.Length);
-            var best = new WordPosition<int>(0, 0);
-            var bestScore = double.NegativeInfinity;
-            var pogUsed = false;
             var numSearched = 0;
-            while (searchLength > 0 && bestScore < BestPossibleScore(i, searchLength, localPatternRhythmString.Length, pogUsed)) {
+
+            var bestScore = double.NegativeInfinity;
+            var best = new WordPosition<int>(0, 0);
+            var bestLength = 0;
+
+            // First try the pog option
+            if (lastId.HasValue && lastLength.HasValue && lastLength.Value > 2) {
+                var pogLength = lastLength.Value % 2 == 0 ? lastLength.Value - 2 : lastLength.Value - 1;
+                var lookBack = GetLookBack(i, pogLength, localPatternRhythmString.Length);
+                var pogPos = new WordPosition<int>(lastId.Value.CharPosition + 1, lastId.Value.Value);
+
+                if (!IsValidSeries(pogPos, pogLength - lookBack, isValidFunc)) {
+                    goto PogTried;
+                }
+
+                // Rate the quality of the match
+                bestScore = RateMatchQuality(pogPos, pattern, i, pogLength, lookBack) + PogBonus;
+                best = pogPos;
+                bestLength = pogLength;
+            }
+            PogTried:
+
+            while (searchLength > 0 && bestScore < BestPossibleScore(i, searchLength, localPatternRhythmString.Length)) {
                 var lookBack = GetLookBack(i, searchLength, localPatternRhythmString.Length);
                 var query = localPatternRhythmString.Span.Slice(i - lookBack, searchLength);
 
@@ -102,24 +122,18 @@ namespace Mapperator.Matching.Matchers {
                     // Get the position of the middle data point
                     var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
 
-                    if (isValidFunc is not null && !IsValidSeries(middlePos, searchLength - lookBack, isValidFunc)) {
+                    if (!IsValidSeries(middlePos, searchLength - lookBack, isValidFunc)) {
                         continue;
                     }
 
                     // Rate the quality of the match
                     var score = RateMatchQuality(middlePos, pattern, i, searchLength, lookBack);
 
-                    if (lastId.HasValue && wordPosition.Value == lastId.Value.Value &&
-                        wordPosition.CharPosition == lastId.Value.CharPosition + 1) {
-                        // Apply pog bonus
-                        score += PogBonus;
-                        pogUsed = true;
-                    }
-
                     if (!(score > bestScore)) continue;
 
                     bestScore = score;
                     best = middlePos;
+                    bestLength = searchLength;
                 }
                 searchLength--;
 
@@ -134,6 +148,7 @@ namespace Mapperator.Matching.Matchers {
             }
 
             lastId = best;
+            lastLength = bestLength;
             Console.WriteLine($"match {i}, id = {lastId}, score = {bestScore}");
 
             return GetMapDataPoint(best);
@@ -143,14 +158,8 @@ namespace Mapperator.Matching.Matchers {
             return MathHelper.Clamp(Math.Min(length / 2, MaxLookBack), i + length - totalLength, i);
         }
 
-        private double BestPossibleScore(int i, int length, int totalLength, bool pogUsed) {
-            var score = judge.BestPossibleScore(length, GetLookBack(i, length, totalLength));
-
-            if (!pogUsed) {
-                score += PogBonus;
-            }
-
-            return score;
+        private double BestPossibleScore(int i, int length, int totalLength) {
+            return judge.BestPossibleScore(length, GetLookBack(i, length, totalLength));
         }
 
         private double RateMatchQuality(WordPosition<int> pos, ReadOnlySpan<MapDataPoint> pattern, int index, int length, int lookBack) {
