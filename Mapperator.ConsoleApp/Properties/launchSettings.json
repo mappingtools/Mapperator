@@ -6,7 +6,7 @@
     },
     "ConvertMap": {
       "commandName": "Project",
-      "commandLineArgs": "convert -d test -i \"Resources\\input\" -o output -g kgraph -h kgraph -m Trie"
+      "commandLineArgs": "convert -d test -i \"Resources\\input2\" -o output -g kgraph -h kgraph -m Trie"
     },
     "Search": {
       "commandName": "Project",
@@ -22,7 +22,7 @@
     },
     "ConvertMapAll": {
       "commandName": "Project",
-      "commandLineArgs": "convert -d AllMapsData -i \"Resources\\knightr\" -o output -g allgraph -h allgraph"
+      "commandLineArgs": "convert -d AllMapsData -i \"Resources\\input2\" -o output -g allgraph -h allgraph"
     }
   }
 }

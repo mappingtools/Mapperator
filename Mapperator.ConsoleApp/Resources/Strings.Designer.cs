@@ -100,6 +100,15 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adding data....
+        /// </summary>
+        internal static string Program_DoMapConvert_Adding_data___ {
+            get {
+                return ResourceManager.GetString("Program_DoMapConvert_Adding_data___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Constructing beatmap....
         /// </summary>
         internal static string Program_DoMapConvert_Constructing_beatmap___ {
