@@ -6,19 +6,20 @@ using Mapping_Tools_Core.MathUtil;
 namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher : IDataMatcher {
         private const int FirstSearchLength = 32;
+        private const int DistanceRangeTries = 5;
         private const double PogBonus = 25;
         private const int MaxLookBack = 8;
         private const int MaxSearch = 100000;
 
         private readonly List<MapDataPoint[]> mapDataPoints = new();
-        private readonly UkkonenTrie<byte, int> rhythmTrie = new(1);
+        private readonly UkkonenTrie<ushort, int> rhythmTrie = new(1);
         private readonly IJudge judge;
 
         private WordPosition<int>? lastId;
         private int? lastLength;
         private int pogs;
         private double totalScore;
-        private ReadOnlyMemory<byte>? patternRhythmString;
+        private ReadOnlyMemory<ushort>? patternRhythmString;
 
         public TrieDataMatcher() : this(new SuperJudge()) { }
 
@@ -34,8 +35,8 @@ namespace Mapperator.Matching.Matchers {
             rhythmTrie.Add(rhythmString, index);
         }
 
-        public static ReadOnlyMemory<byte> ToRhythmString(ReadOnlySpan<MapDataPoint> data) {
-            var rhythmString = new byte[data.Length];
+        public static ReadOnlyMemory<ushort> ToRhythmString(ReadOnlySpan<MapDataPoint> data) {
+            var rhythmString = new ushort[data.Length];
             var i = 0;
 
             foreach (var mapDataPoint in data) {
@@ -47,20 +48,24 @@ namespace Mapperator.Matching.Matchers {
             return rhythmString.AsMemory();
         }
 
-        public static byte ToRhythmToken(MapDataPoint mapDataPoint) {
+        public static ushort ToRhythmToken(MapDataPoint mapDataPoint) {
             const int gapResolution = 6;
             const int gapRange = 9;
-            var gap = (byte) MathHelper.Clamp((int) Math.Log2(mapDataPoint.BeatsSince) + gapResolution, 0, gapRange - 1);
-            return mapDataPoint.DataType switch {
+            var dist = (int) MathHelper.Clamp(mapDataPoint.Spacing / 4, 0, 255);
+            var gap = MathHelper.Clamp((int) Math.Log2(mapDataPoint.BeatsSince) + gapResolution, 0, gapRange - 1);
+            var typeByte = mapDataPoint.DataType switch {
                 DataType.Hit => gap,
-                DataType.Spin => (byte)(gapRange + gap),
+                DataType.Spin => gapRange + gap,
                 DataType.Release => mapDataPoint.Repeats switch {
-                    0 => (byte)(gapRange * 2 + gap),
-                    1 => (byte)(gapRange * 3 + gap),
-                    _ => (byte)(gapRange * 4 + gap)
+                    0 => gapRange * 2 + gap,
+                    1 => gapRange * 3 + gap,
+                    _ => gapRange * 4 + gap
                 },
                 _ => gap
             };
+            // (type   ,dist    )
+            // (1111111100000000)
+            return (ushort)((typeByte << 8) | dist);
         }
 
         public IEnumerable<MapDataPoint> FindSimilarData(ReadOnlyMemory<MapDataPoint> pattern, Func<MapDataPoint, bool> isValidFunc) {
@@ -113,31 +118,42 @@ namespace Mapperator.Matching.Matchers {
                 var lookBack = GetLookBack(i, searchLength, localPatternRhythmString.Length);
                 var query = localPatternRhythmString.Span.Slice(i - lookBack, searchLength);
 
-                var result = rhythmTrie
-                    .RetrieveSubstrings(query);
+                for (int j = 0; j < DistanceRangeTries; j++) {
+                    var foundAnything = false;
+                    var (min, max) = ToDistanceRange(query, j);
 
-                // Find the best match
-                foreach (var wordPosition in result) {
-                    if (numSearched++ >= MaxSearch) {
+                    var result = rhythmTrie
+                        .RetrieveSubstringsRange(min, max);
+
+                    // Find the best match
+                    foreach (var wordPosition in result) {
+                        if (numSearched++ >= MaxSearch) {
+                            break;
+                        }
+
+                        // Get the position of the middle data point
+                        var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
+
+                        if (!IsValidSeries(middlePos, searchLength - lookBack, isValidFunc)) {
+                            continue;
+                        }
+
+                        foundAnything = true;
+
+                        // Rate the quality of the match
+                        var score = RateMatchQuality(middlePos, pattern, i, searchLength, lookBack);
+
+                        if (!(score > bestScore)) continue;
+
+                        bestScore = score;
+                        best = middlePos;
+                        bestLength = searchLength;
+                    }
+
+                    if (foundAnything)
                         break;
-                    }
-
-                    // Get the position of the middle data point
-                    var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
-
-                    if (!IsValidSeries(middlePos, searchLength - lookBack, isValidFunc)) {
-                        continue;
-                    }
-
-                    // Rate the quality of the match
-                    var score = RateMatchQuality(middlePos, pattern, i, searchLength, lookBack);
-
-                    if (!(score > bestScore)) continue;
-
-                    bestScore = score;
-                    best = middlePos;
-                    bestLength = searchLength;
                 }
+
                 searchLength--;
 
                 if (numSearched >= MaxSearch) {
@@ -156,6 +172,22 @@ namespace Mapperator.Matching.Matchers {
             Console.WriteLine($"match {i}, id = {lastId}, length = {bestLength}, score = {bestScore}");
 
             return GetMapDataPoint(best);
+        }
+
+        private (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>) ToDistanceRange(ReadOnlySpan<ushort> query, double width) {
+            var min = new ushort[query.Length];
+            var max = new ushort[query.Length];
+            for (var i = 0; i < query.Length; i++) {
+                var token = query[i];
+                var rhythmPart = token >> 8;
+                var distancePart = token & 255;
+                var minDistance = MathHelper.Clamp((int)(distancePart / width), 0, 255);
+                var maxDistance = MathHelper.Clamp((int)(distancePart * width), 0, 255);
+                min[i] = (ushort)((rhythmPart << 8) | minDistance);
+                max[i] = (ushort)((rhythmPart << 8) | maxDistance);
+            }
+
+            return (min.AsMemory(), max.AsMemory());
         }
 
         private int GetLookBack(int i, int length, int totalLength) {
@@ -206,7 +238,7 @@ namespace Mapperator.Matching.Matchers {
                 wordPosition.CharPosition + offset >= 0;
         }
 
-        private int GetMatchLength(WordPosition<int> wordPosition, ReadOnlySpan<byte> pattern) {
+        private int GetMatchLength(WordPosition<int> wordPosition, ReadOnlySpan<ushort> pattern) {
             var length = 0;
             while (wordPosition.CharPosition + length < mapDataPoints[wordPosition.Value].Length &&
                    length < pattern.Length &&
