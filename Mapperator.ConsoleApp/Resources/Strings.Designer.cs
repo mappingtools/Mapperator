@@ -118,6 +118,15 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Elapsed Time is {0} ms.
+        /// </summary>
+        internal static string Program_DoMapConvert_Elapsed_Time_is {
+            get {
+                return ResourceManager.GetString("Program_DoMapConvert_Elapsed_Time_is", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extracting data....
         /// </summary>
         internal static string Program_DoMapConvert_Extracting_data___ {
