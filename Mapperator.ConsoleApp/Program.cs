@@ -5,6 +5,7 @@ using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using Mapping_Tools_Core.MathUtil;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Mapperator.ConsoleApp.Resources;
@@ -158,6 +159,10 @@ namespace Mapperator.ConsoleApp {
         private static int DoMapConvert(ConvertOptions opts) {
             if (opts.DataPath is null) throw new ArgumentNullException(nameof(opts));
 
+            // Start time measurement
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             Console.WriteLine(Strings.Program_DoMapConvert_Extracting_data___);
             var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt")));
             var map = new BeatmapEditor(Path.ChangeExtension(opts.InputBeatmapPath, ".osu")).ReadFile();
@@ -189,6 +194,11 @@ namespace Mapperator.ConsoleApp {
             constructor.PopulateBeatmap(map, input, matcher);
 
             new BeatmapEditor(Path.ChangeExtension(opts.OutputName, ".osu")).WriteFile(map);
+
+            // Print elapsed time
+            stopwatch.Stop();
+            Console.WriteLine(Strings.Program_DoMapConvert_Elapsed_Time_is, stopwatch.ElapsedMilliseconds);
+
             return 0;
         }
 
