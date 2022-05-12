@@ -6,7 +6,7 @@ using Mapping_Tools_Core.MathUtil;
 namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher : IDataMatcher {
         private const int FirstSearchLength = 32;
-        private const int DistanceRangeTries = 5;
+        private static readonly double[] DistanceRanges = { 0, 3, 9 };  // Best values found by trial-and-error
         private const double PogBonus = 25;
         private const int MaxLookBack = 8;
         private const int MaxSearch = 100000;
@@ -19,6 +19,7 @@ namespace Mapperator.Matching.Matchers {
         private int? lastLength;
         private int pogs;
         private double totalScore;
+        private int totalSearched;
         private ReadOnlyMemory<ushort>? patternRhythmString;
 
         public TrieDataMatcher() : this(new SuperJudge()) { }
@@ -86,6 +87,7 @@ namespace Mapperator.Matching.Matchers {
             patternRhythmString = null;
             Console.WriteLine($"Pograte = {(float)pogs / pattern.Length}");
             Console.WriteLine($"Score = {totalScore / pattern.Length}");
+            Console.WriteLine($"Avg searched = {totalSearched / pattern.Length}");
         }
 
         public MapDataPoint FindBestMatch(ReadOnlySpan<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc) {
@@ -118,9 +120,9 @@ namespace Mapperator.Matching.Matchers {
                 var lookBack = GetLookBack(i, searchLength, localPatternRhythmString.Length);
                 var query = localPatternRhythmString.Span.Slice(i - lookBack, searchLength);
 
-                for (int j = 0; j < DistanceRangeTries; j++) {
+                foreach (var width in DistanceRanges) {
                     var foundAnything = false;
-                    var (min, max) = ToDistanceRange(query, j);
+                    var (min, max) = ToDistanceRange(query, width);
 
                     var result = rhythmTrie
                         .RetrieveSubstringsRange(min, max);
@@ -161,7 +163,8 @@ namespace Mapperator.Matching.Matchers {
                 }
             }
 
-            totalScore += bestScore;
+            totalScore += double.IsNegativeInfinity(bestScore) ? 0 : bestScore;
+            totalSearched += numSearched;
             if (lastId.HasValue && best.Value == lastId.Value.Value &&
                 best.CharPosition == lastId.Value.CharPosition + 1) {
                 pogs++;
@@ -169,7 +172,7 @@ namespace Mapperator.Matching.Matchers {
 
             lastId = best;
             lastLength = bestLength;
-            Console.WriteLine($"match {i}, id = {lastId}, length = {bestLength}, score = {bestScore}");
+            Console.WriteLine($"match {i}, id = {lastId}, num searched = {numSearched}, length = {bestLength}, score = {bestScore}");
 
             return GetMapDataPoint(best);
         }
@@ -181,8 +184,8 @@ namespace Mapperator.Matching.Matchers {
                 var token = query[i];
                 var rhythmPart = token >> 8;
                 var distancePart = token & 255;
-                var minDistance = MathHelper.Clamp((int)(distancePart / width), 0, 255);
-                var maxDistance = MathHelper.Clamp((int)(distancePart * width), 0, 255);
+                var minDistance = MathHelper.Clamp((int)(distancePart - width), 0, 255);
+                var maxDistance = MathHelper.Clamp((int)(distancePart + width), 0, 255);
                 min[i] = (ushort)((rhythmPart << 8) | minDistance);
                 max[i] = (ushort)((rhythmPart << 8) | maxDistance);
             }
