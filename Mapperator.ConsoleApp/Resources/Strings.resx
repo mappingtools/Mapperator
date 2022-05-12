@@ -156,4 +156,7 @@ Basic usage:
   <data name="Program_DoMapConvert_Adding_data___" xml:space="preserve">
     <value>Adding data...</value>
   </data>
+  <data name="Program_DoMapConvert_Elapsed_Time_is" xml:space="preserve">
+    <value>Elapsed Time is {0} ms</value>
+  </data>
 </root>
