@@ -7,7 +7,7 @@ namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher : IDataMatcher {
         private const int FirstSearchLength = 32;
         private static readonly double[] DistanceRanges = { 0, 3, 9 };  // Best values found by trial-and-error
-        private const double PogBonus = 25;
+        private const double PogBonus = 50;
         private const int MaxLookBack = 8;
         private const int MaxSearch = 100000;
 
@@ -17,8 +17,11 @@ namespace Mapperator.Matching.Matchers {
 
         private WordPosition<int>? lastId;
         private int? lastLength;
+        private int? lastLookBack;
         private int pogs;
         private double totalScore;
+        private double totalMatchingCost;
+        private double totalRelationScore;
         private int totalSearched;
         private ReadOnlyMemory<ushort>? patternRhythmString;
 
@@ -78,6 +81,8 @@ namespace Mapperator.Matching.Matchers {
             lastId = null;
             pogs = 0;
             totalScore = 0;
+            totalMatchingCost = 0;
+            totalRelationScore = 0;
             for (var i = 0; i < pattern.Length; i++) {
                 var match = FindBestMatch(newPattern, i, isValidFunc);
                 newPattern[i] = match;
@@ -87,6 +92,8 @@ namespace Mapperator.Matching.Matchers {
             patternRhythmString = null;
             Console.WriteLine($"Pograte = {(float)pogs / pattern.Length}");
             Console.WriteLine($"Score = {totalScore / pattern.Length}");
+            Console.WriteLine($"Avg matching cost = {totalMatchingCost / pattern.Length}");
+            Console.WriteLine($"Avg relation score = {totalRelationScore / pattern.Length}");
             Console.WriteLine($"Avg searched = {totalSearched / pattern.Length}");
         }
 
@@ -98,11 +105,12 @@ namespace Mapperator.Matching.Matchers {
             var bestScore = double.NegativeInfinity;
             var best = new WordPosition<int>(0, 0);
             var bestLength = 0;
+            var bestLookBack = 0;
 
             // First try the pog option
-            if (lastId.HasValue && lastLength.HasValue && lastLength.Value > 2) {
-                var pogLength = lastLength.Value % 2 == 0 ? lastLength.Value - 2 : lastLength.Value - 1;
-                var lookBack = GetLookBack(i, pogLength, localPatternRhythmString.Length);
+            if (lastId.HasValue && lastLength is > 1 && lastLookBack.HasValue) {
+                var pogLength = lastLength.Value - 1;
+                var lookBack = lastLookBack.Value;
                 var pogPos = new WordPosition<int>(lastId.Value.CharPosition + 1, lastId.Value.Value);
 
                 if (!IsValidSeries(pogPos, pogLength - lookBack, isValidFunc)) {
@@ -113,6 +121,7 @@ namespace Mapperator.Matching.Matchers {
                 bestScore = RateMatchQuality(pogPos, pattern, i, pogLength, lookBack) + PogBonus;
                 best = pogPos;
                 bestLength = pogLength;
+                bestLookBack = lookBack;
             }
             PogTried:
 
@@ -150,6 +159,7 @@ namespace Mapperator.Matching.Matchers {
                         bestScore = score;
                         best = middlePos;
                         bestLength = searchLength;
+                        bestLookBack = lookBack;
                     }
 
                     if (foundAnything)
@@ -164,6 +174,10 @@ namespace Mapperator.Matching.Matchers {
             }
 
             totalScore += double.IsNegativeInfinity(bestScore) ? 0 : bestScore;
+            var matchingCost = judge.MatchingCost(pattern[i], GetMapDataPoint(best));
+            var relationScore = judge.RelationScore(pattern, mapDataPoints[best.Value].AsSpan(), i, best.CharPosition, 50);
+            totalMatchingCost += matchingCost;
+            totalRelationScore += relationScore;
             totalSearched += numSearched;
             if (lastId.HasValue && best.Value == lastId.Value.Value &&
                 best.CharPosition == lastId.Value.CharPosition + 1) {
@@ -172,7 +186,8 @@ namespace Mapperator.Matching.Matchers {
 
             lastId = best;
             lastLength = bestLength;
-            Console.WriteLine($"match {i}, id = {lastId}, num searched = {numSearched}, length = {bestLength}, score = {bestScore}");
+            lastLookBack = bestLookBack;
+            Console.WriteLine($"match {i}, id = {lastId}, num searched = {numSearched}, length = {bestLength}, score = {bestScore}, matching cost = {matchingCost}, relation = {relationScore}");
 
             return GetMapDataPoint(best);
         }
