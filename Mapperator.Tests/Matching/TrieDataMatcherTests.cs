@@ -11,7 +11,7 @@ namespace Mapperator.Tests.Matching;
 
 public class TrieDataMatcherTests {
     private readonly List<MapDataPoint[]> mapDataPoints = new();
-    private readonly UkkonenTrie<byte, int> rhythmTrie = new(1);
+    private readonly UkkonenTrie<ushort, int> rhythmTrie = new(1);
 
     [OneTimeSetUp]
     public void Setup() {
@@ -25,10 +25,10 @@ public class TrieDataMatcherTests {
         rhythmTrie.Add(rhythmString, index);
     }
 
-    [TestCase(new byte[] { 4 })]
-    [TestCase(new byte[] { 4, 4, 4, 4 })]
-    [TestCase(new byte[] { 6, 5, 5, 23, 6, 5, 5, 23, 6, 5, 5, 23, 6, 5, 5, 24 })]
-    public void TestQuery(byte[] queryArray) {
+    [TestCase(new ushort[] { 4 })]
+    [TestCase(new ushort[] { 4, 4, 4, 4 })]
+    [TestCase(new ushort[] { 6, 5, 5, 23, 6, 5, 5, 23, 6, 5, 5, 23, 6, 5, 5, 24 })]
+    public void TestQuery(ushort[] queryArray) {
         var query = queryArray.AsSpan();
         var searchLength = query.Length;
 

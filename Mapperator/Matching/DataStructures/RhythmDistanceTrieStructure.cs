@@ -45,11 +45,11 @@ public class RhythmDistanceTrieStructure {
         return (ushort)((typeByte << 8) | dist);
     }
 
-    public (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>) ToDistanceRange(ReadOnlySpan<ushort> query, Func<int, (int, int)> rangeFunc) {
+    public (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>) ToDistanceRange(ReadOnlyMemory<ushort> query, Func<int, (int, int)> rangeFunc) {
         var min = new ushort[query.Length];
         var max = new ushort[query.Length];
         for (var i = 0; i < query.Length; i++) {
-            var token = query[i];
+            var token = query.Span[i];
             var rhythmPart = token >> 8;
             var distancePart = token & 255;
             var (mini, maxi) = rangeFunc(distancePart);

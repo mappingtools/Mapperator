@@ -24,7 +24,7 @@ namespace Mapperator.Matching.Matchers {
 
             while (searchLength > 0) {
                 var lookBack = GetLookBack(i, searchLength, patternRhythmString.Length);
-                var query = patternRhythmString.Span.Slice(i - lookBack, searchLength);
+                var query = patternRhythmString.Slice(i - lookBack, searchLength);
 
                 foreach (var width in DistanceRanges) {
                     var (min, max) = data.ToDistanceRange(query, d => RangeFunction(d, (int)width));
