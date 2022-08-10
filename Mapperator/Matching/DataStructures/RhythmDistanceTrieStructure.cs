@@ -11,6 +11,10 @@ public class RhythmDistanceTrieStructure {
     public IReadOnlyList<MapDataPoint[]> Data => mapDataPoints;
     public UkkonenTrie<ushort, int> Trie => rhythmTrie;
 
+    public void Add(MapDataPoint[] data) {
+        rhythmTrie.Add(ToRhythmString(data.AsSpan()), mapDataPoints.Count);
+        mapDataPoints.Add(data);
+    }
 
     public ReadOnlyMemory<ushort> ToRhythmString(ReadOnlySpan<MapDataPoint> data) {
         var rhythmString = new ushort[data.Length];

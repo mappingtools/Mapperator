@@ -13,9 +13,11 @@ namespace Mapperator.Matching.Matchers {
 
         private readonly HashSet<int> foundMatches = new();
 
-        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) {
+        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) : this(data, data.ToRhythmString(pattern)) { }
+
+        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlyMemory<ushort> rhythmString) {
             this.data = data;
-            patternRhythmString = data.ToRhythmString(pattern);
+            patternRhythmString = rhythmString;
         }
 
         public IEnumerable<Match> FindMatches(int i) {
@@ -42,7 +44,7 @@ namespace Mapperator.Matching.Matchers {
                         foundMatches.Add(id);
 
                         yield return new Match(data.Data[w.Value].AsMemory().Slice(w.CharPosition, searchLength),
-                            lookBack, w.CharPosition + lookBack);
+                            lookBack, w);
                     }
                 }
 

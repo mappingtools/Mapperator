@@ -1,4 +1,5 @@
-﻿using Mapperator.Model;
+﻿using Gma.DataStructures.StringSearch;
+using Mapperator.Model;
 
 namespace Mapperator.Matching;
 
@@ -11,17 +12,18 @@ public struct Match {
     /// <summary>
     /// The index in <see cref="Seq"/> of the desired data point.
     /// </summary>
-    public int Pos;
+    public int WantedIndex;
 
     /// <summary>
-    /// The ID of the desired data point.
-    /// This is sequential so the ID of the next element in <see cref="Seq"/> is <see cref="Id"/> + 1.
+    /// The position of the sequence in the data.
     /// </summary>
-    public int Id;
+    public WordPosition<int> SeqPos;
 
-    public Match(ReadOnlyMemory<MapDataPoint> seq, int pos, int id) {
+    public WordPosition<int> WantedPos => new(SeqPos.CharPosition + WantedIndex, SeqPos.Value);
+
+    public Match(ReadOnlyMemory<MapDataPoint> seq, int wantedIndex, WordPosition<int> seqPos) {
         Seq = seq;
-        Pos = pos;
-        Id = id;
+        WantedIndex = wantedIndex;
+        SeqPos = seqPos;
     }
 }

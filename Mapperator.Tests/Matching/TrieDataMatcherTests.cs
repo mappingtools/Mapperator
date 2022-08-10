@@ -55,7 +55,7 @@ public class TrieDataMatcherTests {
                wordPosition.CharPosition + offset >= 0;
     }
 
-    private int GetMatchLength(WordPosition<int> wordPosition, ReadOnlySpan<byte> pattern) {
+    private int GetMatchLength(WordPosition<int> wordPosition, ReadOnlySpan<ushort> pattern) {
         var length = 0;
         while (wordPosition.CharPosition + length < mapDataPoints[wordPosition.Value].Length &&
                length < pattern.Length &&
