@@ -178,7 +178,14 @@ namespace Mapperator.ConsoleApp {
                 using Stream file = File.OpenRead(Path.ChangeExtension(opts.InputStructName, sMatcher.DefaultExtension));
                 sMatcher.Load(trainData, file);
             } else {
+                Stopwatch buildStopwatch = new Stopwatch();
+                buildStopwatch.Start();
+
                 matcher.AddData(trainData);
+
+                buildStopwatch.Stop();
+                Console.WriteLine(Strings.Program_DoMapConvert_Elapsed_Time_is, buildStopwatch.ElapsedMilliseconds.ToString());
+
                 if (matcher is ISerializable sMatcher2 && !string.IsNullOrEmpty(opts.OutputStructName)) {
                     using Stream file = File.Create(Path.ChangeExtension(opts.OutputStructName, sMatcher2.DefaultExtension));
                     sMatcher2.Save(file);
@@ -197,7 +204,7 @@ namespace Mapperator.ConsoleApp {
 
             // Print elapsed time
             stopwatch.Stop();
-            Console.WriteLine(Strings.Program_DoMapConvert_Elapsed_Time_is, stopwatch.ElapsedMilliseconds);
+            Console.WriteLine(Strings.Program_DoMapConvert_Elapsed_Time_is, stopwatch.ElapsedMilliseconds.ToString());
 
             return 0;
         }

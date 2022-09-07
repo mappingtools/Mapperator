@@ -187,7 +187,7 @@ namespace Mapperator.Matching.Matchers {
             lastId = best;
             lastLength = bestLength;
             lastLookBack = bestLookBack;
-            Console.WriteLine($"match {i}, id = {lastId}, num searched = {numSearched}, length = {bestLength}, score = {bestScore}, matching cost = {matchingCost}, relation = {relationScore}");
+            //Console.WriteLine($"match {i}, id = {lastId}, num searched = {numSearched}, length = {bestLength}, score = {bestScore}, matching cost = {matchingCost}, relation = {relationScore}");
 
             return GetMapDataPoint(best);
         }
