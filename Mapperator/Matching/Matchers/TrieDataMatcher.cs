@@ -23,7 +23,7 @@ namespace Mapperator.Matching.Matchers {
         private double totalMatchingCost;
         private double totalRelationScore;
         private int totalSearched;
-        private ReadOnlyMemory<ushort>? patternRhythmString;
+        private (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[]? patternRhythmString;
 
         public TrieDataMatcher() : this(new SuperJudge()) { }
 
@@ -76,7 +76,7 @@ namespace Mapperator.Matching.Matchers {
             Console.WriteLine("Searching for matches");
             // We want to replace the previous parts of the pattern with the matches we found so the next matches have a better chance
             // of continuing the previous pattern
-            patternRhythmString = ToRhythmString(pattern.Span);
+            patternRhythmString = ToDistanceRanges(ToRhythmString(pattern.Span).Span, DistanceRanges);
             var newPattern = pattern.ToArray();
             lastId = null;
             pogs = 0;
@@ -98,8 +98,8 @@ namespace Mapperator.Matching.Matchers {
         }
 
         public MapDataPoint FindBestMatch(ReadOnlySpan<MapDataPoint> pattern, int i, Func<MapDataPoint, bool> isValidFunc) {
-            var localPatternRhythmString = patternRhythmString ?? ToRhythmString(pattern);
-            var searchLength = Math.Min(FirstSearchLength, localPatternRhythmString.Length);
+            var localPatternRhythmString = patternRhythmString ?? ToDistanceRanges(ToRhythmString(pattern).Span, DistanceRanges);
+            var searchLength = Math.Min(FirstSearchLength, pattern.Length);
             var numSearched = 0;
 
             var bestScore = double.NegativeInfinity;
@@ -125,13 +125,13 @@ namespace Mapperator.Matching.Matchers {
             }
             PogTried:
 
-            while (searchLength > 0 && bestScore < 0.5 * BestPossibleScore(i, searchLength, localPatternRhythmString.Length)) {
-                var lookBack = GetLookBack(i, searchLength, localPatternRhythmString.Length);
-                var query = localPatternRhythmString.Span.Slice(i - lookBack, searchLength);
+            while (searchLength > 0 && bestScore < 0.5 * BestPossibleScore(i, searchLength, pattern.Length)) {
+                var lookBack = GetLookBack(i, searchLength, pattern.Length);
 
-                foreach (var width in DistanceRanges) {
+                for (var j = 0; j < localPatternRhythmString.Length; j++) {
+                    var min = localPatternRhythmString[j].Item1.Slice(i - lookBack, searchLength);
+                    var max = localPatternRhythmString[j].Item2.Slice(i - lookBack, searchLength);
                     var foundAnything = false;
-                    var (min, max) = ToDistanceRange(query, width);
 
                     var result = rhythmTrie
                         .RetrieveSubstringsRange(min, max);
@@ -190,6 +190,16 @@ namespace Mapperator.Matching.Matchers {
             //Console.WriteLine($"match {i}, id = {lastId}, num searched = {numSearched}, length = {bestLength}, score = {bestScore}, matching cost = {matchingCost}, relation = {relationScore}");
 
             return GetMapDataPoint(best);
+        }
+
+        private (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[] ToDistanceRanges(ReadOnlySpan<ushort> query, double[] widths) {
+            var ranges = new (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[widths.Length];
+
+            for (var i = 0; i < widths.Length; i++) {
+                ranges[i] = ToDistanceRange(query, widths[i]);
+            }
+
+            return ranges;
         }
 
         private (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>) ToDistanceRange(ReadOnlySpan<ushort> query, double width) {
