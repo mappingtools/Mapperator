@@ -66,6 +66,7 @@ namespace Mapperator.Construction {
                                 ((Slider)ho).RepeatCount = original.Repeats.Value;
                             }
 
+                            ho.NewCombo = hitObject.NewCombo;
                             beatmap.HitObjects.Add(ho);
                         }
 
@@ -99,7 +100,7 @@ namespace Mapperator.Construction {
                             beatmap.HitObjects.RemoveAt(beatmap.HitObjects.Count - 1);
                             var spinner = new Spinner {
                                 Pos = new Vector2(256, 196),
-                                StartTime = lastCircle.StartTime,
+                                StartTime = lastCircle.StartTime
                             };
                             spinner.SetEndTime(time);
                             beatmap.HitObjects.Add(spinner);
@@ -116,7 +117,7 @@ namespace Mapperator.Construction {
                     // If the last object is a slider and there is no release previously, then make sure the object is a circle
                     if (lastMatch is {DataType: DataType.Hit} && beatmap.HitObjects.LastOrDefault() is Slider lastSlider) {
                         beatmap.HitObjects.RemoveAt(beatmap.HitObjects.Count - 1);
-                        beatmap.HitObjects.Add(new HitCircle { Pos = lastSlider.Pos, StartTime = lastSlider.StartTime });
+                        beatmap.HitObjects.Add(new HitCircle { Pos = lastSlider.Pos, StartTime = lastSlider.StartTime, NewCombo = original.NewCombo});
                     }
                 }
 
@@ -129,6 +130,7 @@ namespace Mapperator.Construction {
                         }
                     }
                     ho.StartTime = time;
+                    ho.NewCombo = original.NewCombo;
                     ho.Move(pos - ho.Pos);
                     ho.ResetHitsounds();
                     if (originalHo is not null) {
