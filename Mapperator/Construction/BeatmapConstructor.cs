@@ -30,7 +30,7 @@ namespace Mapperator.Construction {
                 var original = input.Span[i++];
                 var originalHo = string.IsNullOrWhiteSpace(original.HitObject) ? null : decoder.Decode(original.HitObject);
 
-                time += beatmap.BeatmapTiming.GetMpBAtTime(time) * original.BeatsSince;
+                time = beatmap.BeatmapTiming.WalkBeatsInMillisecondTime(original.BeatsSince, time);
                 angle += match.Angle;
                 var dir = Vector2.Rotate(Vector2.UnitX, angle);
                 pos += match.Spacing * dir;
