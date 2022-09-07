@@ -3,6 +3,7 @@ using Mapperator.Matching;
 using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.Enums;
+using Mapping_Tools_Core.BeatmapHelper.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
 using Mapping_Tools_Core.BeatmapHelper.IO.Decoding.HitObjects;
 using Mapping_Tools_Core.MathUtil;
@@ -41,17 +42,31 @@ namespace Mapperator.Construction {
                 if (match.DataType == DataType.Release) {
                     beatmap.Editor.Bookmarks.Add(time);
                     if (lastMatch is { DataType: DataType.Hit }) {
-                        // Make sure the last object is a slider
-                        if (beatmap.HitObjects.LastOrDefault() is HitCircle lastCircle) {
+                        // Make sure the last object is a slider of the release datapoint
+                        if (beatmap.HitObjects.LastOrDefault() is { } hitObject) {
                             beatmap.HitObjects.RemoveAt(beatmap.HitObjects.Count - 1);
-                            var slider = new Slider {
-                                Pos = lastCircle.Pos,
-                                StartTime = lastCircle.StartTime,
-                                SliderType = PathType.Linear,
-                                PixelLength = Vector2.Distance(lastCircle.Pos, pos),
-                                CurvePoints = { pos }
-                            };
-                            beatmap.HitObjects.Add(slider);
+
+                            var ho = decoder.Decode(match.HitObject);
+                            if (ho is Slider) {
+                                ho.StartTime = hitObject.StartTime;
+                                ho.Move(hitObject.Pos - ho.Pos);
+                                ho.ResetHitsounds();
+                            }
+                            else {
+                                ho = new Slider {
+                                    Pos = hitObject.Pos,
+                                    StartTime = hitObject.StartTime,
+                                    SliderType = PathType.Linear,
+                                    PixelLength = Vector2.Distance(hitObject.Pos, pos),
+                                    CurvePoints = { pos }
+                                };
+                            }
+
+                            if (original.Repeats.HasValue) {
+                                ((Slider)ho).RepeatCount = original.Repeats.Value;
+                            }
+
+                            beatmap.HitObjects.Add(ho);
                         }
 
                         // Make sure the last object ends at time t and around pos
