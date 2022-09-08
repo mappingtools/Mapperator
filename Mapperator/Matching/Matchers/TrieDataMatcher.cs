@@ -108,9 +108,9 @@ namespace Mapperator.Matching.Matchers {
             var bestLookBack = 0;
 
             // First try the pog option
-            if (lastId.HasValue && lastLength is > 1 && lastLookBack.HasValue) {
-                var pogLength = lastLength.Value - 1;
-                var lookBack = lastLookBack.Value;
+            if (lastId.HasValue && lastLength.HasValue && lastLookBack.HasValue && lastLength - lastLookBack > 1) {
+                var pogLength = lastLength.Value;
+                var lookBack = lastLookBack.Value + 1;
                 var pogPos = new WordPosition<int>(lastId.Value.CharPosition + 1, lastId.Value.Value);
 
                 if (!IsValidSeries(pogPos, pogLength - lookBack, isValidFunc)) {
