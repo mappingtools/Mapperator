@@ -21,5 +21,9 @@ namespace Mapperator.Model {
             Repeats = repeats;
             HitObject = hitObject;
         }
+
+        public override string ToString() {
+            return $"{(int)DataType} {BeatsSince:N4} {Spacing:N0} {Angle:N4} {(NewCombo ? 1 : 0)} {(SliderType.HasValue ? ((int)SliderType).ToString() : string.Empty)} {Repeats} {HitObject}";
+        }
     }
 }

@@ -8,7 +8,7 @@ namespace Mapperator {
         }
 
         public static string SerializeBeatmapDataSample(MapDataPoint data) {
-            return $"{(int)data.DataType} {data.BeatsSince:N4} {data.Spacing:N0} {data.Angle:N4} {(data.NewCombo ? 1 : 0)} {(data.SliderType.HasValue ? (int) data.SliderType : string.Empty)} {data.Repeats} {data.HitObject}";
+            return data.ToString();
         }
 
         public static IEnumerable<MapDataPoint> DeserializeBeatmapData(IEnumerable<string> data) {

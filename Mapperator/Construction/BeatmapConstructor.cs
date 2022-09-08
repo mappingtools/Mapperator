@@ -3,7 +3,6 @@ using Mapperator.Matching;
 using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.Enums;
-using Mapping_Tools_Core.BeatmapHelper.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
 using Mapping_Tools_Core.BeatmapHelper.IO.Decoding.HitObjects;
 using Mapping_Tools_Core.MathUtil;
@@ -38,6 +37,8 @@ namespace Mapperator.Construction {
                 // Wrap pos
                 //pos = new Vector2(Helpers.Mod(pos.X, 512), Helpers.Mod(pos.Y, 384));
                 pos = Vector2.Clamp(pos, Vector2.Zero, new Vector2(512, 382));
+
+                Console.WriteLine($"time = {time}, pos = {pos}, original = {original}, match = {match}");
 
                 if (match.DataType == DataType.Release) {
                     beatmap.Editor.Bookmarks.Add(time);
