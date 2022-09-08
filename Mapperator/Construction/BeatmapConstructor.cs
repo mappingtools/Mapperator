@@ -66,6 +66,13 @@ namespace Mapperator.Construction {
                             if (original.Repeats.HasValue) {
                                 ((Slider)ho).RepeatCount = original.Repeats.Value;
                             }
+                            ho.ResetHitsounds();
+                            if (originalHo is not null) {
+                                ho.Hitsounds = originalHo.Hitsounds;
+                                if (ho is Slider slider && originalHo is Slider slider2) {
+                                    slider.EdgeHitsounds = slider2.EdgeHitsounds;
+                                }
+                            }
 
                             ho.NewCombo = hitObject.NewCombo;
                             beatmap.HitObjects.Add(ho);
@@ -101,7 +108,8 @@ namespace Mapperator.Construction {
                             beatmap.HitObjects.RemoveAt(beatmap.HitObjects.Count - 1);
                             var spinner = new Spinner {
                                 Pos = new Vector2(256, 196),
-                                StartTime = lastCircle.StartTime
+                                StartTime = lastCircle.StartTime,
+                                Hitsounds = lastCircle.Hitsounds
                             };
                             spinner.SetEndTime(time);
                             beatmap.HitObjects.Add(spinner);
