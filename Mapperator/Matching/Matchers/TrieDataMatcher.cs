@@ -6,7 +6,7 @@ using Mapping_Tools_Core.MathUtil;
 namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher : IDataMatcher {
         private const int FirstSearchLength = 32;
-        private static readonly double[] DistanceRanges = { 0, 3, 9 };  // Best values found by trial-and-error
+        private static readonly double[] DistanceRanges = { 0, 3, 9, 27 };  // Best values found by trial-and-error
         private const double PogBonus = 50;
         private const int MaxLookBack = 8;
         private const int MaxSearch = 100000;
