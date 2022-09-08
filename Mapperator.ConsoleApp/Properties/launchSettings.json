@@ -22,7 +22,7 @@
     },
     "ConvertMapAll": {
       "commandName": "Project",
-      "commandLineArgs": "convert -d AllMapsData -i \"Resources\\dorchadas\" -o output -g allgraph -h allgraph"
+      "commandLineArgs": "convert -d AllMapsData -i \"Resources\\input\" -o output"
     }
   }
 }
