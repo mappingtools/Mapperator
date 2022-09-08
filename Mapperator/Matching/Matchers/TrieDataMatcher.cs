@@ -6,7 +6,7 @@ using Mapping_Tools_Core.MathUtil;
 namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher : IDataMatcher {
         private const int FirstSearchLength = 32;
-        private static readonly double[] DistanceRanges = { 0, 3, 9, 27 };  // Best values found by trial-and-error
+        private static readonly double[] DistanceRanges = { 0, 3, 9 };  // Best values found by trial-and-error
         private const double PogBonus = 50;
         private const int MaxLookBack = 8;
         private const int MaxSearch = 100000;
@@ -57,6 +57,15 @@ namespace Mapperator.Matching.Matchers {
             const int gapRange = 9;
             var dist = (int) MathHelper.Clamp(mapDataPoint.Spacing / 4, 0, 255);
             var gap = MathHelper.Clamp((int) Math.Round(Math.Log2(mapDataPoint.BeatsSince) + gapResolution), 0, gapRange - 1);
+
+            if (mapDataPoint.DataType == DataType.Release) {
+                // The beat gap is less important for selecting sliders so lets reduce gap to just 2 classes for sliders
+                // If its less than 1/2 beat, its 0
+                gap = gap < 5 ? 0 : 1;
+                // Lets also allow a coarser range of distances
+                dist = (int) MathHelper.Clamp(mapDataPoint.Spacing / 12, 0, 255);
+            }
+
             var typeByte = mapDataPoint.DataType switch {
                 DataType.Hit => gap,
                 DataType.Spin => gapRange + gap,

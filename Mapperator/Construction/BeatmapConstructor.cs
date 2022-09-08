@@ -38,7 +38,7 @@ namespace Mapperator.Construction {
                 //pos = new Vector2(Helpers.Mod(pos.X, 512), Helpers.Mod(pos.Y, 384));
                 pos = Vector2.Clamp(pos, Vector2.Zero, new Vector2(512, 382));
 
-                Console.WriteLine($"time = {time}, pos = {pos}, original = {original}, match = {match}");
+                //Console.WriteLine($"time = {time}, pos = {pos}, original = {original}, match = {match}");
 
                 if (match.DataType == DataType.Release) {
                     beatmap.Editor.Bookmarks.Add(time);
