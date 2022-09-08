@@ -56,7 +56,7 @@ namespace Mapperator.Matching.Matchers {
             const int gapResolution = 6;
             const int gapRange = 9;
             var dist = (int) MathHelper.Clamp(mapDataPoint.Spacing / 4, 0, 255);
-            var gap = MathHelper.Clamp((int) Math.Log2(mapDataPoint.BeatsSince) + gapResolution, 0, gapRange - 1);
+            var gap = MathHelper.Clamp((int) Math.Round(Math.Log2(mapDataPoint.BeatsSince) + gapResolution), 0, gapRange - 1);
             var typeByte = mapDataPoint.DataType switch {
                 DataType.Hit => gap,
                 DataType.Spin => gapRange + gap,
