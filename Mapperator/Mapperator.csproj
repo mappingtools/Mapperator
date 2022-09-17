@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <PackageReference Include="MappingTools.Core" Version="0.4.8" />
+      <PackageReference Include="morelinq" Version="3.3.2" />
     </ItemGroup>
 
     <ItemGroup>

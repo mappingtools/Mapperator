@@ -144,7 +144,6 @@ namespace Mapperator.ConsoleApp {
         private static IDataMatcher GetDataMatcher(MatcherType matcherType) {
             return matcherType switch {
                 MatcherType.Simple => new SimpleDataMatcher(),
-                MatcherType.HNSW => new HnswDataMatcher(),
                 MatcherType.Trie => new TrieDataMatcher(),
                 _ => new TrieDataMatcher()
             };
@@ -154,7 +153,7 @@ namespace Mapperator.ConsoleApp {
             if (opts.OutputStructName is null) throw new ArgumentNullException(nameof(opts));
             if (opts.DataPath is null) throw new ArgumentNullException(nameof(opts));
 
-            var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt"))).ToList();
+            var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt")));
             var matcher = GetDataMatcher(opts.MatcherType);
 
             if (matcher is not ISerializable sMatcher) {
@@ -162,7 +161,10 @@ namespace Mapperator.ConsoleApp {
                 return 0;
             }
 
-            matcher.AddData(trainData);
+            foreach (var str in trainData) {
+                matcher.AddData(str);
+            }
+
             using Stream file = File.Create(Path.ChangeExtension(opts.OutputStructName, sMatcher.DefaultExtension));
             sMatcher.Save(file);
             return 0;
@@ -193,7 +195,10 @@ namespace Mapperator.ConsoleApp {
                 Stopwatch buildStopwatch = new Stopwatch();
                 buildStopwatch.Start();
 
-                matcher.AddData(trainData);
+                foreach (var str in trainData) {
+                    matcher.AddData(str);
+                    Console.Write('.');
+                }
 
                 buildStopwatch.Stop();
                 Console.WriteLine(Strings.Program_DoMapConvert_Elapsed_Time_is, buildStopwatch.ElapsedMilliseconds.ToString());
@@ -224,9 +229,10 @@ namespace Mapperator.ConsoleApp {
         private static int DoDataExtraction(ExtractOptions opts) {
             if (opts.OutputName is null) throw new ArgumentNullException(nameof(opts));
 
+            bool[] mirrors = { false, true };
             var extractor = new DataExtractor();
             File.WriteAllLines(Path.ChangeExtension(opts.OutputName, ".txt"),
-                (opts.CollectionName is null ? DbManager.GetAll() : DbManager.GetCollection(opts.CollectionName))
+                DataSerializer.SerializeBeatmapData((opts.CollectionName is null ? DbManager.GetAll() : DbManager.GetCollection(opts.CollectionName))
                 .Where(o => (!opts.MinId.HasValue || o.BeatmapSetId >= opts.MinId)
                             && (!opts.RankedStatus.HasValue || o.RankedStatus == opts.RankedStatus)
                             && (!opts.Ruleset.HasValue || o.Ruleset == opts.Ruleset)
@@ -240,10 +246,17 @@ namespace Mapperator.ConsoleApp {
                     Console.WriteLine(Strings.CouldNotFindFile, o);
                     return false;
                 })
-                .Select(o => new BeatmapEditor(o).ReadFile())
-                .Where(o => o.General.Mode == GameMode.Standard)
-                .SelectMany(b => extractor.ExtractBeatmapData(b).Concat(extractor.ExtractBeatmapData(b, true)))
-                .Select(DataSerializer.SerializeBeatmapDataSample));
+                .Select(o => {
+                    try {
+                        return new BeatmapEditor(o).ReadFile();
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine(Strings.ErrorReadingFile, o, e);
+                        return null;
+                    }
+                }).Where(o => o is not null)
+                .SelectMany(b => mirrors.Select(m => extractor.ExtractBeatmapData(b, m)))
+                ));
             return 0;
         }
 

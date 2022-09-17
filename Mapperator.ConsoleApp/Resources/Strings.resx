@@ -162,4 +162,8 @@ Basic usage:
   <data name="CouldNotFindFile" xml:space="preserve">
     <value>Could not find file '{0}'.</value>
   </data>
+  <data name="ErrorReadingFile" xml:space="preserve">
+    <value>Error reading file '{0}':
+{1}</value>
+  </data>
 </root>

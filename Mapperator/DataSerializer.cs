@@ -1,18 +1,27 @@
 ﻿using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper.Enums;
+using MoreLinq;
 
 namespace Mapperator {
     public static class DataSerializer {
-        public static IEnumerable<string> SerializeBeatmapData(IEnumerable<MapDataPoint> data) {
-            return data.Select(SerializeBeatmapDataSample);
+        private const string BeatmapSeparator = "/-\\_/-\\_/-\\";
+
+        public static IEnumerable<string> SerializeBeatmapData(IEnumerable<IEnumerable<MapDataPoint>> data) {
+            foreach (var beatmap in data) {
+                foreach (var dataPoint in beatmap) {
+                    yield return SerializeBeatmapDataSample(dataPoint);
+                }
+
+                yield return BeatmapSeparator;
+            }
         }
 
         public static string SerializeBeatmapDataSample(MapDataPoint data) {
             return data.ToString();
         }
 
-        public static IEnumerable<MapDataPoint> DeserializeBeatmapData(IEnumerable<string> data) {
-            return data.Select(DeserializeBeatmapDataSample);
+        public static IEnumerable<IEnumerable<MapDataPoint>> DeserializeBeatmapData(IEnumerable<string> data) {
+            return data.Split(BeatmapSeparator, beatmapData => beatmapData.Select(DeserializeBeatmapDataSample));
         }
 
         public static MapDataPoint DeserializeBeatmapDataSample(string data) {

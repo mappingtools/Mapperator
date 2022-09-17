@@ -2,11 +2,11 @@
   "profiles": {
     "ExtractData": {
       "commandName": "Project",
-      "commandLineArgs": "extract -c !Kroytz -o test"
+      "commandLineArgs": "extract -c \"Nice Fun Maps\" -o AllMapsData2"
     },
     "ExtractAllData": {
       "commandName": "Project",
-      "commandLineArgs": "extract -i 150000 -s Ranked -m Standard -o AllRankedData"
+      "commandLineArgs": "extract -i 300000 -s Ranked -m Standard -o AllRankedData"
     },
     "ConvertMap": {
       "commandName": "Project",
@@ -26,7 +26,11 @@
     },
     "ConvertMapAll": {
       "commandName": "Project",
-      "commandLineArgs": "convert -d AllMapsData -i \"Resources\\input\" -o output"
+      "commandLineArgs": "convert -d AllMapsData2 -i \"Resources\\input\" -o output"
+    },
+    "ConvertMapAll2": {
+      "commandName": "Project",
+      "commandLineArgs": "convert -d AllRankedData -i \"Resources\\inputm\" -o output"
     }
   }
 }

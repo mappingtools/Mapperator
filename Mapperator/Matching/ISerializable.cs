@@ -6,6 +6,6 @@ namespace Mapperator.Matching {
 
         void Save(Stream stream);
 
-        void Load(IEnumerable<MapDataPoint> data, Stream stream);
+        void Load(IEnumerable<IEnumerable<MapDataPoint>> data, Stream stream);
     }
 }

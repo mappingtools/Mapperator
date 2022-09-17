@@ -90,6 +90,16 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error reading file &apos;{0}&apos;:
+        ///{1}.
+        /// </summary>
+        internal static string ErrorReadingFile {
+            get {
+                return ResourceManager.GetString("ErrorReadingFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not enough arguments provided. Expected {0} arguments..
         /// </summary>
         internal static string NotEnoughArguments {
