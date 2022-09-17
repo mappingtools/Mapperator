@@ -124,7 +124,7 @@ Basic usage:
 -c "data file" "beatmap file" "output location"</value>
   </data>
   <data name="CouldNotFindCollection" xml:space="preserve">
-    <value>Could not find collection named "{0}".</value>
+    <value>Could not find collection '{0}'.</value>
   </data>
   <data name="NotEnoughArguments" xml:space="preserve">
     <value>Not enough arguments provided. Expected {0} arguments.</value>
@@ -158,5 +158,8 @@ Basic usage:
   </data>
   <data name="Program_DoMapConvert_Elapsed_Time_is" xml:space="preserve">
     <value>Elapsed Time is {0} ms</value>
+  </data>
+  <data name="CouldNotFindFile" xml:space="preserve">
+    <value>Could not find file '{0}'.</value>
   </data>
 </root>

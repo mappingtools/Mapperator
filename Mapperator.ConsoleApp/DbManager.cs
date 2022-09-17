@@ -1,4 +1,5 @@
-﻿using OsuParsers.Database.Objects;
+﻿using System;
+using OsuParsers.Database.Objects;
 using OsuParsers.Decoders;
 using System.Collections.Generic;
 using System.IO;
@@ -21,6 +22,12 @@ namespace Mapperator.ConsoleApp {
             }
 
             return collection.MD5Hashes.SelectMany(o => beatmaps.Where(b => b.MD5Hash == o));
+        }
+
+        public static List<DbBeatmap> GetAll() {
+            var osuDbPath = Path.Join(ConfigManager.Config.OsuPath, "osu!.db");
+            var db = DatabaseDecoder.DecodeOsu(osuDbPath);
+            return db.Beatmaps;
         }
     }
 }

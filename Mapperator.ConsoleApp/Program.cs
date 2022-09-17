@@ -13,16 +13,28 @@ using Mapperator.Construction;
 using Mapperator.Matching;
 using Mapperator.Matching.Matchers;
 using Mapping_Tools_Core.BeatmapHelper.Enums;
+using OsuParsers.Database.Objects;
+using OsuParsers.Enums;
+using OsuParsers.Enums.Database;
 
 namespace Mapperator.ConsoleApp {
     public static class Program {
         [Verb("extract", HelpText = "Extract beatmap data from an osu! collection.")]
         private class ExtractOptions {
-            [Option('c', "collection", Group = "input", HelpText = "Name of osu! collection to be extracted.")]
+            [Option('c', "collection", HelpText = "Name of osu! collection to be extracted.")]
             public string? CollectionName { get; set; }
 
-            [Option('i', "input", Group = "input", HelpText = "Input beatmaps to be extracted.")]
-            public IEnumerable<string>? InputFiles { get; set; }
+            [Option('i', "minId", HelpText = "Filter the minimum beatmap set ID.")]
+            public int? MinId { get; set; }
+
+            [Option('s', "status", HelpText = "Filter the ranked status.")]
+            public RankedStatus? RankedStatus { get; set; }
+
+            [Option('m', "mode", HelpText = "Filter the game mode.")]
+            public Ruleset? Ruleset { get; set; }
+
+            [Option('r', "starRating", HelpText = "Filter the star rating.")]
+            public double? MinStarRating { get; set; }
 
             [Option('o', "output", Required = true, HelpText = "Filename of the output.")]
             public string? OutputName { get; set; }
@@ -211,17 +223,37 @@ namespace Mapperator.ConsoleApp {
 
         private static int DoDataExtraction(ExtractOptions opts) {
             if (opts.OutputName is null) throw new ArgumentNullException(nameof(opts));
-            if (opts.InputFiles is null && opts.CollectionName is null) throw new ArgumentNullException(nameof(opts));
 
             var extractor = new DataExtractor();
             File.WriteAllLines(Path.ChangeExtension(opts.OutputName, ".txt"),
-                (opts.CollectionName is null ? opts.InputFiles! :
-                DbManager.GetCollection(opts.CollectionName).Select(o => Path.Combine(ConfigManager.Config.SongsPath, o.FolderName, o.FileName)))
+                (opts.CollectionName is null ? DbManager.GetAll() : DbManager.GetCollection(opts.CollectionName))
+                .Where(o => (!opts.MinId.HasValue || o.BeatmapSetId >= opts.MinId)
+                            && (!opts.RankedStatus.HasValue || o.RankedStatus == opts.RankedStatus)
+                            && (!opts.Ruleset.HasValue || o.Ruleset == opts.Ruleset)
+                            && (!opts.MinStarRating.HasValue || GetDefaultStarRating(o) >= opts.MinStarRating))
+                .Select(o => Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim()))
+                .Where(o => {
+                    if (File.Exists(o)) {
+                        Console.Write('.');
+                        return true;
+                    }
+                    Console.WriteLine(Strings.CouldNotFindFile, o);
+                    return false;
+                })
                 .Select(o => new BeatmapEditor(o).ReadFile())
                 .Where(o => o.General.Mode == GameMode.Standard)
                 .SelectMany(b => extractor.ExtractBeatmapData(b).Concat(extractor.ExtractBeatmapData(b, true)))
                 .Select(DataSerializer.SerializeBeatmapDataSample));
             return 0;
+        }
+
+        private static double GetDefaultStarRating(DbBeatmap beatmap) {
+            return beatmap.Ruleset switch {
+                Ruleset.Taiko => beatmap.TaikoStarRating[Mods.None],
+                Ruleset.Mania => beatmap.ManiaStarRating[Mods.None],
+                Ruleset.Fruits => beatmap.CatchStarRating[Mods.None],
+                _ => beatmap.StandardStarRating[Mods.None]
+            };
         }
     }
 }

@@ -4,6 +4,10 @@
       "commandName": "Project",
       "commandLineArgs": "extract -c !Kroytz -o test"
     },
+    "ExtractAllData": {
+      "commandName": "Project",
+      "commandLineArgs": "extract -i 150000 -s Ranked -m Standard -o AllRankedData"
+    },
     "ConvertMap": {
       "commandName": "Project",
       "commandLineArgs": "convert -d test -i \"Resources\\input\" -o output -m Trie"
