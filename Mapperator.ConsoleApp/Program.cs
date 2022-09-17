@@ -48,7 +48,7 @@ namespace Mapperator.ConsoleApp {
             [Option('h', "structOutput", Required = true, HelpText = "Filename for the generated data structure.")]
             public string? OutputStructName { get; set; }
 
-            [Option('m', "matcher", Default = MatcherType.HNSW, HelpText = "The type of data matcher to use.")]
+            [Option('m', "matcher", Default = MatcherType.Trie, HelpText = "The type of data matcher to use.")]
             public MatcherType MatcherType { get; set; }
         }
 

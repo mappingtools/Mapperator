@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="HNSW" Version="1.0.21628" />
     <PackageReference Include="MappingTools.Core" Version="0.4.8" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
