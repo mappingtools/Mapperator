@@ -2,7 +2,7 @@
   "profiles": {
     "ExtractData": {
       "commandName": "Project",
-      "commandLineArgs": "extract -c \"Nice Fun Maps\" -o AllMapsData2"
+      "commandLineArgs": "extract -c \"!Kroytz\" -o test2"
     },
     "ExtractAllData": {
       "commandName": "Project",
@@ -10,7 +10,7 @@
     },
     "ConvertMap": {
       "commandName": "Project",
-      "commandLineArgs": "convert -d test -i \"Resources\\input\" -o output -m Trie"
+      "commandLineArgs": "convert -d test2 -i \"Resources\\input\" -o output -m Trie"
     },
     "Search": {
       "commandName": "Project",

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Gma.DataStructures.StringSearch;
 using Mapperator.Matching.Matchers;
@@ -16,8 +17,16 @@ public class TrieDataMatcherTests {
     [OneTimeSetUp]
     public void Setup() {
         const string path = "Resources/input.osu";
-        var data = new DataExtractor().ExtractBeatmapData(new BeatmapEditor(path).ReadFile()).ToList();
+        var data = new DataExtractor().ExtractBeatmapData(new BeatmapEditor(path).ReadFile()).ToArray();
+        Add(data);
+        Add(data);
 
+        const string path2 = "Resources/input2.osu";
+        var data2 = new DataExtractor().ExtractBeatmapData(new BeatmapEditor(path2).ReadFile());
+        Add(data2);
+    }
+
+    private void Add(IEnumerable<MapDataPoint> data) {
         var dataList = data.ToArray();
         var index = mapDataPoints.Count;
         var rhythmString = TrieDataMatcher.ToRhythmString(dataList);
@@ -25,23 +34,44 @@ public class TrieDataMatcherTests {
         rhythmTrie.Add(rhythmString, index);
     }
 
-    [TestCase(new ushort[] { 4 })]
-    [TestCase(new ushort[] { 4, 4, 4, 4 })]
-    [TestCase(new ushort[] { 6, 5, 5, 23, 6, 5, 5, 23, 6, 5, 5, 23, 6, 5, 5, 24 })]
-    public void TestQuery(ushort[] queryArray) {
-        var query = queryArray.AsSpan();
-        var searchLength = query.Length;
+    [Test]
+    public void TestQuery() {
+        foreach (var map in mapDataPoints) {
+            var mapRhythmString = TrieDataMatcher.ToRhythmString(map);
+            Debug.WriteLine(string.Join(',', mapRhythmString.ToArray()));
 
-        var result = rhythmTrie
-            .RetrieveSubstrings(query);
+            for (var i = 0; i < map.Length; i++) {
+                for (var searchLength = 1; searchLength < 10; searchLength++) {
+                    var lookback = TrieDataMatcher.GetLookBack(i, searchLength, mapRhythmString.Length);
+                    var query = mapRhythmString.Span.Slice(i - lookback, searchLength);
+                    Debug.WriteLine(string.Join(',', query.ToArray()));
 
-        foreach (var wordPosition in result) {
-            //var rhythmString = dataRhythmStrings[wordPosition.Value];
-            //Console.WriteLine(string.Join('-', Enumerable.Range(0, searchLength).Select(o => rhythmString.Span[wordPosition.CharPosition + o])));
-            //Console.WriteLine(string.Join('-', query.ToArray()));
-            Assert.IsTrue(WordPositionInRange(wordPosition));
-            Assert.IsTrue(WordPositionInRange(wordPosition, searchLength));
-            Assert.AreEqual(searchLength, GetMatchLength(wordPosition, query));
+                    var result = rhythmTrie.RetrieveSubstrings(query).ToList();
+
+                    Assert.IsTrue(result.Count > 0);
+                    foreach (var wordPosition in result) {
+                        //var rhythmString = dataRhythmStrings[wordPosition.Value];
+                        //Console.WriteLine(string.Join('-', Enumerable.Range(0, searchLength).Select(o => rhythmString.Span[wordPosition.CharPosition + o])));
+                        //Console.WriteLine(string.Join('-', query.ToArray()));
+                        Assert.IsTrue(WordPositionInRange(wordPosition));
+                        Assert.IsTrue(WordPositionInRange(wordPosition, searchLength - 1));
+                        Assert.AreEqual(searchLength, GetMatchLength(wordPosition, query));
+                    }
+
+                    var (min, max) = TrieDataMatcher.ToDistanceRange(query, 10);
+                    var rangeResult = rhythmTrie.RetrieveSubstringsRange(min, max).ToList();
+
+                    Assert.IsTrue(rangeResult.Count > 0);
+                    foreach (var wordPosition in rangeResult) {
+                        //var rhythmString = dataRhythmStrings[wordPosition.Value];
+                        //Console.WriteLine(string.Join('-', Enumerable.Range(0, searchLength).Select(o => rhythmString.Span[wordPosition.CharPosition + o])));
+                        //Console.WriteLine(string.Join('-', query.ToArray()));
+                        Assert.IsTrue(WordPositionInRange(wordPosition));
+                        Assert.IsTrue(WordPositionInRange(wordPosition, searchLength - 1));
+                        Assert.AreEqual(searchLength, GetMatchLengthRange(wordPosition, min.Span, max.Span));
+                    }
+                }
+            }
         }
     }
 
@@ -61,6 +91,18 @@ public class TrieDataMatcherTests {
                length < pattern.Length &&
                TrieDataMatcher.ToRhythmToken(GetMapDataPoint(wordPosition, length)) ==
                pattern[length]) {
+            length++;
+        }
+
+        return length;
+    }
+
+    private int GetMatchLengthRange(WordPosition<int> wordPosition, ReadOnlySpan<ushort> min, ReadOnlySpan<ushort> max) {
+        var length = 0;
+        while (wordPosition.CharPosition + length < mapDataPoints[wordPosition.Value].Length &&
+               length < min.Length &&
+               TrieDataMatcher.ToRhythmToken(GetMapDataPoint(wordPosition, length)) >= min[length] &&
+               TrieDataMatcher.ToRhythmToken(GetMapDataPoint(wordPosition, length)) <= max[length]) {
             length++;
         }
 

@@ -115,6 +115,7 @@ namespace Mapperator.Matching.Matchers {
             var best = new WordPosition<int>(0, 0);
             var bestLength = 0;
             var bestLookBack = 0;
+            var bestWidth = 0;
 
             // First try the pog option
             if (lastId.HasValue && lastLength.HasValue && lastLookBack.HasValue && lastLength - lastLookBack > 1) {
@@ -169,6 +170,7 @@ namespace Mapperator.Matching.Matchers {
                         best = middlePos;
                         bestLength = searchLength;
                         bestLookBack = lookBack;
+                        bestWidth = j;
                     }
 
                     if (foundAnything)
@@ -196,7 +198,10 @@ namespace Mapperator.Matching.Matchers {
             lastId = best;
             lastLength = bestLength;
             lastLookBack = bestLookBack;
+            var bestmin = localPatternRhythmString[bestWidth].Item1.Slice(i - bestLookBack, bestLength);
+            var bestmax = localPatternRhythmString[bestWidth].Item2.Slice(i - bestLookBack, bestLength);
             Console.WriteLine($"match {i}, id = {lastId}, num searched = {numSearched}, length = {bestLength}, score = {bestScore}, matching cost = {matchingCost}, relation = {relationScore}");
+            Console.WriteLine($"match code = {string.Join(',', Enumerable.Range(-bestLookBack, bestLength).Select(o => ToRhythmToken(GetMapDataPoint(best, o))))}; min = {string.Join(',', bestmin.ToArray())}; max = {string.Join(',', bestmax.ToArray())}");
 
             return GetMapDataPoint(best);
         }
@@ -211,7 +216,7 @@ namespace Mapperator.Matching.Matchers {
             return ranges;
         }
 
-        private (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>) ToDistanceRange(ReadOnlySpan<ushort> query, double width) {
+        public static (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>) ToDistanceRange(ReadOnlySpan<ushort> query, double width) {
             var min = new ushort[query.Length];
             var max = new ushort[query.Length];
             for (var i = 0; i < query.Length; i++) {
@@ -227,7 +232,7 @@ namespace Mapperator.Matching.Matchers {
             return (min.AsMemory(), max.AsMemory());
         }
 
-        private int GetLookBack(int i, int length, int totalLength) {
+        public static int GetLookBack(int i, int length, int totalLength) {
             return MathHelper.Clamp(Math.Min(length / 2, MaxLookBack), i + length - totalLength, i);
         }
 
