@@ -25,7 +25,7 @@ public class SuperJudge : IJudge {
 
             // Subtract loss by difference in data points
             score -= weight * SpacingWeight * Math.Pow(Math.Abs(foundPoint.Spacing - wantedPoint.Spacing), 0.5);
-            score -= weight * AngleWeight * Math.Abs(foundPoint.Angle - wantedPoint.Angle);
+            score -= weight * (wantedPoint.Spacing < 100 && wantedPoint.BeatsSince < 4.9 ? 20 : 1) * AngleWeight * Math.Abs(foundPoint.Angle - wantedPoint.Angle);
 
             // Subtract points for having different combo's
             score -= weight * (foundPoint.NewCombo != wantedPoint.NewCombo ? NcLoss : 0);

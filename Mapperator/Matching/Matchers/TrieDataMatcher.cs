@@ -198,10 +198,10 @@ namespace Mapperator.Matching.Matchers {
             lastId = best;
             lastLength = bestLength;
             lastLookBack = bestLookBack;
-            var bestmin = localPatternRhythmString[bestWidth].Item1.Slice(i - bestLookBack, bestLength);
-            var bestmax = localPatternRhythmString[bestWidth].Item2.Slice(i - bestLookBack, bestLength);
             Console.WriteLine($"match {i}, id = {lastId}, num searched = {numSearched}, length = {bestLength}, score = {bestScore}, matching cost = {matchingCost}, relation = {relationScore}");
-            Console.WriteLine($"match code = {string.Join(',', Enumerable.Range(-bestLookBack, bestLength).Select(o => ToRhythmToken(GetMapDataPoint(best, o))))}; min = {string.Join(',', bestmin.ToArray())}; max = {string.Join(',', bestmax.ToArray())}");
+            //var bestmin = localPatternRhythmString[bestWidth].Item1.Slice(i - bestLookBack, bestLength);
+            //var bestmax = localPatternRhythmString[bestWidth].Item2.Slice(i - bestLookBack, bestLength);
+            //Console.WriteLine($"match code = {string.Join(',', Enumerable.Range(-bestLookBack, bestLength).Select(o => ToRhythmToken(GetMapDataPoint(best, o))))}; min = {string.Join(',', bestmin.ToArray())}; max = {string.Join(',', bestmax.ToArray())}");
 
             return GetMapDataPoint(best);
         }
