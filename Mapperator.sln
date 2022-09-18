@@ -9,6 +9,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator.Tests", "Mappera
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator", "Mapperator\Mapperator.csproj", "{1CA31E19-96B0-4BCE-8EA9-351A0D46524A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mapperator.DemoApp", "Mapperator.DemoApp", "{3B71147E-58F9-498C-A347-D9A67184FC6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator.DemoApp.Desktop", "Mapperator.DemoApp\Mapperator.DemoApp.Desktop\Mapperator.DemoApp.Desktop.csproj", "{8866BFA7-C9FE-4FBC-8DB2-EE066710D23D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator.DemoApp.Game", "Mapperator.DemoApp\Mapperator.DemoApp.Game\Mapperator.DemoApp.Game.csproj", "{655EADB1-1566-4B2E-BAD8-D8969C7FB0AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator.DemoApp.Game.Tests", "Mapperator.DemoApp\Mapperator.DemoApp.Game.Tests\Mapperator.DemoApp.Game.Tests.csproj", "{8BC69A41-BFB9-4B21-814E-1D5DCB30D994}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator.DemoApp.Resources", "Mapperator.DemoApp\Mapperator.DemoApp.Resources\Mapperator.DemoApp.Resources.csproj", "{3F72551A-58DA-4E86-99BD-8EC81219DC76}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,11 +37,33 @@ Global
 		{1CA31E19-96B0-4BCE-8EA9-351A0D46524A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1CA31E19-96B0-4BCE-8EA9-351A0D46524A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1CA31E19-96B0-4BCE-8EA9-351A0D46524A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8866BFA7-C9FE-4FBC-8DB2-EE066710D23D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8866BFA7-C9FE-4FBC-8DB2-EE066710D23D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8866BFA7-C9FE-4FBC-8DB2-EE066710D23D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8866BFA7-C9FE-4FBC-8DB2-EE066710D23D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{655EADB1-1566-4B2E-BAD8-D8969C7FB0AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{655EADB1-1566-4B2E-BAD8-D8969C7FB0AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{655EADB1-1566-4B2E-BAD8-D8969C7FB0AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{655EADB1-1566-4B2E-BAD8-D8969C7FB0AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BC69A41-BFB9-4B21-814E-1D5DCB30D994}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BC69A41-BFB9-4B21-814E-1D5DCB30D994}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BC69A41-BFB9-4B21-814E-1D5DCB30D994}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BC69A41-BFB9-4B21-814E-1D5DCB30D994}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F72551A-58DA-4E86-99BD-8EC81219DC76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F72551A-58DA-4E86-99BD-8EC81219DC76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F72551A-58DA-4E86-99BD-8EC81219DC76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F72551A-58DA-4E86-99BD-8EC81219DC76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {3BDF6301-7F8D-4A87-96E0-978D9D59B7A5}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8866BFA7-C9FE-4FBC-8DB2-EE066710D23D} = {3B71147E-58F9-498C-A347-D9A67184FC6E}
+		{655EADB1-1566-4B2E-BAD8-D8969C7FB0AB} = {3B71147E-58F9-498C-A347-D9A67184FC6E}
+		{8BC69A41-BFB9-4B21-814E-1D5DCB30D994} = {3B71147E-58F9-498C-A347-D9A67184FC6E}
+		{3F72551A-58DA-4E86-99BD-8EC81219DC76} = {3B71147E-58F9-498C-A347-D9A67184FC6E}
 	EndGlobalSection
 EndGlobal

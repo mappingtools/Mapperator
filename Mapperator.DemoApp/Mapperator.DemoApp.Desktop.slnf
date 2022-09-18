@@ -1,0 +1,11 @@
+﻿{
+  "solution": {
+    "path": "Mapperator.DemoApp.sln",
+    "projects": [
+      "Mapperator.DemoApp.Desktop\\Mapperator.DemoApp.Desktop.csproj",
+      "Mapperator.DemoApp.Game\\Mapperator.DemoApp.Game.csproj",
+      "Mapperator.DemoApp.Game.Tests\\Mapperator.DemoApp.Game.Tests.csproj",
+      "Mapperator.DemoApp.Resources\\Mapperator.DemoApp.Resources.csproj"
+    ]
+  }
+}
