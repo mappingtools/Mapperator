@@ -1,5 +1,9 @@
 {
   "profiles": {
+    "CountData": {
+      "commandName": "Project",
+      "commandLineArgs": "count -i 300000 -s Ranked -m Standard -r 4.5"
+    },
     "ExtractData": {
       "commandName": "Project",
       "commandLineArgs": "extract -c \"!Kroytz\" -o test2"

@@ -19,6 +19,24 @@ using OsuParsers.Enums.Database;
 
 namespace Mapperator.ConsoleApp {
     public static class Program {
+        [Verb("count", HelpText = "Count the amount of beatmaps available matching the specified filter.")]
+        private class CountOptions {
+            [Option('c', "collection", HelpText = "Name of osu! collection to be extracted.")]
+            public string? CollectionName { get; set; }
+
+            [Option('i', "minId", HelpText = "Filter the minimum beatmap set ID.")]
+            public int? MinId { get; set; }
+
+            [Option('s', "status", HelpText = "Filter the ranked status.")]
+            public RankedStatus? RankedStatus { get; set; }
+
+            [Option('m', "mode", HelpText = "Filter the game mode.")]
+            public Ruleset? Ruleset { get; set; }
+
+            [Option('r', "starRating", HelpText = "Filter the star rating.")]
+            public double? MinStarRating { get; set; }
+        }
+
         [Verb("extract", HelpText = "Extract beatmap data from an osu! collection.")]
         private class ExtractOptions {
             [Option('c', "collection", HelpText = "Name of osu! collection to be extracted.")]
@@ -85,8 +103,9 @@ namespace Mapperator.ConsoleApp {
         private static int Main(string[] args) {
             ConfigManager.LoadConfig();
 
-            return Parser.Default.ParseArguments<ExtractOptions, BuildOptions, ConvertOptions, SearchOptions>(args)
+            return Parser.Default.ParseArguments<CountOptions, ExtractOptions, BuildOptions, ConvertOptions, SearchOptions>(args)
               .MapResult(
+                  (CountOptions opts) => DoDataCount(opts),
                 (ExtractOptions opts) => DoDataExtraction(opts),
                 (BuildOptions opts) => DoBuildGraph(opts),
                 (ConvertOptions opts) => DoMapConvert(opts),
@@ -223,6 +242,15 @@ namespace Mapperator.ConsoleApp {
             stopwatch.Stop();
             Console.WriteLine(Strings.Program_DoMapConvert_Elapsed_Time_is, stopwatch.ElapsedMilliseconds.ToString());
 
+            return 0;
+        }
+
+        private static int DoDataCount(CountOptions opts) {
+            Console.WriteLine((opts.CollectionName is null ? DbManager.GetAll() : DbManager.GetCollection(opts.CollectionName))
+                .Count(o => (!opts.MinId.HasValue || o.BeatmapSetId >= opts.MinId)
+                            && (!opts.RankedStatus.HasValue || o.RankedStatus == opts.RankedStatus)
+                            && (!opts.Ruleset.HasValue || o.Ruleset == opts.Ruleset)
+                            && (!opts.MinStarRating.HasValue || GetDefaultStarRating(o) >= opts.MinStarRating)));
             return 0;
         }
 
