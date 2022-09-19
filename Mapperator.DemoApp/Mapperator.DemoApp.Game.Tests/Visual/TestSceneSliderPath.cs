@@ -1,11 +1,8 @@
 using System.Linq;
 using Mapperator.DemoApp.Game.Drawables;
-using Mapping_Tools_Core.BeatmapHelper.IO.Decoding.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.IO.Decoding.HitObjects.Objects;
 using osu.Framework.Graphics;
 using NUnit.Framework;
-using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
 using osuTK;
 using osuTK.Graphics;
 
@@ -21,7 +18,6 @@ namespace Mapperator.DemoApp.Game.Tests.Visual
         {
             Add(sliderBody = new ManualSliderBody
             {
-                Anchor = Anchor.Centre,
                 PathRadius = 30,
                 AccentColour = Color4.Black
             });
@@ -33,7 +29,6 @@ namespace Mapperator.DemoApp.Game.Tests.Visual
             var vertices = new System.Collections.Generic.List<Mapping_Tools_Core.MathUtil.Vector2>();
             path.GetPathToProgress(vertices, 0, 1);
             sliderBody.SetVertices(vertices.Select(o => new Vector2((float)o.X, (float)o.Y)).ToList());
-            sliderBody.Position -= sliderBody.PathOffset;
 
             AddStep("increase combo", () => circlePiece.IndexInCurrentCombo.Value += 1);
         }

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Mapping_Tools_Core.BeatmapHelper.Contexts;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
-using osu.Framework.Graphics.Shapes;
 using osuTK;
 using osuTK.Graphics;
 
@@ -49,10 +47,9 @@ namespace Mapperator.DemoApp.Game.Drawables
                 var path = slider.GetSliderPath();
                 var vertices = new List<Mapping_Tools_Core.MathUtil.Vector2>();
                 path.GetPathToProgress(vertices, 0, 1);
-                sliderBody.SetVertices(vertices.Select(o => new Vector2((float)o.X, (float)o.Y)).ToList());
-                sliderBody.Position -= sliderBody.PathOffset;
+                var v1 = vertices[0];
+                sliderBody.SetVertices(vertices.Select(o => new Vector2((float)(o.X - v1.X), (float)(o.Y - v1.Y))).ToList());
                 sliderBody.PathRadius = 30;
-                sliderBody.Anchor = Anchor.Centre;
 
                 box.Add(sliderBody);
             }

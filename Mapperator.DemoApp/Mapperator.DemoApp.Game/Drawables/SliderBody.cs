@@ -22,7 +22,14 @@ namespace Mapperator.DemoApp.Game.Drawables
         public virtual float PathRadius
         {
             get => path.PathRadius;
-            set => path.PathRadius = value;
+            set
+            {
+                if (path.PathRadius == value)
+                    return;
+
+                path.PathRadius = value;
+                repositionSliderPath();
+            }
         }
 
         /// <summary>
@@ -72,11 +79,14 @@ namespace Mapperator.DemoApp.Game.Drawables
                     return;
 
                 path.BorderSize = value;
+                repositionSliderPath();
             }
         }
 
         protected SliderBody()
         {
+            Anchor = Anchor.Centre;
+            Origin = Anchor.Centre;
             RecyclePath();
         }
 
@@ -93,6 +103,7 @@ namespace Mapperator.DemoApp.Game.Drawables
                 p.BorderColour = path?.BorderColour ?? Color4.White;
                 p.BorderSize = path?.BorderSize ?? 1;
                 p.Vertices = path?.Vertices ?? Array.Empty<Vector2>();
+                p.Anchor = Anchor.Centre;
             });
         }
 
@@ -102,7 +113,19 @@ namespace Mapperator.DemoApp.Game.Drawables
         /// Sets the vertices of the path which should be drawn by this <see cref="SliderBody"/>.
         /// </summary>
         /// <param name="vertices">The vertices</param>
-        protected void SetVertices(IReadOnlyList<Vector2> vertices) => path.Vertices = vertices;
+        protected void SetVertices(IReadOnlyList<Vector2> vertices)
+        {
+            path.Vertices = vertices;
+            repositionSliderPath();
+        }
+
+        private void repositionSliderPath()
+        {
+            if (path.Vertices.Count > 0)
+            {
+                path.Position = -PathOffset;
+            }
+        }
 
         protected virtual DrawableSliderPath CreateSliderPath() => new DefaultDrawableSliderPath();
 
