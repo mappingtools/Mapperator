@@ -33,7 +33,7 @@ namespace Mapperator.DemoApp.Game.Drawables
             {
                 Anchor = Anchor.Centre,
                 Origin = Anchor.Centre,
-                Texture = textures.Get("hitcircle2")
+                Texture = textures.Get("hitcircle3")
             };
         }
     }
