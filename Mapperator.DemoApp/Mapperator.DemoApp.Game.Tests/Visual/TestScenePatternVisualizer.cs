@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Mapperator.DemoApp.Game.Drawables;
@@ -19,11 +20,8 @@ namespace Mapperator.DemoApp.Game.Tests.Visual
             var assembly = Assembly.GetExecutingAssembly();
             var resourceName = @"Mapperator.DemoApp.Game.Tests.Resources.input.osu";
 
-            foreach (var name in assembly.GetManifestResourceNames())
-            {
-                Console.WriteLine(name);
-            }
             using Stream stream = assembly.GetManifestResourceStream(resourceName);
+            Assert.IsTrue(stream != null, nameof(stream) + " != null");
             using StreamReader reader = new StreamReader(stream);
             string result = reader.ReadToEnd();
 
@@ -34,6 +32,11 @@ namespace Mapperator.DemoApp.Game.Tests.Visual
             Add(visualizer);
             AddStep("add hitobject", () => visualizer.HitObjects.Add(beatmap.HitObjects[end++]));
             AddStep("remove hitobject", () => visualizer.HitObjects.Remove(beatmap.HitObjects[start++]));
+            AddStep("move ahead", () =>
+            {
+                visualizer.HitObjects.Add(beatmap.HitObjects[end++]);
+                visualizer.HitObjects.Remove(beatmap.HitObjects[start++]);
+            });
         }
     }
 }
