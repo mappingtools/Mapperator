@@ -12,10 +12,12 @@ public class PatternVisualizer : CompositeDrawable
     public BindableList<HitObject> HitObjects { get; }
 
     private readonly Dictionary<HitObject, DrawableHitObject> drawableHitObjects = new();
+    private readonly float margin;
 
-    public PatternVisualizer()
+    public PatternVisualizer(float margin = 30)
     {
-        Size = new Vector2(512, 384);
+        this.margin = margin;
+        Size = new Vector2(512 + margin * 2, 384 + margin * 2);
         Masking = true;
 
         HitObjects = new BindableList<HitObject>();
@@ -37,6 +39,7 @@ public class PatternVisualizer : CompositeDrawable
             {
                 var ho = (HitObject)item;
                 var drawableHitObject = new DrawableHitObject(ho);
+                drawableHitObject.Position += new Vector2(margin);
                 drawableHitObjects[ho] = drawableHitObject;
                 AddInternal(drawableHitObject);
                 ChangeInternalChildDepth(drawableHitObject, (float)ho.StartTime);
