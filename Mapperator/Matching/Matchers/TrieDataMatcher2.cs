@@ -5,19 +5,17 @@ using Mapping_Tools_Core.MathUtil;
 namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher2 : IDataMatcher2 {
         private const int FirstSearchLength = 32;
-        private static readonly double[] DistanceRanges = { 0, 3, 9 };  // Best values found by trial-and-error
+        private static readonly int[] DistanceRanges = { 0, 3, 9 };  // Best values found by trial-and-error
         private const int MaxLookBack = 8;
 
         private readonly RhythmDistanceTrieStructure data;
-        private readonly ReadOnlyMemory<ushort> patternRhythmString;
+        private readonly (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[] patternRhythmString;
 
         private readonly HashSet<int> foundMatches = new();
 
-        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) : this(data, RhythmDistanceTrieStructure.ToRhythmString(pattern)) { }
-
-        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlyMemory<ushort> rhythmString) {
+        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) {
             this.data = data;
-            patternRhythmString = rhythmString;
+            patternRhythmString = RhythmDistanceTrieStructure.ToDistanceRanges(RhythmDistanceTrieStructure.ToRhythmString(pattern).Span, DistanceRanges);
         }
 
         public IEnumerable<Match> FindMatches(int i) {
@@ -26,10 +24,10 @@ namespace Mapperator.Matching.Matchers {
 
             while (searchLength > 0) {
                 var lookBack = GetLookBack(i, searchLength, patternRhythmString.Length);
-                var query = patternRhythmString.Slice(i - lookBack, searchLength);
 
-                foreach (var width in DistanceRanges) {
-                    var (min, max) = RhythmDistanceTrieStructure.ToDistanceRange(query.Span, d => RangeFunction(d, (int)width));
+                for (var j = 0; j < patternRhythmString.Length; j++) {
+                    var min = patternRhythmString[j].Item1.Slice(i - lookBack, searchLength);
+                    var max = patternRhythmString[j].Item2.Slice(i - lookBack, searchLength);
 
                     var result = data.Trie.RetrieveSubstringsRange(min, max);
 
@@ -43,17 +41,12 @@ namespace Mapperator.Matching.Matchers {
 
                         foundMatches.Add(id);
 
-                        yield return new Match(data.Data[w.Value].AsMemory().Slice(w.CharPosition, searchLength),
-                            lookBack, w);
+                        yield return new Match(data.Data[w.Value].AsMemory().Slice(w.CharPosition, searchLength), lookBack, w);
                     }
                 }
 
                 searchLength--;
             }
-        }
-
-        private (int, int) RangeFunction(int i, int width) {
-            return (i - width, i + width);
         }
 
         private static int GetLookBack(int i, int length, int totalLength) {

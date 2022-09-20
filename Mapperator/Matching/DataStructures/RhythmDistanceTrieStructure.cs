@@ -78,12 +78,11 @@ public class RhythmDistanceTrieStructure {
         return ToDistanceRange(query, d => (d - width, d + width));
     }
 
-    public static (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[] ToDistanceRanges(ReadOnlySpan<ushort> query, double[] widths) {
+    public static (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[] ToDistanceRanges(ReadOnlySpan<ushort> query, int[] widths) {
         var ranges = new (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[widths.Length];
 
         for (var i = 0; i < widths.Length; i++) {
-            var width = (int)widths[i];
-            ranges[i] = ToDistanceRange(query, width);
+            ranges[i] = ToDistanceRange(query, widths[i]);
         }
 
         return ranges;

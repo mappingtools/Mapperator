@@ -9,10 +9,9 @@ public struct Match {
     /// </summary>
     public ReadOnlyMemory<MapDataPoint> Seq;
 
-    /// <summary>
-    /// The index in <see cref="Seq"/> of the desired data point.
+    /// <summary> sired data point.
     /// </summary>
-    public int WantedIndex;
+    public readonly int WantedIndex;
 
     /// <summary>
     /// The position of the sequence in the data.
