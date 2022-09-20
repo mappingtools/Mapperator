@@ -50,6 +50,11 @@ public class PatternVisualizer : CompositeDrawable
                 var ho = (HitObject)item;
                 var drawableHitObject = new DrawableHitObject(ho);
                 drawableHitObject.Position += new Vector2(margin);
+                if (ho.IsSelected)
+                {
+                    drawableHitObject.Colour = AccentColour;
+                }
+
                 drawableHitObjects[ho] = drawableHitObject;
                 AddInternal(drawableHitObject);
                 ChangeInternalChildDepth(drawableHitObject, (float)ho.StartTime);
