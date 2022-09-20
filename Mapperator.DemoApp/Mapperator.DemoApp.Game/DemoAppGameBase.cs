@@ -29,6 +29,17 @@ namespace Mapperator.DemoApp.Game
         private void load()
         {
             Resources.AddStore(new DllResourceStore(typeof(DemoAppResources).Assembly));
+            dependencies.Cache(BeatmapStore = new BeatmapStore(new NamespacedResourceStore<byte[]>(Resources, @"Beatmaps")));
+            dependencies.Cache(MapDataStore = new MapDataStore(new NamespacedResourceStore<byte[]>(Resources, @"MapData")));
         }
+
+        private DependencyContainer dependencies;
+
+        protected override IReadOnlyDependencyContainer CreateChildDependencies(IReadOnlyDependencyContainer parent) =>
+            dependencies = new DependencyContainer(base.CreateChildDependencies(parent));
+
+        public BeatmapStore BeatmapStore { get; private set; }
+
+        public MapDataStore MapDataStore { get; private set; }
     }
 }

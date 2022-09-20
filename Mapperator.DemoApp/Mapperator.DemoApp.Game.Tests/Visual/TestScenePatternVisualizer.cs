@@ -1,11 +1,7 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
 using Mapperator.DemoApp.Game.Drawables;
 using Mapping_Tools_Core.BeatmapHelper;
-using Mapping_Tools_Core.BeatmapHelper.IO.Decoding;
 using NUnit.Framework;
+using osu.Framework.Allocation;
 
 namespace Mapperator.DemoApp.Game.Tests.Visual
 {
@@ -15,17 +11,10 @@ namespace Mapperator.DemoApp.Game.Tests.Visual
         private int start;
         private int end;
 
-        public TestScenePatternVisualizer()
+        [BackgroundDependencyLoader]
+        private void load(BeatmapStore beatmapStore)
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = @"Mapperator.DemoApp.Game.Tests.Resources.input.osu";
-
-            using Stream stream = assembly.GetManifestResourceStream(resourceName);
-            Assert.IsTrue(stream != null, nameof(stream) + " != null");
-            using StreamReader reader = new StreamReader(stream);
-            string result = reader.ReadToEnd();
-
-            var beatmap = new OsuBeatmapDecoder().Decode(result);
+            var beatmap = beatmapStore.Get(@"input.osu");
             beatmap.UpdateStacking();
             PatternVisualizer visualizer = new PatternVisualizer();
 

@@ -3,6 +3,7 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Mapperator\Mapperator.csproj" />
     <ProjectReference Include="..\Mapperator.DemoApp.Resources\Mapperator.DemoApp.Resources.csproj" />
   </ItemGroup>
   <ItemGroup>
