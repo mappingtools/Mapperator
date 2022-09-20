@@ -13,9 +13,12 @@ namespace Mapperator.Matching.Matchers {
 
         private readonly HashSet<int> foundMatches = new();
 
-        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) {
+
+        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) : this(data, RhythmDistanceTrieStructure.ToRhythmString(pattern).Span) { }
+
+        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<ushort> rhythmString) {
             this.data = data;
-            patternRhythmString = RhythmDistanceTrieStructure.ToDistanceRanges(RhythmDistanceTrieStructure.ToRhythmString(pattern).Span, DistanceRanges);
+            patternRhythmString = RhythmDistanceTrieStructure.ToDistanceRanges(rhythmString, DistanceRanges);
         }
 
         public IEnumerable<Match> FindMatches(int i) {
