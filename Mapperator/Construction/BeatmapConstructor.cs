@@ -26,7 +26,7 @@ namespace Mapperator.Construction {
             double angle = 0;
             MapDataPoint? lastMatch = null;
             var controlChanges = new List<ControlChange>();
-            foreach (var match in matcher.FindSimilarData(input, m => IsInBounds(m, pos, angle))) {
+            foreach (var match in matcher.FindSimilarData(m => IsInBounds(m, pos, angle))) {
                 var original = input.Span[i++];
                 var originalHo = string.IsNullOrWhiteSpace(original.HitObject) ? null : decoder.Decode(original.HitObject);
 

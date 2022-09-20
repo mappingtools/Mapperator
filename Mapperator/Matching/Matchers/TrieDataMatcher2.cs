@@ -13,7 +13,7 @@ namespace Mapperator.Matching.Matchers {
 
         private readonly HashSet<int> foundMatches = new();
 
-        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) : this(data, data.ToRhythmString(pattern)) { }
+        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) : this(data, RhythmDistanceTrieStructure.ToRhythmString(pattern)) { }
 
         public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlyMemory<ushort> rhythmString) {
             this.data = data;
@@ -29,7 +29,7 @@ namespace Mapperator.Matching.Matchers {
                 var query = patternRhythmString.Slice(i - lookBack, searchLength);
 
                 foreach (var width in DistanceRanges) {
-                    var (min, max) = data.ToDistanceRange(query, d => RangeFunction(d, (int)width));
+                    var (min, max) = RhythmDistanceTrieStructure.ToDistanceRange(query.Span, d => RangeFunction(d, (int)width));
 
                     var result = data.Trie.RetrieveSubstringsRange(min, max);
 

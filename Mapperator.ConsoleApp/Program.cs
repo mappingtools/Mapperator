@@ -4,15 +4,14 @@ using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using Mapping_Tools_Core.MathUtil;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Mapperator.ConsoleApp.Resources;
 using Mapperator.Construction;
 using Mapperator.Matching;
+using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Matchers;
-using Mapping_Tools_Core.BeatmapHelper.Enums;
 using OsuParsers.Database.Objects;
 using OsuParsers.Enums;
 using OsuParsers.Enums.Database;
@@ -65,9 +64,6 @@ namespace Mapperator.ConsoleApp {
 
             [Option('h', "structOutput", Required = true, HelpText = "Filename for the generated data structure.")]
             public string? OutputStructName { get; set; }
-
-            [Option('m', "matcher", Default = MatcherType.Trie, HelpText = "The type of data matcher to use.")]
-            public MatcherType MatcherType { get; set; }
         }
 
         [Verb("convert", HelpText = "Reconstruct a beatmap using extracted beatmap data.")]
@@ -86,9 +82,6 @@ namespace Mapperator.ConsoleApp {
 
             [Option('h', "structOutput", HelpText = "Filename for the generated data structure.")]
             public string? OutputStructName { get; set; }
-
-            [Option('m', "matcher", Default = MatcherType.Trie, HelpText = "The type of data matcher to use.")]
-            public MatcherType MatcherType { get; set; }
         }
 
         [Verb("search", HelpText = "Search your entire Songs folder for a specific pattern.")]
@@ -160,28 +153,20 @@ namespace Mapperator.ConsoleApp {
             }
         }
 
-        private static IDataMatcher GetDataMatcher(MatcherType matcherType) {
-            return matcherType switch {
-                MatcherType.Simple => new SimpleDataMatcher(),
-                MatcherType.Trie => new TrieDataMatcher(),
-                _ => new TrieDataMatcher()
-            };
-        }
-
         private static int DoBuildGraph(BuildOptions opts) {
             if (opts.OutputStructName is null) throw new ArgumentNullException(nameof(opts));
             if (opts.DataPath is null) throw new ArgumentNullException(nameof(opts));
 
             var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt")));
-            var matcher = GetDataMatcher(opts.MatcherType);
+            var data = new RhythmDistanceTrieStructure();
 
-            if (matcher is not ISerializable sMatcher) {
-                Console.WriteLine(Strings.Program_DoBuildGraph_The__0__matcher_is_not_compatible_with_building_, opts.MatcherType);
+            if (data is not ISerializable sMatcher) {
+                Console.WriteLine(Strings.Program_DoBuildGraph_The__0__matcher_is_not_compatible_with_building_);
                 return 0;
             }
 
             foreach (var str in trainData) {
-                matcher.AddData(str);
+                data.Add(str.ToArray());
             }
 
             using Stream file = File.Create(Path.ChangeExtension(opts.OutputStructName, sMatcher.DefaultExtension));
@@ -201,11 +186,12 @@ namespace Mapperator.ConsoleApp {
             var map = new BeatmapEditor(Path.ChangeExtension(opts.InputBeatmapPath, ".osu")).ReadFile();
             var input = new DataExtractor().ExtractBeatmapData(map).ToArray();
 
-            var matcher = GetDataMatcher(opts.MatcherType);
+            var data = new RhythmDistanceTrieStructure();
+            var matcher = new TrieDataMatcher(data, input);
 
             // Add the data to the matcher or load the data
             Console.WriteLine(Strings.Program_DoMapConvert_Adding_data___);
-            if (matcher is ISerializable sMatcher && 
+            if (data is ISerializable sMatcher &&
                 !string.IsNullOrEmpty(opts.InputStructName) && 
                 File.Exists(Path.ChangeExtension(opts.InputStructName, sMatcher.DefaultExtension))) {
                 using Stream file = File.OpenRead(Path.ChangeExtension(opts.InputStructName, sMatcher.DefaultExtension));
@@ -215,7 +201,7 @@ namespace Mapperator.ConsoleApp {
                 buildStopwatch.Start();
 
                 foreach (var str in trainData) {
-                    matcher.AddData(str);
+                    data.Add(str.ToArray());
                     Console.Write('.');
                 }
 
@@ -283,7 +269,7 @@ namespace Mapperator.ConsoleApp {
                         return null;
                     }
                 }).Where(o => o is not null)
-                .SelectMany(b => mirrors.Select(m => extractor.ExtractBeatmapData(b, m)))
+                .SelectMany(b => mirrors.Select(m => extractor.ExtractBeatmapData(b!, m)))
                 ));
             return 0;
         }
