@@ -96,12 +96,22 @@ namespace Mapperator.DemoApp.Game
 
         private void OnPosChange(ValueChangedEvent<int> obj)
         {
+            var oldSpecialHo = beatmap.Value.HitObjects[obj.OldValue + length];
+            oldSpecialHo.IsSelected = false;
+            newVisualizer.HitObjects.Remove(oldSpecialHo);
+
             var newItems = beatmap.Value.HitObjects.GetRange(obj.NewValue, length);
 
             originalVisualizer.HitObjects.RemoveAll(o => !newItems.Contains(o));
             originalVisualizer.HitObjects.AddRange(newItems.Where(o => !originalVisualizer.HitObjects.Contains(o)));
             newVisualizer.HitObjects.RemoveAll(o => !newItems.Contains(o));
             newVisualizer.HitObjects.AddRange(newItems.Where(o => !newVisualizer.HitObjects.Contains(o)));
+
+            var specialHo = beatmap.Value.HitObjects[obj.NewValue + length];
+            specialHo.IsSelected = true;
+            newVisualizer.HitObjects.Remove(specialHo);
+            newVisualizer.HitObjects.Add(specialHo);
+
         }
 
         private void OnBeatmapChange(ValueChangedEvent<Beatmap> obj)
@@ -111,7 +121,7 @@ namespace Mapperator.DemoApp.Game
             newVisualizer.HitObjects.Clear();
             newVisualizer.HitObjects.AddRange(obj.NewValue.HitObjects.GetRange(pos.Value, length));
 
-            pos.MaxValue = obj.NewValue.HitObjects.Count - length;
+            pos.MaxValue = obj.NewValue.HitObjects.Count - length - 1;
         }
     }
 }
