@@ -2,8 +2,11 @@
 using System.Collections.Specialized;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects;
 using osu.Framework.Bindables;
+using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Shapes;
 using osuTK;
+using osuTK.Graphics;
 
 namespace Mapperator.DemoApp.Game.Drawables;
 
@@ -14,6 +17,11 @@ public class PatternVisualizer : CompositeDrawable
     private readonly Dictionary<HitObject, DrawableHitObject> drawableHitObjects = new();
     private readonly float margin;
 
+    /// <summary>
+    /// Used to colour the selected hit objects.
+    /// </summary>
+    public Color4 AccentColour { get; set; } = Color4.Red;
+
     public PatternVisualizer(float margin = 30)
     {
         this.margin = margin;
@@ -22,6 +30,8 @@ public class PatternVisualizer : CompositeDrawable
 
         HitObjects = new BindableList<HitObject>();
         HitObjects.BindCollectionChanged(OnChange);
+
+        AddInternal(new Box { RelativeSizeAxes = Axes.Both, Colour = Color4.Black, Depth = float.MaxValue });
     }
 
     private void OnChange(object sender, NotifyCollectionChangedEventArgs e)
