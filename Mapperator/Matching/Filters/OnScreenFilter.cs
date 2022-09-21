@@ -17,12 +17,22 @@ public class OnScreenFilter : IMatchFilter {
     private double Angle { get; set; }
 
     public IEnumerable<Match> FilterMatches(IEnumerable<Match> matches) {
-        return matches.Where(IsValidSeries);
+        foreach (var match in matches) {
+            var length = ValidLength(match);
+
+            if (length == 0) continue;
+
+            if (length == match.WholeSequence.Length - match.Lookback) yield return match;
+
+            // Cut the match length until the part where it stops being valid
+            yield return new Match(match.WholeSequence[..(match.Lookback + length)], match.Lookback, match.SeqPos);
+        }
     }
 
-    private bool IsValidSeries(Match match) {
+    private int ValidLength(Match match) {
         double angle = Angle;
         var pos = Pos;
+        var length = 0;
         for (var i = match.Lookback; i < match.WholeSequence.Length; i++) {
             var dataPoint = match.WholeSequence.Span[i];
 
@@ -30,10 +40,12 @@ public class OnScreenFilter : IMatchFilter {
             var dir = Vector2.Rotate(Vector2.UnitX, angle);
             pos += dataPoint.Spacing * dir;
 
-            if (!PosInBounds(pos)) return false;
+            if (!PosInBounds(pos)) return length;
+
+            length++;
         }
 
-        return true;
+        return length;
     }
 
     private static bool PosInBounds(Vector2 pos) {
