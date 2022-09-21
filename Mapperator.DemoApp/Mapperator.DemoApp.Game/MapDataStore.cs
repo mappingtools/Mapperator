@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Mapperator.Model;
@@ -35,7 +36,7 @@ public class MapDataStore : IResourceStore<IEnumerable<IEnumerable<MapDataPoint>
         using Stream stream = store.GetStream(name);
         if (stream is null) return null;
         using StreamReader reader = new StreamReader(stream);
-        return DataSerializer.DeserializeBeatmapData(iterateLines(reader));
+        return DataSerializer.DeserializeBeatmapData(iterateLines(reader).ToArray());
     }
 
     public Task<IEnumerable<IEnumerable<MapDataPoint>>> GetAsync(string name, CancellationToken cancellationToken = new())

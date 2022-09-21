@@ -1,5 +1,7 @@
 using System.Linq;
 using Mapperator.DemoApp.Game.Drawables;
+using Mapperator.Matching.DataStructures;
+using Mapperator.Matching.Matchers;
 using Mapping_Tools_Core.BeatmapHelper;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
@@ -21,9 +23,11 @@ namespace Mapperator.DemoApp.Game
         private readonly int length = 5;
         private PatternVisualizer originalVisualizer;
         private PatternVisualizer newVisualizer;
+        private RhythmDistanceTrieStructure dataStruct;
+        private TrieDataMatcher2 matcher;
 
         [BackgroundDependencyLoader]
-        private void load(BeatmapStore beatmapStore)
+        private void load(BeatmapStore beatmapStore, MapDataStore mapDataStore)
         {
             InternalChildren = new Drawable[]
             {
@@ -89,6 +93,13 @@ namespace Mapperator.DemoApp.Game
                 }
             };
 
+            var data = mapDataStore.Get(@"test.txt");
+            dataStruct = new RhythmDistanceTrieStructure();
+            foreach (var map in data)
+            {
+                dataStruct.Add(map.ToArray());
+            }
+
             pos.BindValueChanged(OnPosChange);
             beatmap.Value = beatmapStore.Get(@"input.osu");
             beatmap.BindValueChanged(OnBeatmapChange, true);
@@ -116,12 +127,16 @@ namespace Mapperator.DemoApp.Game
 
         private void OnBeatmapChange(ValueChangedEvent<Beatmap> obj)
         {
+            obj.NewValue.CalculateEndPositions();
             originalVisualizer.HitObjects.Clear();
             originalVisualizer.HitObjects.AddRange(obj.NewValue.HitObjects.GetRange(pos.Value, length));
             newVisualizer.HitObjects.Clear();
             newVisualizer.HitObjects.AddRange(obj.NewValue.HitObjects.GetRange(pos.Value, length));
 
             pos.MaxValue = obj.NewValue.HitObjects.Count - length - 1;
+
+            var pattern = new DataExtractor().ExtractBeatmapData(obj.NewValue).ToArray();
+            matcher = new TrieDataMatcher2(dataStruct, pattern);
         }
     }
 }
