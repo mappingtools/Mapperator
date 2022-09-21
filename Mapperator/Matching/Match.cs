@@ -7,22 +7,24 @@ public struct Match {
     /// <summary>
     /// The whole sequence of matching data points
     /// </summary>
-    public ReadOnlyMemory<MapDataPoint> Seq;
-
-    /// <summary> sired data point.
-    /// </summary>
-    public readonly int WantedIndex;
+    public ReadOnlyMemory<MapDataPoint> WholeSequence;
 
     /// <summary>
-    /// The position of the sequence in the data.
+    /// The number of lookback elements in the whole sequence.
+    /// This is also the index of the first desired data point.
+    /// </summary>
+    public readonly int Lookback;
+
+    /// <summary>
+    /// The position of the start of the whole sequence in the data.
     /// </summary>
     public WordPosition<int> SeqPos;
 
-    public WordPosition<int> WantedPos => new(SeqPos.CharPosition + WantedIndex, SeqPos.Value);
+    public WordPosition<int> WantedPos => new(SeqPos.CharPosition + Lookback, SeqPos.Value);
 
-    public Match(ReadOnlyMemory<MapDataPoint> seq, int wantedIndex, WordPosition<int> seqPos) {
-        Seq = seq;
-        WantedIndex = wantedIndex;
+    public Match(ReadOnlyMemory<MapDataPoint> wholeSequence, int lookback, WordPosition<int> seqPos) {
+        WholeSequence = wholeSequence;
+        Lookback = lookback;
         SeqPos = seqPos;
     }
 }
