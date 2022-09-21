@@ -11,8 +11,7 @@ namespace Mapperator.Matching.Matchers {
         private readonly RhythmDistanceTrieStructure data;
         private readonly (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[] patternRhythmString;
 
-        private readonly HashSet<int> foundMatches = new();
-
+        private readonly HashSet<(int, int)> foundMatches = new();
 
         public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) : this(data, RhythmDistanceTrieStructure.ToRhythmString(pattern).Span) { }
 
@@ -36,7 +35,7 @@ namespace Mapperator.Matching.Matchers {
 
                     // Yield all new matches
                     foreach (var w in result) {
-                        var id = w.CharPosition + lookBack;
+                        var id = (w.Value, w.CharPosition + lookBack);
 
                         // Skip if this ID was already found
                         if (foundMatches.Contains(id))
