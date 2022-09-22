@@ -54,14 +54,15 @@ namespace Mapperator.Construction {
         /// <summary>
         /// Constructs the match onto the end of the list of hit objects.
         /// </summary>
-        public void Construct(IList<HitObject> hitObjects, Match match, ReadOnlyMemory<MapDataPoint> input, Timing? timing, out List<ControlChange> controlChanges) {
+        public void Construct(IList<HitObject> hitObjects, Match match, ReadOnlySpan<MapDataPoint> input, bool selectNewObjects, Timing? timing, out List<ControlChange> controlChanges) {
             var (pos, angle, time) = GetContinuation(hitObjects);
             MapDataPoint? lastDataPoint = null;
             controlChanges = new List<ControlChange>();
-            for (var i = 0; i < match.WholeSequence.Length - match.Lookback; i++) {
+
+            for (var i = 0; i < match.Length; i++) {
                 var dataPoint = match.WholeSequence.Span[i + match.Lookback];
 
-                var original = input.Span[i];
+                var original = input[i];
                 var originalHo = string.IsNullOrWhiteSpace(original.HitObject) ? null : decoder.Decode(original.HitObject);
 
                 time = timing?.WalkBeatsInMillisecondTime(original.BeatsSince, time) ?? time + 1;
@@ -84,7 +85,6 @@ namespace Mapperator.Construction {
                             if (ho is Slider) {
                                 ho.StartTime = hitObject.StartTime;
                                 ho.Move(hitObject.Pos - ho.Pos);
-                                ho.ResetHitsounds();
                             }
                             else {
                                 ho = new Slider {
@@ -99,8 +99,9 @@ namespace Mapperator.Construction {
                             if (original.Repeats.HasValue) {
                                 ((Slider)ho).RepeatCount = original.Repeats.Value;
                             }
-                            ho.ResetHitsounds();
+
                             if (originalHo is not null) {
+                                ho.ResetHitsounds();
                                 ho.Hitsounds = originalHo.Hitsounds;
                                 if (ho is Slider slider && originalHo is Slider slider2) {
                                     slider.EdgeHitsounds = slider2.EdgeHitsounds;
@@ -108,6 +109,7 @@ namespace Mapperator.Construction {
                             }
 
                             ho.NewCombo = hitObject.NewCombo;
+                            ho.IsSelected = selectNewObjects;
                             hitObjects.Add(ho);
                         }
 
@@ -129,10 +131,12 @@ namespace Mapperator.Construction {
                             var ogPos = lastSlider.Pos;
                             var ogTheta = (lastSlider.EndPos - ogPos).Theta;
                             var newTheta = (pos - ogPos).Theta;
+
                             if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
                                 lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
                                 lastSlider.Move(ogPos - lastSlider.Pos);
                             }
+
                             // Add the right number of repeats
                             if (original.Repeats.HasValue) {
                                 lastSlider.RepeatCount = original.Repeats.Value;
@@ -145,7 +149,8 @@ namespace Mapperator.Construction {
                             var spinner = new Spinner {
                                 Pos = new Vector2(256, 196),
                                 StartTime = lastCircle.StartTime,
-                                Hitsounds = lastCircle.Hitsounds
+                                Hitsounds = lastCircle.Hitsounds,
+                                IsSelected = selectNewObjects
                             };
                             spinner.SetEndTime(time);
                             hitObjects.Add(spinner);
@@ -158,29 +163,23 @@ namespace Mapperator.Construction {
                     }
                 }
 
-                if (dataPoint.DataType == DataType.Hit) {
-                    // If the last object is a slider and there is no release previously, then make sure the object is a circle
-                    if (lastDataPoint is {DataType: DataType.Hit} && hitObjects.LastOrDefault() is Slider lastSlider) {
-                        hitObjects.RemoveAt(hitObjects.Count - 1);
-                        hitObjects.Add(new HitCircle { Pos = lastSlider.Pos, StartTime = lastSlider.StartTime, NewCombo = original.NewCombo});
-                    }
-                }
-
                 if (!string.IsNullOrEmpty(dataPoint.HitObject) && dataPoint.DataType != DataType.Release) {
                     var ho = decoder.Decode(dataPoint.HitObject);
-                    if (ho is Slider slider) {
-                        slider.RepeatCount = 0;
-                        if (original.Repeats.HasValue) {
-                            slider.RepeatCount = original.Repeats.Value;
-                        }
+
+                    if (ho is Slider) {
+                        ho = new HitCircle();
                     }
+
+                    ho.IsSelected = selectNewObjects;
                     ho.StartTime = time;
                     ho.NewCombo = original.NewCombo;
                     ho.Move(pos - ho.Pos);
                     ho.ResetHitsounds();
+
                     if (originalHo is not null) {
                         ho.Hitsounds = originalHo.Hitsounds;
                     }
+
                     hitObjects.Add(ho);
                 }
 
