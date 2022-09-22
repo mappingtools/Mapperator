@@ -14,7 +14,7 @@ public class OnScreenFilter : IMatchFilter {
     /// <summary>
     /// The angle of the last map data point before the wanted index.
     /// </summary>
-    private double Angle { get; set; }
+    public double Angle { get; set; }
 
     public IEnumerable<Match> FilterMatches(IEnumerable<Match> matches) {
         foreach (var match in matches) {
