@@ -1,4 +1,5 @@
-﻿using Mapping_Tools_Core.BeatmapHelper.Enums;
+﻿using System.Globalization;
+using Mapping_Tools_Core.BeatmapHelper.Enums;
 
 namespace Mapperator.Model {
     public struct MapDataPoint {
@@ -23,7 +24,7 @@ namespace Mapperator.Model {
         }
 
         public override string ToString() {
-            return $"{(int)DataType} {BeatsSince:N4} {Spacing:N0} {Angle:N4} {(NewCombo ? 1 : 0)} {(SliderType.HasValue ? ((int)SliderType).ToString() : string.Empty)} {Repeats} {HitObject}";
+            return $"{((int)DataType).ToString(CultureInfo.InvariantCulture)} {BeatsSince.ToString("N4", CultureInfo.InvariantCulture)} {Spacing.ToString("N0", CultureInfo.InvariantCulture)} {Angle.ToString("N4", CultureInfo.InvariantCulture)} {(NewCombo ? 1 : 0).ToString(CultureInfo.InvariantCulture)} {(SliderType.HasValue ? ((int)SliderType).ToString(CultureInfo.InvariantCulture) : string.Empty)} {(Repeats.HasValue ? Repeats.Value.ToString(CultureInfo.InvariantCulture) : string.Empty)} {HitObject}";
         }
     }
 }
