@@ -22,7 +22,10 @@ public class OnScreenFilter : IMatchFilter {
 
             if (length == 0) continue;
 
-            if (length == match.WholeSequence.Length - match.Lookback) yield return match;
+            if (length == match.WholeSequence.Length - match.Lookback) {
+                yield return match;
+                continue;
+            }
 
             // Cut the match length until the part where it stops being valid
             yield return new Match(match.WholeSequence[..(match.Lookback + length)], match.Lookback, match.SeqPos);
