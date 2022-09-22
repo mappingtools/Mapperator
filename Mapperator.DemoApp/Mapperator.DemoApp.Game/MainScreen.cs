@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Mapperator.Construction;
 using Mapperator.DemoApp.Game.Drawables;
+using Mapperator.Matching;
 using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Filters;
 using Mapperator.Matching.Matchers;
@@ -31,6 +33,9 @@ namespace Mapperator.DemoApp.Game
         private RhythmDistanceTrieStructure dataStruct;
         private MapDataPoint[] pattern;
         private TrieDataMatcher2 matcher;
+        private int patternIndex;
+        private IEnumerator<Match> matchIterator;
+        private BasicButton variantButton;
 
         [BackgroundDependencyLoader]
         private void load(BeatmapStore beatmapStore, MapDataStore mapDataStore)
@@ -78,6 +83,16 @@ namespace Mapperator.DemoApp.Game
                             HoverColour = Color4.CornflowerBlue,
                             FlashColour = Color4.MediumPurple,
                             Action = () => pos.Value++,
+                        },
+                        variantButton = new BasicButton
+                        {
+                            Size = new Vector2(100, 50),
+                            Margin = new MarginPadding(10),
+                            Text = @"variant",
+                            BackgroundColour = Color4.Purple,
+                            HoverColour = Color4.Pink,
+                            FlashColour = Color4.HotPink,
+                            Action = generateVariant,
                         }
                     }
                 },
@@ -106,41 +121,68 @@ namespace Mapperator.DemoApp.Game
                 dataStruct.Add(map.ToArray());
             }
 
-            pos.BindValueChanged(OnPosChange);
             beatmap.Value = beatmapStore.Get(@"input.osu");
             beatmap.BindValueChanged(OnBeatmapChange, true);
+            pos.BindValueChanged(OnPosChange, true);
+        }
+
+        private void generateVariant()
+        {
+            if (matchIterator is not null && matchIterator.MoveNext())
+            {
+                showMatch(matchIterator.Current);
+                matchIterator.MoveNext();
+            }
+            else
+            {
+                variantButton.Enabled.Value = false;
+            }
         }
 
         private void OnPosChange(ValueChangedEvent<int> obj)
         {
             beatmap.Value.HitObjects.ForEach(o => o.IsSelected = false);
 
-            originalVisualizer.HitObjects.Clear();
-            newVisualizer.HitObjects.Clear();
-            originalVisualizer.HitObjects.AddRange(beatmap.Value.HitObjects.GetRange(obj.NewValue, length));
-            newVisualizer.HitObjects.AddRange(beatmap.Value.HitObjects.GetRange(obj.NewValue, length));
-
             // Find the current index for pattern because the indices of hitobject and pattern do not always match
-            var index = obj.NewValue + length + beatmap.Value.HitObjects.Take(obj.NewValue + length).Count(o => o is Slider or Spinner);
+            patternIndex = obj.NewValue + length + beatmap.Value.HitObjects.Take(obj.NewValue + length).Count(o => o is Slider or Spinner);
 
             // Get matches for current index
-            var (endPos, angle, _) = BeatmapConstructor2.GetContinuation(newVisualizer.HitObjects);
+            var (endPos, angle, _) = BeatmapConstructor2.GetContinuation(beatmap.Value.HitObjects.GetRange(0, pos.Value + length));
             var filter = new OnScreenFilter { Pos = endPos, Angle = angle };
-            var matches = filter.FilterMatches(matcher.FindMatches(index));
+            var matches = filter.FilterMatches(matcher.FindMatches(patternIndex));
 
             // For now just get the first match
-            var match = matches.FirstOrDefault();
+            matchIterator?.Dispose();
+            matchIterator = matches.GetEnumerator();
 
+            var hasMatch = matchIterator.MoveNext();
+            variantButton.Enabled.Value = hasMatch;
+
+            if (hasMatch)
+                showMatch(matchIterator.Current);
+        }
+
+        private void showMatch(Match match)
+        {
+            originalVisualizer.HitObjects.Clear();
+            newVisualizer.HitObjects.Clear();
+            originalVisualizer.HitObjects.AddRange(beatmap.Value.HitObjects.GetRange(pos.Value, length));
+            newVisualizer.HitObjects.AddRange(beatmap.Value.HitObjects.GetRange(pos.Value, length));
+
+            if (match.Length == 0) return;
+
+            // Show the matched objects in the right visualizer
             var constructor = new BeatmapConstructor2();
-            constructor.Construct(newVisualizer.HitObjects, match, pattern.AsSpan()[index..], true, null, out _);
+            constructor.Construct(newVisualizer.HitObjects, match, pattern.AsSpan()[patternIndex..], true, null, out _);
+            // TODO: add combo and stacking info to new objects
 
-            // Show the original objects next to the generated objects
+            // Show the original objects in the left visualizer
             var i = 0;
             for (int j = 0; j < match.Length; j++)
             {
                 if (match.WholeSequence.Span[j + match.Lookback].DataType != DataType.Hit) continue;
 
-                var ho = beatmap.Value.HitObjects[obj.NewValue + length + i++];
+                var ho = beatmap.Value.HitObjects[pos.Value + length + i++];
                 ho.IsSelected = true;
                 originalVisualizer.HitObjects.Add(ho);
             }
