@@ -22,6 +22,11 @@ public readonly struct Match {
 
     public WordPosition<int> WantedPos => new(SeqPos.CharPosition + Lookback, SeqPos.Value);
 
+    /// <summary>
+    /// The length of the matched sequence without look-back.
+    /// </summary>
+    public int Length => WholeSequence.Length - Lookback;
+
     public Match(ReadOnlyMemory<MapDataPoint> wholeSequence, int lookback, WordPosition<int> seqPos) {
         WholeSequence = wholeSequence;
         Lookback = lookback;
