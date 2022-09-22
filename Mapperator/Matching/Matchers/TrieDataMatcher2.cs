@@ -22,10 +22,11 @@ namespace Mapperator.Matching.Matchers {
 
         public IEnumerable<Match> FindMatches(int i) {
             foundMatches.Clear();
-            var searchLength = Math.Min(FirstSearchLength, patternRhythmString.Length);
+            var patternLength = patternRhythmString[0].Item1.Length;
+            var searchLength = Math.Min(FirstSearchLength, patternLength - i);
 
             while (searchLength > 0) {
-                var lookBack = GetLookBack(i, searchLength, patternRhythmString.Length);
+                var lookBack = GetLookBack(i, searchLength, patternLength);
 
                 for (var j = 0; j < patternRhythmString.Length; j++) {
                     var min = patternRhythmString[j].Item1.Slice(i - lookBack, searchLength);
