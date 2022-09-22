@@ -45,7 +45,7 @@ namespace Mapperator.Construction {
             }
 
             var angle = Vector2.DistanceSquared(beforeLastPos, lastPos) > Precision.DOUBLE_EPSILON
-                ? Vector2.Angle(lastPos - beforeLastPos)
+                ? (lastPos - beforeLastPos).Theta
                 : 0;
 
             return (lastPos, angle, hitObjects[^1].EndTime);
