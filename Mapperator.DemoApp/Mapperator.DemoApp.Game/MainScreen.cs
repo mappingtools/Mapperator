@@ -1,8 +1,13 @@
+using System;
 using System.Linq;
+using Mapperator.Construction;
 using Mapperator.DemoApp.Game.Drawables;
 using Mapperator.Matching.DataStructures;
+using Mapperator.Matching.Filters;
 using Mapperator.Matching.Matchers;
+using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper;
+using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics;
@@ -24,6 +29,7 @@ namespace Mapperator.DemoApp.Game
         private PatternVisualizer originalVisualizer;
         private PatternVisualizer newVisualizer;
         private RhythmDistanceTrieStructure dataStruct;
+        private MapDataPoint[] pattern;
         private TrieDataMatcher2 matcher;
 
         [BackgroundDependencyLoader]
@@ -107,35 +113,50 @@ namespace Mapperator.DemoApp.Game
 
         private void OnPosChange(ValueChangedEvent<int> obj)
         {
-            var oldSpecialHo = beatmap.Value.HitObjects[obj.OldValue + length];
-            oldSpecialHo.IsSelected = false;
-            newVisualizer.HitObjects.Remove(oldSpecialHo);
+            beatmap.Value.HitObjects.ForEach(o => o.IsSelected = false);
 
-            var newItems = beatmap.Value.HitObjects.GetRange(obj.NewValue, length);
+            originalVisualizer.HitObjects.Clear();
+            newVisualizer.HitObjects.Clear();
+            originalVisualizer.HitObjects.AddRange(beatmap.Value.HitObjects.GetRange(obj.NewValue, length));
+            newVisualizer.HitObjects.AddRange(beatmap.Value.HitObjects.GetRange(obj.NewValue, length));
 
-            originalVisualizer.HitObjects.RemoveAll(o => !newItems.Contains(o));
-            originalVisualizer.HitObjects.AddRange(newItems.Where(o => !originalVisualizer.HitObjects.Contains(o)));
-            newVisualizer.HitObjects.RemoveAll(o => !newItems.Contains(o));
-            newVisualizer.HitObjects.AddRange(newItems.Where(o => !newVisualizer.HitObjects.Contains(o)));
+            // Find the current index for pattern because the indices of hitobject and pattern do not always match
+            var index = obj.NewValue + length + beatmap.Value.HitObjects.Take(obj.NewValue + length).Count(o => o is Slider or Spinner);
 
-            var specialHo = beatmap.Value.HitObjects[obj.NewValue + length];
-            specialHo.IsSelected = true;
-            newVisualizer.HitObjects.Remove(specialHo);
-            newVisualizer.HitObjects.Add(specialHo);
+            // Get matches for current index
+            var (endPos, angle, _) = BeatmapConstructor2.GetContinuation(newVisualizer.HitObjects);
+            var filter = new OnScreenFilter { Pos = endPos, Angle = angle };
+            var matches = filter.FilterMatches(matcher.FindMatches(index));
 
+            // For now just get the first match
+            var match = matches.FirstOrDefault();
+
+            var constructor = new BeatmapConstructor2();
+            constructor.Construct(newVisualizer.HitObjects, match, pattern.AsSpan()[index..], true, null, out _);
+
+            // Show the original objects next to the generated objects
+            var i = 0;
+            for (int j = 0; j < match.Length; j++)
+            {
+                if (match.WholeSequence.Span[j + match.Lookback].DataType != DataType.Hit) continue;
+
+                var ho = beatmap.Value.HitObjects[obj.NewValue + length + i++];
+                ho.IsSelected = true;
+                originalVisualizer.HitObjects.Add(ho);
+            }
         }
 
         private void OnBeatmapChange(ValueChangedEvent<Beatmap> obj)
         {
             obj.NewValue.CalculateEndPositions();
             originalVisualizer.HitObjects.Clear();
-            originalVisualizer.HitObjects.AddRange(obj.NewValue.HitObjects.GetRange(pos.Value, length));
             newVisualizer.HitObjects.Clear();
+            originalVisualizer.HitObjects.AddRange(obj.NewValue.HitObjects.GetRange(pos.Value, length));
             newVisualizer.HitObjects.AddRange(obj.NewValue.HitObjects.GetRange(pos.Value, length));
 
             pos.MaxValue = obj.NewValue.HitObjects.Count - length - 1;
 
-            var pattern = new DataExtractor().ExtractBeatmapData(obj.NewValue).ToArray();
+            pattern = new DataExtractor().ExtractBeatmapData(obj.NewValue).ToArray();
             matcher = new TrieDataMatcher2(dataStruct, pattern);
         }
     }
