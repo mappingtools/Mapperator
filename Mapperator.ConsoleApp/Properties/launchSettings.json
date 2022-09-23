@@ -14,7 +14,7 @@
     },
     "ConvertMap": {
       "commandName": "Project",
-      "commandLineArgs": "convert -d test2 -i \"Resources\\tstmts\" -o output -m Trie"
+      "commandLineArgs": "convert -d test2 -i \"Resources\\input\" -o output"
     },
     "Search": {
       "commandName": "Project",
