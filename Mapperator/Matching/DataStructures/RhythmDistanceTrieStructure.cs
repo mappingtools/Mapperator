@@ -75,7 +75,7 @@ public class RhythmDistanceTrieStructure {
     }
 
     public static (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>) ToDistanceRange(ReadOnlySpan<ushort> query, int width) {
-        return ToDistanceRange(query, d => (d - width, d + width));
+        return ToDistanceRange(query, d => ((int)(d * 0.66 - width), (int)(d * 1.5 + width)));
     }
 
     public static (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[] ToDistanceRanges(ReadOnlySpan<ushort> query, int[] widths) {
