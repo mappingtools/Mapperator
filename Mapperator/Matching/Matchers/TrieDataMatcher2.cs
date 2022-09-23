@@ -5,7 +5,8 @@ using Mapping_Tools_Core.MathUtil;
 namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher2 : IDataMatcher2 {
         private const int FirstSearchLength = 32;
-        private static readonly int[] DistanceRanges = { 0, 3, 9 };  // Best values found by trial-and-error
+        //private static readonly int[] DistanceRanges = { 0, 3, 9 };  // Best values found by trial-and-error
+        private static readonly int[] DistanceRanges = { 3 };  // Best values found by trial-and-error
         private const int MaxLookBack = 8;
 
         private readonly RhythmDistanceTrieStructure data;
@@ -53,7 +54,7 @@ namespace Mapperator.Matching.Matchers {
         }
 
         private static int GetLookBack(int i, int length, int totalLength) {
-            return MathHelper.Clamp(Math.Min(length / 2, MaxLookBack), i + length - totalLength, i);
+            return MathHelper.Clamp(0, i + length - totalLength, i);
         }
     }
 }
