@@ -84,6 +84,12 @@ namespace Mapperator.DemoApp.Game
                             FlashColour = Color4.MediumPurple,
                             Action = () => pos.Value++,
                         },
+                        new BasicSliderBar<int>
+                        {
+                            Size = new Vector2(400, 50),
+                            Margin = new MarginPadding(10),
+                            Current = pos.GetBoundCopy(),
+                        },
                         variantButton = new BasicButton
                         {
                             Size = new Vector2(100, 50),
