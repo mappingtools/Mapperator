@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="MappingTools.Core" Version="0.4.8" />
+      <PackageReference Include="MappingTools.Core" Version="0.5.2" />
       <PackageReference Include="morelinq" Version="3.3.2" />
     </ItemGroup>
 

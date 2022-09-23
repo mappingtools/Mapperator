@@ -171,16 +171,21 @@ namespace Mapperator.DemoApp.Game
         private void showMatch(Match match)
         {
             originalVisualizer.HitObjects.Clear();
-            newVisualizer.HitObjects.Clear();
             originalVisualizer.HitObjects.AddRange(beatmap.Value.HitObjects.GetRange(pos.Value, length));
-            newVisualizer.HitObjects.AddRange(beatmap.Value.HitObjects.GetRange(pos.Value, length));
 
             if (match.Length == 0) return;
 
             // Show the matched objects in the right visualizer
+            var newHitObjects = beatmap.Value.HitObjects.GetRange(pos.Value, length);
             var constructor = new BeatmapConstructor2();
-            constructor.Construct(newVisualizer.HitObjects, match, pattern.AsSpan()[patternIndex..], true, null, out _);
-            // TODO: add combo and stacking info to new objects
+            constructor.Construct(newHitObjects, match, pattern.AsSpan()[patternIndex..], true, null, out _);
+            newHitObjects.GiveObjectsTimingContext(beatmap.Value.BeatmapTiming);
+            newHitObjects.CalculateEndPositions();
+            newHitObjects.UpdateStacking(beatmap.Value.Difficulty.StackOffset, beatmap.Value.General.StackLeniency, beatmap.Value.Difficulty.ApproachTime);
+            newHitObjects.CalculateHitObjectComboStuff(beatmap.Value.ComboColoursList.Count == 0 ? null : beatmap.Value.ComboColoursList.ToArray(), beatmap.Value.Storyboard.BreakPeriods);
+
+            newVisualizer.HitObjects.Clear();
+            newVisualizer.HitObjects.AddRange(newHitObjects);
 
             // Show the original objects in the left visualizer
             var i = 0;
