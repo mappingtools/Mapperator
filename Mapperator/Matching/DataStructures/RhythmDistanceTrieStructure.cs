@@ -37,7 +37,7 @@ public class RhythmDistanceTrieStructure {
         if (mapDataPoint.DataType == DataType.Release) {
             // The beat gap is less important for selecting sliders so lets reduce gap to just 2 classes for sliders
             // If its less than 1/2 beat, its 0
-            gap = gap < 5 ? 0 : 1;
+            gap = gap < 5 ? 0 : gap > 5 ? 2 : 1;
             // Lets also allow a coarser range of distances
             dist = (int) MathHelper.Clamp(mapDataPoint.Spacing / 12, 0, 255);
         }
