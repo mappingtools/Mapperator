@@ -67,7 +67,7 @@ public class TrieDataMatcherTests {
         }
     }
 
-    private int GetMatchLength(WordPosition<int> wordPosition, ReadOnlySpan<ushort> pattern) {
+    private int GetMatchLength(WordPosition<int> wordPosition, ReadOnlySpan<RhythmToken> pattern) {
         var length = 0;
         while (wordPosition.CharPosition + length < data.Data[wordPosition.Value].Length &&
                length < pattern.Length &&
@@ -79,7 +79,7 @@ public class TrieDataMatcherTests {
         return length;
     }
 
-    private int GetMatchLengthRange(WordPosition<int> wordPosition, ReadOnlySpan<ushort> min, ReadOnlySpan<ushort> max) {
+    private int GetMatchLengthRange(WordPosition<int> wordPosition, ReadOnlySpan<RhythmToken> min, ReadOnlySpan<RhythmToken> max) {
         var length = 0;
         while (wordPosition.CharPosition + length < data.Data[wordPosition.Value].Length &&
                length < min.Length &&

@@ -15,7 +15,7 @@ namespace Mapperator.Matching.Matchers {
         private readonly RhythmDistanceTrieStructure data;
         private readonly ReadOnlyMemory<MapDataPoint> pattern;
         private readonly IJudge judge;
-        private readonly (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[] patternRhythmString;
+        private readonly (ReadOnlyMemory<RhythmToken>, ReadOnlyMemory<RhythmToken>)[] patternRhythmString;
 
         private WordPosition<int>? lastId;
         private int? lastLength;

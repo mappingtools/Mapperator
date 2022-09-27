@@ -1,51 +1,26 @@
-﻿using Mapperator.Model;
-using Mapping_Tools_Core.MathUtil;
-
-namespace Mapperator.Matching.DataStructures;
+﻿namespace Mapperator.Matching.DataStructures;
 
 public readonly struct RhythmToken : IEquatable<RhythmToken>, IComparable<RhythmToken> {
-    const int gapResolution = 6;
-    const int gapRange = 9;
 
-    public byte Type { get; }
+    private readonly byte typeGap;
 
     public byte Dist { get; }
 
-    public int Gap => Type % gapRange;
+    public int Type => (typeGap & 0b11110000) >> 4;
 
-    public int DataType2 => Type / gapRange;
+    public int Gap => typeGap & 0b00001111;
 
-    public RhythmToken(byte type, byte dist) {
-        Type = type;
-        Dist = dist;
-    }
-
-    public RhythmToken(MapDataPoint mapDataPoint) {
-        Dist = (byte) MathHelper.Clamp(mapDataPoint.Spacing / 4, 0, 255);
-        var gap = MathHelper.Clamp((int) Math.Round(Math.Log2(mapDataPoint.BeatsSince) + gapResolution), 0, gapRange - 1);
-
-        if (mapDataPoint.DataType == DataType.Release) {
-            // The beat gap is less important for selecting sliders so lets reduce gap to just 2 classes for sliders
-            // If its less than 1/2 beat, its 0
-            gap = gap < 5 ? 0 : gap > 5 ? 2 : 1;
-            // Lets also allow a coarser range of distances
-            Dist = (byte) MathHelper.Clamp(mapDataPoint.Spacing / 12, 0, 255);
-        }
-
-        Type = (byte)(mapDataPoint.DataType switch {
-            DataType.Hit => gap,
-            DataType.Spin => gapRange + gap,
-            DataType.Release => mapDataPoint.Repeats switch {
-                0 => gapRange * 2 + gap,
-                1 => gapRange * 3 + gap,
-                _ => gapRange * 4 + gap
-            },
-            _ => gap
-        });
+    /// <summary>
+    /// Type and gap must be less than 16.
+    /// Dist must be less than 256.
+    /// </summary>
+    public RhythmToken(int type, int gap, int dist) {
+        typeGap = (byte)(type << 4 | gap);
+        Dist = (byte)dist;
     }
 
     public bool Equals(RhythmToken other) {
-        return Type == other.Type && Dist == other.Dist;
+        return typeGap == other.typeGap && Dist == other.Dist;
     }
 
     public override bool Equals(object? obj) {
@@ -53,22 +28,36 @@ public readonly struct RhythmToken : IEquatable<RhythmToken>, IComparable<Rhythm
     }
 
     public override int GetHashCode() {
-        return HashCode.Combine(Type, Dist);
+        return HashCode.Combine(typeGap, Dist);
     }
 
     public int CompareTo(RhythmToken other) {
-        var typeComparison = Type.CompareTo(other.Type);
+        var typeComparison = typeGap.CompareTo(other.typeGap);
         if (typeComparison != 0) return typeComparison;
         return Dist.CompareTo(other.Dist);
     }
 
-    public static bool operator ==(RhythmToken left, RhythmToken right)
-    {
+    public static bool operator ==(RhythmToken left, RhythmToken right) {
         return left.Equals(right);
     }
 
-    public static bool operator !=(RhythmToken left, RhythmToken right)
-    {
+    public static bool operator !=(RhythmToken left, RhythmToken right) {
         return !(left == right);
+    }
+
+    public static bool operator <=(RhythmToken left, RhythmToken right) {
+        return left.CompareTo(right) <= 0;
+    }
+
+    public static bool operator >=(RhythmToken left, RhythmToken right) {
+        return left.CompareTo(right) >= 0;
+    }
+
+    public static bool operator <(RhythmToken left, RhythmToken right) {
+        return left.CompareTo(right) < 0;
+    }
+
+    public static bool operator >(RhythmToken left, RhythmToken right) {
+        return left.CompareTo(right) > 0;
     }
 }
