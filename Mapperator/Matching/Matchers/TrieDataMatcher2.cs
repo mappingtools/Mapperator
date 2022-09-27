@@ -10,13 +10,13 @@ namespace Mapperator.Matching.Matchers {
         private const int MaxLookBack = 8;
 
         private readonly RhythmDistanceTrieStructure data;
-        private readonly (ReadOnlyMemory<ushort>, ReadOnlyMemory<ushort>)[] patternRhythmString;
+        private readonly (ReadOnlyMemory<RhythmToken>, ReadOnlyMemory<RhythmToken>)[] patternRhythmString;
 
         private readonly HashSet<(int, int)> foundMatches = new();
 
         public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) : this(data, RhythmDistanceTrieStructure.ToRhythmString(pattern).Span) { }
 
-        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<ushort> rhythmString) {
+        public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<RhythmToken> rhythmString) {
             this.data = data;
             patternRhythmString = RhythmDistanceTrieStructure.ToDistanceRanges(rhythmString, DistanceRanges);
         }
