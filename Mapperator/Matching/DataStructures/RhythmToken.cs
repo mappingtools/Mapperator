@@ -2,25 +2,24 @@
 
 public readonly struct RhythmToken : IEquatable<RhythmToken>, IComparable<RhythmToken> {
 
-    private readonly byte typeGap;
+    private readonly ushort data;
 
-    public byte Dist { get; }
+    public int Dist => data & 0b0000000011111111;
 
-    public int Type => (typeGap & 0b11110000) >> 4;
+    public int Type => (data & 0b1111000000000000) >> 12;
 
-    public int Gap => typeGap & 0b00001111;
+    public int Gap => (data & 0b0000111100000000) >> 8;
 
     /// <summary>
     /// Type and gap must be less than 16.
     /// Dist must be less than 256.
     /// </summary>
     public RhythmToken(int type, int gap, int dist) {
-        typeGap = (byte)(type << 4 | gap);
-        Dist = (byte)dist;
+        data = (ushort)(type << 12 | gap << 8 | dist);
     }
 
     public bool Equals(RhythmToken other) {
-        return typeGap == other.typeGap && Dist == other.Dist;
+        return data == other.data;
     }
 
     public override bool Equals(object? obj) {
@@ -28,13 +27,11 @@ public readonly struct RhythmToken : IEquatable<RhythmToken>, IComparable<Rhythm
     }
 
     public override int GetHashCode() {
-        return HashCode.Combine(typeGap, Dist);
+        return data;
     }
 
     public int CompareTo(RhythmToken other) {
-        var typeComparison = typeGap.CompareTo(other.typeGap);
-        if (typeComparison != 0) return typeComparison;
-        return Dist.CompareTo(other.Dist);
+        return data.CompareTo(other.data);
     }
 
     public static bool operator ==(RhythmToken left, RhythmToken right) {
