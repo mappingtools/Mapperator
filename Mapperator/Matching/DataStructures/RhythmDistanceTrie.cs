@@ -1,4 +1,5 @@
-﻿using Gma.DataStructures.StringSearch;
+﻿using TrieNet;
+using TrieNet.Ukkonen;
 
 namespace Mapperator.Matching.DataStructures;
 

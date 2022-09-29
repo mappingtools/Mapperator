@@ -1,8 +1,8 @@
-﻿using Gma.DataStructures.StringSearch;
-using Mapperator.Matching.DataStructures;
+﻿using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Judges;
 using Mapperator.Model;
 using Mapping_Tools_Core.MathUtil;
+using TrieNet;
 
 namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher : IDataMatcher {

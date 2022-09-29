@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using Gma.DataStructures.StringSearch;
 using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Matchers;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using NUnit.Framework;
+using TrieNet;
 
 namespace Mapperator.Tests.Matching;
 

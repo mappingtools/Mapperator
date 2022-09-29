@@ -1,7 +1,7 @@
-using Gma.DataStructures.StringSearch;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using TrieNet.Ukkonen;
 
 namespace Mapperator.Tests.Matching {
     public class TrieTests {
