@@ -8,7 +8,7 @@ public class RhythmDistanceTrieStructure {
     private readonly List<MapDataPoint[]> mapDataPoints = new();
 
     public IReadOnlyList<MapDataPoint[]> Data => mapDataPoints;
-    public RhythmDistanceTrie Trie { get; } = new();
+    public RhythmDistanceTrie Trie { get; } = new(1);
 
     public void Add(MapDataPoint[] data) {
         Trie.Add(ToRhythmString(data.AsSpan()), mapDataPoints.Count);
