@@ -12,7 +12,7 @@ public class RhythmDistanceTrie : UkkonenTrie<RhythmToken, int> {
     /// <param name="word"></param>
     /// <param name="minLength">The minimum match length. If 0, this returns all of the trie data.</param>
     /// <returns>Word positions and matching length</returns>
-    public IEnumerable<(WordPosition<int>, int, float, float)> RetrieveSubstringsDynamicLenghtAndDistanceRange(ReadOnlyMemory<RhythmToken> word, int minLength) {
+    public IEnumerable<(WordPosition<int>, int, float, float)> RetrieveSubstringsDynamicLengthAndDistanceRange(ReadOnlyMemory<RhythmToken> word, int minLength) {
         if (word.Length < minLength) yield break;
         // Perform a breadth-first search
         // Remember a min and max multiplier which would keep the whole sequence in distance margin
