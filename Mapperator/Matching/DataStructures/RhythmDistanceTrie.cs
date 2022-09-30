@@ -20,7 +20,7 @@ public class RhythmDistanceTrie : UkkonenTrie<RhythmToken, int> {
         nodesToSearch.Enqueue((Root, 0, float.NegativeInfinity, float.PositiveInfinity));
         while (nodesToSearch.Count > 0) {
             var (currentNode, i, minMult, maxMult) = nodesToSearch.Dequeue();
-            var charToMatch = word.Span[i];
+            var firstCharToMatch = word.Span[i];
 
             // Yield all Data of this node (not the whole subtree)
             if (i >= minLength) {
@@ -31,8 +31,8 @@ public class RhythmDistanceTrie : UkkonenTrie<RhythmToken, int> {
 
             // follow all the EdgeA<T> which are valid
             var edges = currentNode.Edges;
-            foreach (var (ch, edge) in edges) {
-                if (edge is null || ch.Type != charToMatch.Type || ch.Gap != charToMatch.Gap) continue;
+            foreach (var (chFirst, edge) in edges) {
+                if (edge is null || chFirst.Type != firstCharToMatch.Type || chFirst.Gap != firstCharToMatch.Gap) continue;
 
                 // Check how much of the edge label somewhat matches the word
                 var label = edge.Label.Span;
@@ -41,17 +41,23 @@ public class RhythmDistanceTrie : UkkonenTrie<RhythmToken, int> {
                 var edgeMaxMult = maxMult;
                 int matchingLen;
                 for (matchingLen = 0; matchingLen < lenToMatch; matchingLen++) {
-                    var charToMatch2 = word.Span[i + matchingLen];
-                    var chMin2 = Math.Max(charToMatch.Dist * 0.66f - 3, 0);
-                    var chMax2 = Math.Min(charToMatch.Dist * 1.5f + 3, 255);
+                    var charToMatch = word.Span[i + matchingLen];
+                    var chLabel = label[matchingLen];
+                    var dist = chLabel.Dist;
 
-                    var ch2 = label[i];
+                    if (chLabel.Type != charToMatch.Type || chLabel.Gap != charToMatch.Gap) break;
 
-                    if (ch2.Type != charToMatch2.Type || ch2.Gap != charToMatch2.Gap) break;
+                    var chMin = Math.Max(charToMatch.Dist * 0.66f - 3, 0);
+                    var chMax = Math.Min(charToMatch.Dist * 1.5f + 3, 255);
 
-                    var dist = ch2.Dist;
-                    var newMinMult = chMin2 / dist;
-                    var newMaxMult = chMax2 / dist;
+                    if (dist == 0) {
+                        if (dist >= chMin && dist <= chMax)
+                            continue;
+                        break;
+                    }
+
+                    var newMinMult = chMin / dist;
+                    var newMaxMult = chMax / dist;
 
                     if (newMinMult > edgeMaxMult || newMaxMult < edgeMinMult) break;
 
