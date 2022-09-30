@@ -10,7 +10,7 @@ public class RhythmDistanceTrieTests {
 
     [OneTimeSetUp]
     public void Setup() {
-        trie = new RhythmDistanceTrie();
+        trie = new RhythmDistanceTrie(1);
     }
 
     [Test]
