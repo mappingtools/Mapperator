@@ -6,18 +6,16 @@ using TrieNet;
 
 namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher : IDataMatcher {
-        private const int FirstSearchLength = 32;
-        private static readonly int[] DistanceRanges = { 3 };  // Best values found by trial-and-error
-        private const double PogBonus = 50;
-        private const int MaxLookBack = 8;
+        private const double PogBonus = 80;
         private const int MaxSearch = 100000;
 
         private readonly RhythmDistanceTrieStructure data;
         private readonly ReadOnlyMemory<MapDataPoint> pattern;
         private readonly IJudge judge;
-        private readonly (ReadOnlyMemory<RhythmToken>, ReadOnlyMemory<RhythmToken>)[] patternRhythmString;
+        private readonly ReadOnlyMemory<RhythmToken> patternRhythmString;
 
         private WordPosition<int>? lastId;
+        private double? lastMult;
         private int? lastLength;
         private int? lastLookBack;
         private int pogs;
@@ -32,10 +30,10 @@ namespace Mapperator.Matching.Matchers {
             this.data = data;
             this.pattern = pattern;
             this.judge = judge;
-            patternRhythmString = RhythmDistanceTrieStructure.ToDistanceRanges(RhythmDistanceTrieStructure.ToRhythmString(pattern.Span).Span, DistanceRanges);
+            patternRhythmString = RhythmDistanceTrieStructure.ToRhythmString(pattern.Span);
         }
 
-        public IEnumerable<MapDataPoint> FindSimilarData(Func<MapDataPoint, bool> isValidFunc) {
+        public IEnumerable<(MapDataPoint, double)> FindSimilarData(Func<MapDataPoint, bool> isValidFunc) {
             Console.WriteLine("Searching for matches");
             lastId = null;
             pogs = 0;
@@ -53,85 +51,65 @@ namespace Mapperator.Matching.Matchers {
             Console.WriteLine($"Avg searched = {totalSearched / pattern.Length}");
         }
 
-        public MapDataPoint FindBestMatch(int i, Func<MapDataPoint, bool> isValidFunc) {
-            var searchLength = Math.Min(FirstSearchLength, pattern.Length);
+        public (MapDataPoint, double) FindBestMatch(int i, Func<MapDataPoint, bool> isValidFunc) {
             var numSearched = 0;
 
             var bestScore = double.NegativeInfinity;
             var best = new WordPosition<int>(0, 0);
             var bestLength = 0;
             var bestLookBack = 0;
+            var bestMult = 1d;
             //var bestWidth = 0;
 
             // First try the pog option
-            if (lastId.HasValue && lastLength.HasValue && lastLookBack.HasValue && lastLength - lastLookBack > 1) {
+            if (lastId.HasValue && lastLength.HasValue && lastLookBack.HasValue && lastMult.HasValue && lastLength - lastLookBack > 1) {
                 var pogLength = lastLength.Value;
                 var lookBack = lastLookBack.Value + 1;
                 var pogPos = new WordPosition<int>(lastId.Value.CharPosition + 1, lastId.Value.Value);
 
-                if (!IsValidSeries(pogPos, pogLength - lookBack, isValidFunc)) {
-                    goto PogTried;
-                }
-
                 // Rate the quality of the match
-                bestScore = RateMatchQuality(pogPos, i, pogLength, lookBack) + PogBonus;
+                bestScore = RateMatchQuality(pogPos, i, pogLength, lookBack, lastMult.Value) + PogBonus;
                 best = pogPos;
                 bestLength = pogLength;
                 bestLookBack = lookBack;
+                bestMult = lastMult.Value;
             }
-            PogTried:
 
-            while (searchLength > 0 && bestScore < 0.5 * BestPossibleScore(i, searchLength, pattern.Length)) {
-                var lookBack = GetLookBack(i, searchLength, pattern.Length);
+            var searchLength = pattern.Length - i;
+            var minLength = Math.Max(1, judge.MinLengthForScore(bestScore));
+            var boxedLength = new RhythmDistanceTrie.MinLengthProvider(minLength);
+            var query = patternRhythmString.Slice(i, searchLength);
+            var result = data.Trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, boxedLength);
 
-                for (var j = 0; j < patternRhythmString.Length; j++) {
-                    var min = patternRhythmString[j].Item1.Slice(i - lookBack, searchLength);
-                    var max = patternRhythmString[j].Item2.Slice(i - lookBack, searchLength);
-                    var foundAnything = false;
-
-                    var result = data.Trie.RetrieveSubstringsRange(min, max);
-
-                    // Find the best match
-                    foreach (var wordPosition in result) {
-                        if (numSearched++ >= MaxSearch) {
-                            break;
-                        }
-
-                        // Get the position of the middle data point
-                        var middlePos = new WordPosition<int>(wordPosition.CharPosition + lookBack, wordPosition.Value);
-
-                        if (!IsValidSeries(middlePos, searchLength - lookBack, isValidFunc)) {
-                            continue;
-                        }
-
-                        foundAnything = true;
-
-                        // Rate the quality of the match
-                        var score = RateMatchQuality(middlePos, i, searchLength, lookBack);
-
-                        if (!(score > bestScore)) continue;
-
-                        bestScore = score;
-                        best = middlePos;
-                        bestLength = searchLength;
-                        bestLookBack = lookBack;
-                        //bestWidth = j;
-                    }
-
-                    if (foundAnything)
-                        break;
-                }
-
-                searchLength--;
-
-                if (numSearched >= MaxSearch) {
+            // Find the best match
+            foreach (var (wordPosition, length, minMult, maxMult) in result) {
+                if (numSearched++ >= MaxSearch) {
                     break;
                 }
+
+                // Get the multiplier in the middle
+                var mult = Math.Sqrt(minMult * maxMult);
+
+                var validLength = IsValidSeriesLength(wordPosition, length, isValidFunc, mult);
+                if (validLength < 1) continue;
+
+                // Rate the quality of the match
+                var score = RateMatchQuality(wordPosition, i, validLength, 0, mult);
+
+                if (!(score > bestScore)) continue;
+
+                bestScore = score;
+                best = wordPosition;
+                bestLength = validLength;
+                bestLookBack = 0;
+                bestMult = mult;
+
+                boxedLength.MinLength = Math.Max(boxedLength.MinLength, judge.MinLengthForScore(bestScore));
             }
 
             totalScore += double.IsNegativeInfinity(bestScore) ? 0 : bestScore;
-            var matchingCost = judge.MatchingCost(pattern.Span[i], data.GetMapDataPoint(best));
-            var relationScore = judge.RelationScore(pattern.Span, data.Data[best.Value].AsSpan(), i, best.CharPosition, 50);
+            var matchingCost = judge.MatchingCost(pattern.Span[i], data.GetMapDataPoint(best), bestMult);
+            var relationScore = judge.RelationScore(pattern.Span, data.Data[best.Value].AsSpan(), i, best.CharPosition, 50, bestMult);
             totalMatchingCost += matchingCost;
             totalRelationScore += relationScore;
             totalSearched += numSearched;
@@ -143,12 +121,13 @@ namespace Mapperator.Matching.Matchers {
             lastId = best;
             lastLength = bestLength;
             lastLookBack = bestLookBack;
-            Console.WriteLine($"match {i}, id = {lastId}, num searched = {numSearched}, length = {bestLength}, score = {bestScore}, matching cost = {matchingCost}, relation = {relationScore}");
+            lastMult = bestMult;
+            Console.WriteLine($"match {i}, id = {lastId}, num searched = {numSearched}, length = {bestLength}, mult = {bestMult}, score = {bestScore}, matching cost = {matchingCost}, relation = {relationScore}");
             //var bestmin = localPatternRhythmString[bestWidth].Item1.Slice(i - bestLookBack, bestLength);
             //var bestmax = localPatternRhythmString[bestWidth].Item2.Slice(i - bestLookBack, bestLength);
             //Console.WriteLine($"match code = {string.Join(',', Enumerable.Range(-bestLookBack, bestLength).Select(o => ToRhythmToken(GetMapDataPoint(best, o))))}; min = {string.Join(',', bestmin.ToArray())}; max = {string.Join(',', bestmax.ToArray())}");
 
-            return data.GetMapDataPoint(best);
+            return (data.GetMapDataPoint(best), bestMult);
         }
 
         public static int GetLookBack(int i, int length, int totalLength) {
@@ -159,21 +138,22 @@ namespace Mapperator.Matching.Matchers {
             return judge.BestPossibleScore(length, GetLookBack(i, length, totalLength));
         }
 
-        private double RateMatchQuality(WordPosition<int> pos, int index, int length, int lookBack) {
+        private double RateMatchQuality(WordPosition<int> pos, int index, int length, int lookBack, double mult) {
             return judge.Judge(data.Data[pos.Value].AsSpan().Slice(pos.CharPosition - lookBack, length),
-                pattern.Span.Slice(index - lookBack, length), lookBack);
+                pattern.Span.Slice(index - lookBack, length), lookBack, mult);
         }
 
-        private bool IsValidSeries(WordPosition<int> wordPosition, int count, Func<MapDataPoint, bool> isValidFunc) {
+        private int IsValidSeriesLength(WordPosition<int> wordPosition, int count, Func<MapDataPoint, bool> isValidFunc, double mult) {
             double cumulativeAngle = 0;
             var pos = Vector2.Zero;
             double beatsSince = 0;
+            var length = 0;
             for (var i = 0; i < count; i++) {
                 var dataPoint = data.GetMapDataPoint(wordPosition, i);
 
                 cumulativeAngle += dataPoint.Angle;
                 var dir = Vector2.Rotate(Vector2.UnitX, cumulativeAngle);
-                pos += dataPoint.Spacing * dir;
+                pos += dataPoint.Spacing * mult * dir;
                 beatsSince += dataPoint.BeatsSince;
 
                 // Test a new datapoint with the cumulated angle and distance and gap
@@ -182,11 +162,13 @@ namespace Mapperator.Matching.Matchers {
                 dataPoint.Angle = pos.Theta;
 
                 if (!isValidFunc(dataPoint)) {
-                    return false;
+                    return length;
                 }
+
+                length++;
             }
 
-            return true;
+            return length;
         }
     }
 }

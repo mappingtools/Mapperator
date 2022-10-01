@@ -11,24 +11,32 @@ public class RhythmDistanceTrie : UkkonenTrie<RhythmToken, int> {
 
     public RhythmDistanceTrie(int minSuffixLength) : base(minSuffixLength) { }
 
+    public class MinLengthProvider {
+        public int MinLength;
+
+        public MinLengthProvider(int minLength) {
+            MinLength = minLength;
+        }
+    }
+
     /// <summary>
     /// Finds all patterns which can match all or part of the word after scaling the distance.
     /// </summary>
     /// <param name="word"></param>
-    /// <param name="minLength">The minimum match length. If 0, this returns all of the trie data.</param>
+    /// <param name="minLengthProvider">The minimum match length. If 0, this returns all of the trie data.</param>
     /// <returns>Word positions and matching length</returns>
-    public IEnumerable<(WordPosition<int>, int, float, float)> RetrieveSubstringsDynamicLengthAndDistanceRange(ReadOnlyMemory<RhythmToken> word, int minLength) {
-        if (word.Length < minLength) yield break;
+    public IEnumerable<(WordPosition<int>, int, float, float)> RetrieveSubstringsDynamicLengthAndDistanceRange(ReadOnlyMemory<RhythmToken> word, MinLengthProvider minLengthProvider) {
+        if (word.Length < minLengthProvider.MinLength) yield break;
         // Perform a breadth-first search
         // Remember a min and max multiplier which would keep the whole sequence in distance margin
         var nodesToSearch = new Queue<(Node<RhythmToken, int>, int, float, float)>();
-        nodesToSearch.Enqueue((Root, 0, float.NegativeInfinity, float.PositiveInfinity));
+        nodesToSearch.Enqueue((Root, 0, 0, float.PositiveInfinity));
         while (nodesToSearch.Count > 0) {
             var (currentNode, i, minMult, maxMult) = nodesToSearch.Dequeue();
             var firstCharToMatch = word.Span[i];
 
             // Yield all Data of this node (not the whole subtree)
-            if (i >= minLength) {
+            if (i >= minLengthProvider.MinLength) {
                 foreach (var e in currentNode.Data) {
                     yield return (e, i, minMult, maxMult);
                 }
@@ -75,7 +83,7 @@ public class RhythmDistanceTrie : UkkonenTrie<RhythmToken, int> {
                 // If len is less than lenToMatch, then yield whole subtree of target and break, but limited in length
                 // If len is equal to lenToMatch and we've exhausted the query, then yield the whole subtree of the target and break
                 if (matchingLen < lenToMatch || (matchingLen == lenToMatch && label.Length + i >= word.Length)) {
-                    if (matchingLen + i >= minLength) {
+                    if (matchingLen + i >= minLengthProvider.MinLength) {
                         foreach (var e in edge.Target.GetData()) {
                             yield return (e, i + matchingLen, edgeMinMult, edgeMaxMult);
                         }

@@ -10,10 +10,10 @@ public class SuperJudge : IJudge {
     private const double NcLoss = 5;
     private const double WeightDeviation = 2;
 
-    public double Judge(ReadOnlySpan<MapDataPoint> foundPattern, ReadOnlySpan<MapDataPoint> wantedPattern, int lookBack) {
+    public double Judge(ReadOnlySpan<MapDataPoint> foundPattern, ReadOnlySpan<MapDataPoint> wantedPattern, int lookBack, double mult) {
         double score = 0;
 
-        for (var i = -lookBack; i < wantedPattern.Length - lookBack; i++) {
+        for (var i = 0; i < wantedPattern.Length - lookBack; i++) {
             var foundPoint = foundPattern[i + lookBack];
             var wantedPoint = wantedPattern[i + lookBack];
 
@@ -24,7 +24,7 @@ public class SuperJudge : IJudge {
             score += weight * LengthBonus;
 
             // Subtract loss by difference in data points
-            score -= weight * SpacingWeight * Math.Pow(Math.Abs(foundPoint.Spacing - wantedPoint.Spacing), 0.5);
+            score -= weight * SpacingWeight * Math.Pow(Math.Abs(foundPoint.Spacing * mult - wantedPoint.Spacing), 0.5);
             score -= weight * (wantedPoint.Spacing < 100 && wantedPoint.BeatsSince < 4.9 ? 20 : 1) * AngleWeight * Math.Abs(foundPoint.Angle - wantedPoint.Angle);
 
             // Subtract points for having different combo's
@@ -38,10 +38,10 @@ public class SuperJudge : IJudge {
     private const double AngleWeight2 = 5;
     private const double NcLoss2 = 25;
 
-    public double MatchingCost(MapDataPoint expected, MapDataPoint actual) {
+    public double MatchingCost(MapDataPoint expected, MapDataPoint actual, double mult) {
         var score = 0d;
         // Subtract loss by difference in data points
-        score += SpacingWeight2 * Math.Pow(Math.Abs(actual.Spacing - expected.Spacing), 0.5);
+        score += SpacingWeight2 * Math.Pow(Math.Abs(actual.Spacing * mult - expected.Spacing), 0.5);
         score += AngleWeight2 * Math.Abs(actual.Angle - expected.Angle);
 
         // Subtract points for having different combo's
@@ -56,7 +56,7 @@ public class SuperJudge : IJudge {
     private const double WeakRelationScore = 1;
 
     public double RelationScore(ReadOnlySpan<MapDataPoint> expected, ReadOnlySpan<MapDataPoint> actual, int i, int j,
-        double maxDiff) {
+        double maxDiff, double mult) {
         var score = 0d;
         var weight = 1d;
         var stillSameSequence = true;
@@ -65,7 +65,7 @@ public class SuperJudge : IJudge {
             // __xxooMoo
             // M = next
             // o = curr
-            var diff = MatchingCost(expected[i], actual[j]);
+            var diff = MatchingCost(expected[i], actual[j], mult);
             if (diff > maxDiff) {
                 break;
             }
@@ -98,5 +98,21 @@ public class SuperJudge : IJudge {
         }
 
         return score;
+    }
+
+    public int MinLengthForScore(double wantedScore) {
+        double score = 0;
+        var length = 0;
+
+        while (score < wantedScore && length < 32) {
+            // Get a weight factor using the gaussian formula
+            var weight = Math.Exp(-(length * length) / (2 * WeightDeviation * WeightDeviation));
+
+            // Apply match length bonus
+            score += weight * LengthBonus;
+            length++;
+        }
+
+        return length;
     }
 }

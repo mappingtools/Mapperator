@@ -26,14 +26,14 @@ namespace Mapperator.Construction {
             double angle = 0;
             MapDataPoint? lastMatch = null;
             var controlChanges = new List<ControlChange>();
-            foreach (var match in matcher.FindSimilarData(m => IsInBounds(m, pos, angle))) {
+            foreach (var (match, mult) in matcher.FindSimilarData(m => IsInBounds(m, pos, angle))) {
                 var original = input.Span[i++];
                 var originalHo = string.IsNullOrWhiteSpace(original.HitObject) ? null : decoder.Decode(original.HitObject);
 
                 time = beatmap.BeatmapTiming.WalkBeatsInMillisecondTime(original.BeatsSince, time);
                 angle += match.Angle;
                 var dir = Vector2.Rotate(Vector2.UnitX, angle);
-                pos += match.Spacing * dir;
+                pos += match.Spacing * mult * dir;
                 // Wrap pos
                 //pos = new Vector2(Helpers.Mod(pos.X, 512), Helpers.Mod(pos.Y, 384));
                 pos = Vector2.Clamp(pos, Vector2.Zero, new Vector2(512, 382));
@@ -41,7 +41,6 @@ namespace Mapperator.Construction {
                 //Console.WriteLine($"time = {time}, pos = {pos}, original = {original}, match = {match}");
 
                 if (match.DataType == DataType.Release) {
-                    beatmap.Editor.Bookmarks.Add(time);
                     if (lastMatch is { DataType: DataType.Hit }) {
                         // Make sure the last object is a slider of the release datapoint
                         if (beatmap.HitObjects.LastOrDefault() is { } hitObject) {
@@ -80,6 +79,26 @@ namespace Mapperator.Construction {
 
                         // Make sure the last object ends at time t and around pos
                         if (beatmap.HitObjects.LastOrDefault() is Slider lastSlider) {
+
+                            // Rotate the end towards the release pos
+                            lastSlider.RecalculateEndPosition();
+                            var ogPos = lastSlider.Pos;
+                            var ogTheta = (lastSlider.EndPos - ogPos).Theta;
+                            var newTheta = (pos - ogPos).Theta;
+                            var ogSize = (lastSlider.EndPos - ogPos).Length;
+                            var newSize = (pos - ogPos).Length;
+                            var scale = newSize / ogSize;
+                            if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
+                                lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
+                                lastSlider.Transform(Matrix2.CreateScale(scale));
+                                lastSlider.Move(ogPos - lastSlider.Pos);
+                                lastSlider.PixelLength *= scale;
+                            }
+                            // Add the right number of repeats
+                            if (original.Repeats.HasValue) {
+                                lastSlider.RepeatCount = original.Repeats.Value;
+                            }
+
                             // Adjust SV
                             var tp = beatmap.BeatmapTiming.GetTimingPointAtTime(lastSlider.StartTime).Copy();
                             var mpb = beatmap.BeatmapTiming.GetMpBAtTime(lastSlider.StartTime);
@@ -88,19 +107,6 @@ namespace Mapperator.Construction {
                             tp.SetSliderVelocity(lastSlider.PixelLength / ((time - lastSlider.StartTime) / mpb * 100 *
                                                                            beatmap.Difficulty.SliderMultiplier));
                             controlChanges.Add(new ControlChange(tp, true));
-                            // Rotate the end towards the release pos
-                            lastSlider.RecalculateEndPosition();
-                            var ogPos = lastSlider.Pos;
-                            var ogTheta = (lastSlider.EndPos - ogPos).Theta;
-                            var newTheta = (pos - ogPos).Theta;
-                            if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
-                                lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
-                                lastSlider.Move(ogPos - lastSlider.Pos);
-                            }
-                            // Add the right number of repeats
-                            if (original.Repeats.HasValue) {
-                                lastSlider.RepeatCount = original.Repeats.Value;
-                            }
                         }
                     } else if (lastMatch is { DataType: DataType.Spin }) {
                         // Make sure the last object is a spinner
