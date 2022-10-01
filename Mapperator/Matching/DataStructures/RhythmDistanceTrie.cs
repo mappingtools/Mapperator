@@ -4,6 +4,11 @@ using TrieNet.Ukkonen;
 namespace Mapperator.Matching.DataStructures;
 
 public class RhythmDistanceTrie : UkkonenTrie<RhythmToken, int> {
+    public float DistLeniencyFactor { get; set; } = 0.25f;
+    public float DistLeniency { get; set; } = 2;
+
+    public RhythmDistanceTrie() : base(1) { }
+
     public RhythmDistanceTrie(int minSuffixLength) : base(minSuffixLength) { }
 
     /// <summary>
@@ -47,8 +52,8 @@ public class RhythmDistanceTrie : UkkonenTrie<RhythmToken, int> {
 
                     if (chLabel.Type != charToMatch.Type || chLabel.Gap != charToMatch.Gap) break;
 
-                    var chMin = Math.Max(charToMatch.Dist * 0.66f - 3, 0);
-                    var chMax = Math.Min(charToMatch.Dist * 1.5f + 3, 255);
+                    var chMin = Math.Max(charToMatch.Dist / (1 + DistLeniencyFactor) - DistLeniency, 0);
+                    var chMax = Math.Min(charToMatch.Dist * (1 + DistLeniencyFactor) + DistLeniency, 255);
 
                     if (dist == 0) {
                         if (dist >= chMin && dist <= chMax)

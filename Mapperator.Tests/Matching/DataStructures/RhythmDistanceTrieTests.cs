@@ -11,7 +11,7 @@ public class RhythmDistanceTrieTests {
 
     [OneTimeSetUp]
     public void Setup() {
-        trie = new RhythmDistanceTrie(1);
+        trie = new RhythmDistanceTrie { DistLeniencyFactor = 0.5f, DistLeniency = 3 };
         trie.Add(new[] {
             new RhythmToken(0, 0, 0),
             new RhythmToken(0, 4, 40),
