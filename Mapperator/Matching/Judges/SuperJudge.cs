@@ -62,11 +62,11 @@ public class SuperJudge : IJudge {
         // Subtract score for mismatching slider length and segment count
         if (actual.SliderLength.HasValue && expected.SliderLength.HasValue &&
             actual.SliderSegments.HasValue && expected.SliderSegments.HasValue) {
-            score -= SliderLengthWeight * Math.Pow(Math.Abs(actual.SliderLength.Value * mult - expected.SliderLength.Value), 0.5);
+            score += SliderLengthWeight * Math.Pow(Math.Abs(actual.SliderLength.Value * mult - expected.SliderLength.Value), 0.5);
             // Compare segments per pixel
             var foundSegmentRatio = Math.Log2(Math.Min(.5, actual.SliderSegments.Value / actual.SliderLength.Value));
             var wantedSegmentRatio = Math.Log2(Math.Min(.5, expected.SliderSegments.Value / expected.SliderLength.Value));
-            score -= SliderSegmentWeight * Math.Pow(Math.Abs(foundSegmentRatio - wantedSegmentRatio), 2);
+            score += SliderSegmentWeight * Math.Pow(Math.Abs(foundSegmentRatio - wantedSegmentRatio), 2);
         }
 
         return score;
