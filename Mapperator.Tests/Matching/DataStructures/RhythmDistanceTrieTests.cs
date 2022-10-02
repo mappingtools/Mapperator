@@ -35,7 +35,7 @@ public class RhythmDistanceTrieTests {
             new RhythmToken(0, 4, 40)
         }.AsMemory();
 
-        var result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, 1).ToArray();
+        var result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, new RhythmDistanceTrie.MinLengthProvider(1)).ToArray();
 
         Assert.AreEqual(1, result.Length);
         var (pos, length, minMult, maxMult) = result[0];
@@ -57,7 +57,7 @@ public class RhythmDistanceTrieTests {
             new RhythmToken(0, 4, 40)
         }.AsMemory();
 
-        var result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, 1)
+        var result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, new RhythmDistanceTrie.MinLengthProvider(1))
             .OrderBy(o => o.Item1.CharPosition).ToArray();
 
         Assert.AreEqual(5, result.Length);
@@ -82,7 +82,7 @@ public class RhythmDistanceTrieTests {
         Assert.AreEqual(1, length);
         Assert.IsTrue(minMult < 1 && 1 < maxMult);
 
-        result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, 2)
+        result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, new RhythmDistanceTrie.MinLengthProvider(2))
             .OrderBy(o => o.Item1.CharPosition).ToArray();
 
         Assert.AreEqual(3, result.Length);
@@ -96,7 +96,7 @@ public class RhythmDistanceTrieTests {
         Assert.AreEqual(5, pos.CharPosition);
         Assert.AreEqual(2, length);
 
-        result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, 3).ToArray();
+        result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, new RhythmDistanceTrie.MinLengthProvider(3)).ToArray();
 
         Assert.AreEqual(1, result.Length);
     }
@@ -113,7 +113,7 @@ public class RhythmDistanceTrieTests {
             new RhythmToken(0, 4, 20)
         }.AsMemory();
 
-        var result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, 1).ToArray();
+        var result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, new RhythmDistanceTrie.MinLengthProvider(1)).ToArray();
 
         Assert.AreEqual(1, result.Length);
         var (pos, length, minMult, maxMult) = result[0];
