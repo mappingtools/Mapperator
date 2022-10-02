@@ -31,7 +31,7 @@ namespace Mapperator {
                         yield return CreateDataPoint(timing, ho.Pos, ho.StartTime, DataType.Hit, null, null, ho.NewCombo, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror);
                         break;
                     case Slider slider:
-                        yield return CreateDataPoint(timing, ho.Pos, ho.StartTime, DataType.Hit, slider.SliderType, slider.RepeatCount, ho.NewCombo, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror);
+                        yield return CreateDataPoint(timing, ho.Pos, ho.StartTime, DataType.Hit, null, null, ho.NewCombo, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror);
 
                         // Get middle and end positions too for every repeat
                         var path = slider.GetSliderPath();
@@ -39,8 +39,17 @@ namespace Mapperator {
                         //var middlePos = path.PositionAt(0.5);
                         var endPos = path.PositionAt(1);
 
+                        // Count the number of segments in the slider
+                        var segments = 0;
+                        var controlPoints = path.ControlPoints;
 
-                        yield return CreateDataPoint(timing, endPos, slider.StartTime + slider.SpanDuration, DataType.Release, slider.SliderType, slider.RepeatCount, false, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror, slider.PixelLength);
+                        for (var i = 0; i < controlPoints.Count; i++) {
+                            if (i == controlPoints.Count - 1 || controlPoints[i] == controlPoints[i + 1] && i != controlPoints.Count - 2) {
+                                segments++;
+                            }
+                        }
+
+                        yield return CreateDataPoint(timing, endPos, slider.StartTime + slider.SpanDuration, DataType.Release, slider.SliderType, slider.RepeatCount, false, ho, ref lastLastPos, ref lastPos, ref lastTime, mirror, slider.PixelLength, segments);
 
                         //for (int i = 0; i < slider.RepeatCount + 1; i++) {
                         //    yield return CreateDataPoint(timing, middlePos, slider.StartTime + slider.SpanDuration * (i + 0.5), DataType.Hold, slider.SliderType, null, ref lastLastPos, ref lastPos, ref lastTime, reverseRotation);
@@ -57,7 +66,7 @@ namespace Mapperator {
             }
         }
 
-        private MapDataPoint CreateDataPoint(Timing timing, Vector2 pos, double time, DataType dataType, PathType? sliderType, int? repeats, bool nc, HitObject? hitObject, ref Vector2 lastLastPos, ref Vector2 lastPos, ref double lastTime, bool mirror = false, double? spacingOverride = null) {
+        private MapDataPoint CreateDataPoint(Timing timing, Vector2 pos, double time, DataType dataType, PathType? sliderType, int? repeats, bool nc, HitObject? hitObject, ref Vector2 lastLastPos, ref Vector2 lastPos, ref double lastTime, bool mirror = false, double? sliderLength = null, int? sliderSegments = null) {
             //var angle = Vector2.Angle(pos - lastPos, lastPos - lastLastPos);
             var angle = Helpers.AngleDifference((lastPos - lastLastPos).Theta, (pos - lastPos).Theta);
             if (double.IsNaN(angle)) {
@@ -76,10 +85,12 @@ namespace Mapperator {
             var point = new MapDataPoint(
                                 dataType,
                                 timing.GetBeatLength(lastTime, time),
-                                spacingOverride ?? Vector2.Distance(pos, lastPos),
+                                Vector2.Distance(pos, lastPos),
                                 mirror ? -angle : angle,
                                 nc,
                                 sliderType,
+                                sliderLength,
+                                sliderSegments,
                                 repeats,
                                 hoString
                                 );

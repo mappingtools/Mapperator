@@ -6,7 +6,7 @@
     },
     "ExtractData": {
       "commandName": "Project",
-      "commandLineArgs": "extract -c \"!Kroytz\" -o test2"
+      "commandLineArgs": "extract -c \"!Kroytz\" -o test"
     },
     "ExtractAllData": {
       "commandName": "Project",
@@ -14,7 +14,7 @@
     },
     "ConvertMap": {
       "commandName": "Project",
-      "commandLineArgs": "convert -d test2 -i \"Resources\\input\" -o output"
+      "commandLineArgs": "convert -d test -i \"Resources\\input\" -o output"
     },
     "Search": {
       "commandName": "Project",

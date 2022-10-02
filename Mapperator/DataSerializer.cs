@@ -34,8 +34,10 @@ namespace Mapperator {
                 double.Parse(split[3], CultureInfo.InvariantCulture),
                 split[4] == "1",
                 string.IsNullOrEmpty(split[5]) ? null : (PathType)int.Parse(split[5], CultureInfo.InvariantCulture),
-                string.IsNullOrEmpty(split[6]) ? null : int.Parse(split[6], CultureInfo.InvariantCulture),
-                split[7]
+                string.IsNullOrEmpty(split[6]) ? null : double.Parse(split[6], CultureInfo.InvariantCulture),
+                string.IsNullOrEmpty(split[7]) ? null : int.Parse(split[7], CultureInfo.InvariantCulture),
+                string.IsNullOrEmpty(split[8]) ? null : int.Parse(split[8], CultureInfo.InvariantCulture),
+                split[9]
                 );
         }
     }
