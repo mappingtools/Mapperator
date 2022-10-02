@@ -33,8 +33,8 @@ public class SuperJudge : IJudge {
             score -= weight * (foundPoint.NewCombo != wantedPoint.NewCombo ? NcLoss : 0);
 
             // Subtract score for mismatching slider length and segment count
-            if (foundPoint.SliderLength.HasValue && wantedPoint.SliderLength.HasValue
-                && foundPoint.SliderSegments.HasValue && wantedPoint.SliderSegments.HasValue) {
+            if (foundPoint.SliderLength.HasValue && wantedPoint.SliderLength.HasValue &&
+                foundPoint.SliderSegments.HasValue && wantedPoint.SliderSegments.HasValue) {
                 score -= weight * SliderLengthWeight * Math.Pow(Math.Abs(foundPoint.SliderLength.Value * mult - wantedPoint.SliderLength.Value), 0.5);
                 // Compare segments per pixel
                 var foundSegmentRatio = Math.Log2(Math.Min(.5, foundPoint.SliderSegments.Value / foundPoint.SliderLength.Value));
@@ -58,6 +58,16 @@ public class SuperJudge : IJudge {
 
         // Subtract points for having different combo's
         score += actual.NewCombo != expected.NewCombo ? NcLoss2 : 0;
+
+        // Subtract score for mismatching slider length and segment count
+        if (actual.SliderLength.HasValue && expected.SliderLength.HasValue &&
+            actual.SliderSegments.HasValue && expected.SliderSegments.HasValue) {
+            score -= SliderLengthWeight * Math.Pow(Math.Abs(actual.SliderLength.Value * mult - expected.SliderLength.Value), 0.5);
+            // Compare segments per pixel
+            var foundSegmentRatio = Math.Log2(Math.Min(.5, actual.SliderSegments.Value / actual.SliderLength.Value));
+            var wantedSegmentRatio = Math.Log2(Math.Min(.5, expected.SliderSegments.Value / expected.SliderLength.Value));
+            score -= SliderSegmentWeight * Math.Pow(Math.Abs(foundSegmentRatio - wantedSegmentRatio), 2);
+        }
 
         return score;
     }
