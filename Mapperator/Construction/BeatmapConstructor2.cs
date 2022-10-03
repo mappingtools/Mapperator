@@ -58,9 +58,10 @@ namespace Mapperator.Construction {
             var (pos, angle, time) = GetContinuation(hitObjects);
             MapDataPoint? lastDataPoint = null;
             controlChanges = new List<ControlChange>();
+            var mult = Math.Sqrt(match.MinMult * match.MaxMult);
 
             for (var i = 0; i < match.Length; i++) {
-                var dataPoint = match.WholeSequence.Span[i + match.Lookback];
+                var dataPoint = match.Sequence.Span[i];
 
                 var original = input[i];
                 var originalHo = string.IsNullOrWhiteSpace(original.HitObject) ? null : decoder.Decode(original.HitObject);
@@ -68,7 +69,7 @@ namespace Mapperator.Construction {
                 time = timing?.WalkBeatsInMillisecondTime(original.BeatsSince, time) ?? time + 1;
                 angle += dataPoint.Angle;
                 var dir = Vector2.Rotate(Vector2.UnitX, angle);
-                pos += dataPoint.Spacing * dir;
+                pos += dataPoint.Spacing * mult * dir;
                 // Wrap pos
                 //pos = new Vector2(Helpers.Mod(pos.X, 512), Helpers.Mod(pos.Y, 384));
                 pos = Vector2.Clamp(pos, Vector2.Zero, new Vector2(512, 382));
@@ -115,6 +116,27 @@ namespace Mapperator.Construction {
 
                         // Make sure the last object ends at time t and around pos
                         if (hitObjects.LastOrDefault() is Slider lastSlider) {
+                            // Rotate and scale the end towards the release pos
+                            lastSlider.RecalculateEndPosition();
+                            var ogPos = lastSlider.Pos;
+                            var ogTheta = (lastSlider.EndPos - ogPos).Theta;
+                            var newTheta = (pos - ogPos).Theta;
+                            var ogSize = (lastSlider.EndPos - ogPos).Length;
+                            var newSize = (pos - ogPos).Length;
+                            var scale = newSize / ogSize;
+
+                            if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
+                                lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
+                                lastSlider.Transform(Matrix2.CreateScale(scale));
+                                lastSlider.Move(ogPos - lastSlider.Pos);
+                                lastSlider.PixelLength *= scale;
+                            }
+
+                            // Add the right number of repeats
+                            if (original.Repeats.HasValue) {
+                                lastSlider.RepeatCount = original.Repeats.Value;
+                            }
+
                             if (timing is not null) {
                                 // Adjust SV
                                 var tp = timing.GetTimingPointAtTime(lastSlider.StartTime).Copy();
@@ -124,22 +146,6 @@ namespace Mapperator.Construction {
                                 tp.SetSliderVelocity(lastSlider.PixelLength / ((time - lastSlider.StartTime) / mpb *
                                                                                100 * timing.GlobalSliderMultiplier));
                                 controlChanges.Add(new ControlChange(tp, true));
-                            }
-
-                            // Rotate the end towards the release pos
-                            lastSlider.RecalculateEndPosition();
-                            var ogPos = lastSlider.Pos;
-                            var ogTheta = (lastSlider.EndPos - ogPos).Theta;
-                            var newTheta = (pos - ogPos).Theta;
-
-                            if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
-                                lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
-                                lastSlider.Move(ogPos - lastSlider.Pos);
-                            }
-
-                            // Add the right number of repeats
-                            if (original.Repeats.HasValue) {
-                                lastSlider.RepeatCount = original.Repeats.Value;
                             }
                         }
                     } else if (lastDataPoint is { DataType: DataType.Spin }) {

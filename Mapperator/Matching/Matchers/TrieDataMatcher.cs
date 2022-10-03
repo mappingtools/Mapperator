@@ -130,14 +130,6 @@ namespace Mapperator.Matching.Matchers {
             return (data.GetMapDataPoint(best), bestMult);
         }
 
-        public static int GetLookBack(int i, int length, int totalLength) {
-            return MathHelper.Clamp(0, i + length - totalLength, i);
-        }
-
-        private double BestPossibleScore(int i, int length, int totalLength) {
-            return judge.BestPossibleScore(length, GetLookBack(i, length, totalLength));
-        }
-
         private double RateMatchQuality(WordPosition<int> pos, int index, int length, int lookBack, double mult) {
             return judge.Judge(data.Data[pos.Value].AsSpan().Slice(pos.CharPosition - lookBack, length),
                 pattern.Span.Slice(index - lookBack, length), lookBack, mult);

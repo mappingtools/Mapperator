@@ -191,7 +191,7 @@ namespace Mapperator.DemoApp.Game
             var i = 0;
             for (int j = 0; j < match.Length; j++)
             {
-                if (match.WholeSequence.Span[j + match.Lookback].DataType != DataType.Hit) continue;
+                if (match.Sequence.Span[j].DataType != DataType.Hit) continue;
 
                 var ho = beatmap.Value.HitObjects[pos.Value + length + i++];
                 ho.IsSelected = true;

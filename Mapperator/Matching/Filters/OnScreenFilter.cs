@@ -22,13 +22,13 @@ public class OnScreenFilter : IMatchFilter {
 
             if (length == 0) continue;
 
-            if (length == match.WholeSequence.Length - match.Lookback) {
+            if (length == match.Sequence.Length) {
                 yield return match;
                 continue;
             }
 
             // Cut the match length until the part where it stops being valid
-            yield return new Match(match.WholeSequence[..(match.Lookback + length)], match.Lookback, match.SeqPos);
+            yield return new Match(match.Sequence[..length], match.SeqPos, match.MinMult, match.MaxMult);
         }
     }
 
@@ -36,8 +36,8 @@ public class OnScreenFilter : IMatchFilter {
         double angle = Angle;
         var pos = Pos;
         var length = 0;
-        for (var i = match.Lookback; i < match.WholeSequence.Length; i++) {
-            var dataPoint = match.WholeSequence.Span[i];
+        for (var i = 0; i < match.Sequence.Length; i++) {
+            var dataPoint = match.Sequence.Span[i];
 
             angle += dataPoint.Angle;
             var dir = Vector2.Rotate(Vector2.UnitX, angle);
