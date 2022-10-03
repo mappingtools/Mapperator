@@ -58,7 +58,7 @@ namespace Mapperator.Construction {
             var (pos, angle, time) = GetContinuation(hitObjects);
             MapDataPoint? lastDataPoint = null;
             controlChanges = new List<ControlChange>();
-            var mult = Math.Sqrt(match.MinMult * match.MaxMult);
+            var mult = match.MinMult == 0 && double.IsPositiveInfinity(match.MaxMult) ? 1 : Math.Sqrt(match.MinMult * match.MaxMult);
 
             for (var i = 0; i < match.Length; i++) {
                 var dataPoint = match.Sequence.Span[i];

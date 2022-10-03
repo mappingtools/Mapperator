@@ -6,6 +6,7 @@ using Mapperator.DemoApp.Game.Drawables;
 using Mapperator.Matching;
 using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Filters;
+using Mapperator.Matching.Judges;
 using Mapperator.Matching.Matchers;
 using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper;
@@ -17,6 +18,7 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
+using osu.Framework.Input;
 using osu.Framework.Screens;
 using osuTK;
 using osuTK.Graphics;
@@ -36,6 +38,8 @@ namespace Mapperator.DemoApp.Game
         private int patternIndex;
         private IEnumerator<Match> matchIterator;
         private BasicButton variantButton;
+        private OnScreenFilter filter;
+        private BestScoreOrderFilter sorter;
 
         [BackgroundDependencyLoader]
         private void load(BeatmapStore beatmapStore, MapDataStore mapDataStore)
@@ -147,15 +151,23 @@ namespace Mapperator.DemoApp.Game
 
         private void OnPosChange(ValueChangedEvent<int> obj)
         {
+            Scheduler.AddOnce(newPos);
+        }
+
+        private void newPos()
+        {
             beatmap.Value.HitObjects.ForEach(o => o.IsSelected = false);
 
             // Find the current index for pattern because the indices of hitobject and pattern do not always match
-            patternIndex = obj.NewValue + length + beatmap.Value.HitObjects.Take(obj.NewValue + length).Count(o => o is Slider or Spinner);
+            patternIndex = pos.Value + length + beatmap.Value.HitObjects.Take(pos.Value + length).Count(o => o is Slider or Spinner);
 
             // Get matches for current index
             var (endPos, angle, _) = BeatmapConstructor2.GetContinuation(beatmap.Value.HitObjects.GetRange(0, pos.Value + length));
-            var filter = new OnScreenFilter { Pos = endPos, Angle = angle };
-            var matches = filter.FilterMatches(matcher.FindMatches(patternIndex));
+            filter.Pos = endPos;
+            filter.Angle = angle;
+            sorter.PatternIndex = patternIndex;
+            matcher.MinLength = 1;
+            var matches = sorter.FilterMatches(filter.FilterMatches(matcher.FindMatches(patternIndex)));
 
             // For now just get the first match
             matchIterator?.Dispose();
@@ -211,6 +223,8 @@ namespace Mapperator.DemoApp.Game
 
             pattern = new DataExtractor().ExtractBeatmapData(obj.NewValue).ToArray();
             matcher = new TrieDataMatcher2(dataStruct, pattern);
+            filter = new OnScreenFilter();
+            sorter = new BestScoreOrderFilter(new SuperJudge(), pattern, matcher);
         }
     }
 }
