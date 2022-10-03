@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq;
 using Mapperator.Matching.DataStructures;
-using Mapperator.Matching.Matchers;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using NUnit.Framework;
 using TrieNet;
@@ -33,9 +32,8 @@ public class TrieDataMatcherTests {
             Debug.WriteLine(string.Join(',', mapRhythmString.ToArray()));
 
             for (var i = 0; i < map.Length; i++) {
-                for (var searchLength = 1; searchLength < 10; searchLength++) {
-                    var lookback = TrieDataMatcher.GetLookBack(i, searchLength, mapRhythmString.Length);
-                    var query = mapRhythmString.Span.Slice(i - lookback, searchLength);
+                for (var searchLength = 1; searchLength < map.Length - i; searchLength++) {
+                    var query = mapRhythmString.Span.Slice(i, searchLength);
                     Debug.WriteLine(string.Join(',', query.ToArray()));
 
                     var result = data.Trie.RetrieveSubstrings(query).ToList();

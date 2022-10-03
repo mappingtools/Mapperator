@@ -26,7 +26,6 @@ public class TrieDataMatcher2Tests {
 
         foreach (var match in result) {
             Console.WriteLine(match.Sequence.Length);
-            Console.WriteLine(match.Lookback);
             Console.WriteLine(string.Join('-', RhythmDistanceTrieStructure.ToRhythmString(match.Sequence.Span).ToArray()));
             //Assert.IsTrue(WordPositionInRange(wordPosition));
             //Assert.IsTrue(WordPositionInRange(wordPosition, searchLength));
