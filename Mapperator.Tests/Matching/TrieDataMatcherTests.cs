@@ -32,7 +32,8 @@ public class TrieDataMatcherTests {
             Debug.WriteLine(string.Join(',', mapRhythmString.ToArray()));
 
             for (var i = 0; i < map.Length; i++) {
-                for (var searchLength = 1; searchLength < map.Length - i; searchLength++) {
+                var maxLength = Math.Min(10, map.Length - i);
+                for (var searchLength = 1; searchLength < maxLength; searchLength++) {
                     var query = mapRhythmString.Span.Slice(i, searchLength);
                     Debug.WriteLine(string.Join(',', query.ToArray()));
 
