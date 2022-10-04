@@ -124,7 +124,7 @@ namespace Mapperator.DemoApp.Game
                 }
             };
 
-            var data = mapDataStore.Get(@"test.txt");
+            var data = mapDataStore.Get(@"SotarksData.txt");
             dataStruct = new RhythmDistanceTrieStructure();
             foreach (var map in data)
             {

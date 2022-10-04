@@ -3,14 +3,14 @@
         <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Beatmaps\input.osu">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Beatmaps\input.osu" />
     <EmbeddedResource Include="Fonts\**\*" />
     <EmbeddedResource Include="Samples\**\*" />
     <EmbeddedResource Include="Textures\**\*" />
     <EmbeddedResource Include="Tracks\**\*" />
     <None Remove="MapData\test.txt" />
     <EmbeddedResource Include="MapData\test.txt" />
+    <None Remove="MapData\SotarksData.txt" />
+    <EmbeddedResource Include="MapData\SotarksData.txt" />
   </ItemGroup>
 </Project>
