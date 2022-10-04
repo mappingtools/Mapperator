@@ -166,4 +166,7 @@ Basic usage:
     <value>Error reading file '{0}':
 {1}</value>
   </data>
+  <data name="FullBeatmapName" xml:space="preserve">
+    <value>{0} - {1} ({2}) [{3}]</value>
+  </data>
 </root>

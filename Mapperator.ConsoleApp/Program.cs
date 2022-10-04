@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Mapperator.ConsoleApp.Resources;
 using Mapperator.Construction;
 using Mapperator.Matching;
@@ -19,7 +20,7 @@ using OsuParsers.Enums.Database;
 namespace Mapperator.ConsoleApp {
     public static class Program {
         [Verb("count", HelpText = "Count the amount of beatmaps available matching the specified filter.")]
-        private class CountOptions {
+        private class CountOptions : IHasFilter {
             [Option('c', "collection", HelpText = "Name of osu! collection to be extracted.")]
             public string? CollectionName { get; set; }
 
@@ -34,10 +35,16 @@ namespace Mapperator.ConsoleApp {
 
             [Option('r', "starRating", HelpText = "Filter the star rating.")]
             public double? MinStarRating { get; set; }
+
+            [Option('a', "mapper", HelpText = "Filter on mapper name.")]
+            public string? Mapper { get; set; }
+
+            [Option('v', "verbose", HelpText = "Print the name of each counted beatmap", Default = false)]
+            public bool Verbose { get; set; }
         }
 
         [Verb("extract", HelpText = "Extract beatmap data from an osu! collection.")]
-        private class ExtractOptions {
+        private class ExtractOptions : IHasFilter {
             [Option('c', "collection", HelpText = "Name of osu! collection to be extracted.")]
             public string? CollectionName { get; set; }
 
@@ -52,6 +59,9 @@ namespace Mapperator.ConsoleApp {
 
             [Option('r', "starRating", HelpText = "Filter the star rating.")]
             public double? MinStarRating { get; set; }
+
+            [Option('a', "mapper", HelpText = "Filter on mapper name.")]
+            public string? Mapper { get; set; }
 
             [Option('o', "output", Required = true, HelpText = "Filename of the output.")]
             public string? OutputName { get; set; }
@@ -233,10 +243,10 @@ namespace Mapperator.ConsoleApp {
 
         private static int DoDataCount(CountOptions opts) {
             Console.WriteLine((opts.CollectionName is null ? DbManager.GetAll() : DbManager.GetCollection(opts.CollectionName))
-                .Count(o => (!opts.MinId.HasValue || o.BeatmapSetId >= opts.MinId)
-                            && (!opts.RankedStatus.HasValue || o.RankedStatus == opts.RankedStatus)
-                            && (!opts.Ruleset.HasValue || o.Ruleset == opts.Ruleset)
-                            && (!opts.MinStarRating.HasValue || GetDefaultStarRating(o) >= opts.MinStarRating)));
+                .Where(o => DbBeatmapFilter(o, opts))
+                .Count(o => { if (opts.Verbose) Console.WriteLine(Strings.FullBeatmapName, o.Artist, o.Title, o.Creator, o.Difficulty);
+                    return true;
+                }));
             return 0;
         }
 
@@ -247,10 +257,7 @@ namespace Mapperator.ConsoleApp {
             var extractor = new DataExtractor();
             File.WriteAllLines(Path.ChangeExtension(opts.OutputName, ".txt"),
                 DataSerializer.SerializeBeatmapData((opts.CollectionName is null ? DbManager.GetAll() : DbManager.GetCollection(opts.CollectionName))
-                .Where(o => (!opts.MinId.HasValue || o.BeatmapSetId >= opts.MinId)
-                            && (!opts.RankedStatus.HasValue || o.RankedStatus == opts.RankedStatus)
-                            && (!opts.Ruleset.HasValue || o.Ruleset == opts.Ruleset)
-                            && (!opts.MinStarRating.HasValue || GetDefaultStarRating(o) >= opts.MinStarRating))
+                .Where(o => DbBeatmapFilter(o, opts))
                 .Select(o => Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim()))
                 .Where(o => {
                     if (File.Exists(o)) {
@@ -274,6 +281,20 @@ namespace Mapperator.ConsoleApp {
             return 0;
         }
 
+        private static bool DbBeatmapFilter(DbBeatmap o, IHasFilter opts) {
+            // Regex which matches any diffname with a possessive indicator to anyone other than the mapper
+            var regex = opts.Mapper is not null ? new Regex(@$"(?!\s?(de\s)?(it|that|{Regex.Escape(opts.Mapper)}))(((^|[^\S\r\n])(\S)*([sz]'|'s))|((^|[^\S\r\n])de\s(\S)*))", RegexOptions.IgnoreCase) : null;
+
+            return (!opts.MinId.HasValue || o.BeatmapSetId >= opts.MinId)
+                   && (!opts.RankedStatus.HasValue || o.RankedStatus == opts.RankedStatus)
+                   && (!opts.Ruleset.HasValue || o.Ruleset == opts.Ruleset)
+                   && (!opts.MinStarRating.HasValue || GetDefaultStarRating(o) >= opts.MinStarRating)
+                   && (opts.Mapper is null || ((o.Creator == opts.Mapper || o.Difficulty.Contains(opts.Mapper))
+                                               && !o.Difficulty.Contains("Hitsounds", StringComparison.OrdinalIgnoreCase)
+                                               && !o.Difficulty.Contains("Collab", StringComparison.OrdinalIgnoreCase)
+                                               && !regex!.IsMatch(o.Difficulty)));
+        }
+
         private static double GetDefaultStarRating(DbBeatmap beatmap) {
             return beatmap.Ruleset switch {
                 Ruleset.Taiko => beatmap.TaikoStarRating[Mods.None],
@@ -282,5 +303,13 @@ namespace Mapperator.ConsoleApp {
                 _ => beatmap.StandardStarRating[Mods.None]
             };
         }
+    }
+
+    internal interface IHasFilter {
+        int? MinId { get; }
+        RankedStatus? RankedStatus { get; }
+        Ruleset? Ruleset { get; }
+        double? MinStarRating { get; }
+        string? Mapper { get; }
     }
 }

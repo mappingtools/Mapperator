@@ -2,7 +2,7 @@
   "profiles": {
     "CountData": {
       "commandName": "Project",
-      "commandLineArgs": "count -i 300000 -s Ranked -m Standard -r 4.5"
+      "commandLineArgs": "count -s Ranked -m Standard -a Sotarks -v"
     },
     "ExtractData": {
       "commandName": "Project",
@@ -10,7 +10,7 @@
     },
     "ExtractAllData": {
       "commandName": "Project",
-      "commandLineArgs": "extract -i 300000 -s Ranked -m Standard -o AllRankedData"
+      "commandLineArgs": "extract -s Ranked -m Standard -a Sotarks -o SotarksData"
     },
     "ConvertMap": {
       "commandName": "Project",
@@ -30,7 +30,7 @@
     },
     "ConvertMapAll": {
       "commandName": "Project",
-      "commandLineArgs": "convert -d AllMapsData2 -i \"Resources\\input\" -o output"
+      "commandLineArgs": "convert -d SotarksData -i \"Resources\\input\" -o output"
     },
     "ConvertMapAll2": {
       "commandName": "Project",

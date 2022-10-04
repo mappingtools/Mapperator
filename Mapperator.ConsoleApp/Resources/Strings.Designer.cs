@@ -100,6 +100,15 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} - {1} ({2}) [{3}].
+        /// </summary>
+        internal static string FullBeatmapName {
+            get {
+                return ResourceManager.GetString("FullBeatmapName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not enough arguments provided. Expected {0} arguments..
         /// </summary>
         internal static string NotEnoughArguments {
