@@ -11,6 +11,7 @@ public class SuperJudge : IJudge {
     private const double AngleWeight = 1;
     private const double NcLoss = 5;
     private const double WeightDeviation = 4;
+    private const double ExpectedMatchingCost = 10;  // Important parameter for speeding up search with early termination
 
     public double Judge(ReadOnlySpan<MapDataPoint> foundPattern, ReadOnlySpan<MapDataPoint> wantedPattern, int lookBack, double mult) {
         double score = 0;
@@ -46,30 +47,26 @@ public class SuperJudge : IJudge {
         return score;
     }
 
-    private const double SpacingWeight2 = 10;
-    private const double AngleWeight2 = 5;
-    private const double NcLoss2 = 25;
-
     public double MatchingCost(MapDataPoint expected, MapDataPoint actual, double mult) {
-        var score = 0d;
+        var cost = 0d;
         // Subtract loss by difference in data points
-        score += SpacingWeight2 * Math.Pow(Math.Abs(actual.Spacing * mult - expected.Spacing), 0.5);
-        score += AngleWeight2 * Math.Abs(actual.Angle - expected.Angle);
+        cost += SpacingWeight * Math.Pow(Math.Abs(actual.Spacing * mult - expected.Spacing), 0.5);
+        cost += (expected.Spacing < 100 && expected.BeatsSince < 4.9 ? 20 : 1) * AngleWeight * Math.Abs(actual.Angle - expected.Angle);
 
         // Subtract points for having different combo's
-        score += actual.NewCombo != expected.NewCombo ? NcLoss2 : 0;
+        cost += actual.NewCombo != expected.NewCombo ? NcLoss : 0;
 
         // Subtract score for mismatching slider length and segment count
         if (actual.SliderLength.HasValue && expected.SliderLength.HasValue &&
             actual.SliderSegments.HasValue && expected.SliderSegments.HasValue) {
-            score += SliderLengthWeight * Math.Pow(Math.Abs(actual.SliderLength.Value * mult - expected.SliderLength.Value), 0.5);
+            cost += SliderLengthWeight * Math.Pow(Math.Abs(actual.SliderLength.Value * mult - expected.SliderLength.Value), 0.5);
             // Compare segments per pixel
             var foundSegmentRatio = Math.Log2(Math.Min(.5, actual.SliderSegments.Value / actual.SliderLength.Value));
             var wantedSegmentRatio = Math.Log2(Math.Min(.5, expected.SliderSegments.Value / expected.SliderLength.Value));
-            score += SliderSegmentWeight * Math.Pow(Math.Abs(foundSegmentRatio - wantedSegmentRatio), 2);
+            cost += SliderSegmentWeight * Math.Pow(Math.Abs(foundSegmentRatio - wantedSegmentRatio), 2);
         }
 
-        return score;
+        return cost;
     }
 
     private const double TimeFactor = 0.8;
@@ -116,7 +113,8 @@ public class SuperJudge : IJudge {
             var weight = Math.Exp(-(i * i) / (2 * WeightDeviation * WeightDeviation));
 
             // Apply match length bonus
-            score += weight * LengthBonus;
+            // Add extra term for pessimism
+            score += weight * (LengthBonus - ExpectedMatchingCost);
         }
 
         return score;
@@ -131,7 +129,8 @@ public class SuperJudge : IJudge {
             var weight = Math.Exp(-(length * length) / (2 * WeightDeviation * WeightDeviation));
 
             // Apply match length bonus
-            score += weight * LengthBonus;
+            // Add extra term for pessimism
+            score += weight * (LengthBonus - ExpectedMatchingCost);
             length++;
         }
 
