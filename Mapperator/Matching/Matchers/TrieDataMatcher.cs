@@ -152,6 +152,9 @@ namespace Mapperator.Matching.Matchers {
                 dataPoint.BeatsSince = beatsSince;
                 dataPoint.Spacing = pos.Length;
                 dataPoint.Angle = pos.Theta;
+                if (double.IsNaN(dataPoint.Angle)) {
+                    dataPoint.Angle = 0;
+                }
 
                 if (!isValidFunc(dataPoint)) {
                     return length;
