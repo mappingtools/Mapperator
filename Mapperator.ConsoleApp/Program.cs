@@ -13,6 +13,7 @@ using Mapperator.Construction;
 using Mapperator.Matching;
 using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Matchers;
+using Mapperator.Model;
 using OsuParsers.Database.Objects;
 using OsuParsers.Enums;
 using OsuParsers.Enums.Database;
@@ -92,6 +93,9 @@ namespace Mapperator.ConsoleApp {
 
             [Option('h', "structOutput", HelpText = "Filename for the generated data structure.")]
             public string? OutputStructName { get; set; }
+
+            [Option('s', "spacingMap", HelpText = "Filename a beatmap with the desired spacing distribution.")]
+            public string? SpacingBeatmapPath { get; set; }
         }
 
         [Verb("search", HelpText = "Search your entire Songs folder for a specific pattern.")]
@@ -195,6 +199,33 @@ namespace Mapperator.ConsoleApp {
             var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt")));
             var map = new BeatmapEditor(Path.ChangeExtension(opts.InputBeatmapPath, ".osu")).ReadFile();
             var input = new DataExtractor().ExtractBeatmapData(map).ToArray();
+
+            // Change spacing distribution
+            if (opts.SpacingBeatmapPath is not null) {
+                Console.WriteLine(Strings.Program_DoMapConvert_Converting_spacing_to_reference_beatmap___);
+                var spacingMap = new BeatmapEditor(Path.ChangeExtension(opts.SpacingBeatmapPath, ".osu")).ReadFile();
+                var spacingData = new double[9][];
+                var groupedByBeats = new DataExtractor().ExtractBeatmapData(spacingMap).GroupBy(o =>
+                    MathHelper.Clamp((int) Math.Round(Math.Log2(o.BeatsSince) + 6), 0, 8));
+                foreach (var group in groupedByBeats) {
+                    var arr = group.OrderBy(o => o.Spacing).Select(o => o.Spacing).ToArray();
+                    spacingData[group.Key] = arr;
+                }
+
+                var inputSpacingData = input.Select(o => o.Spacing).ToList();
+                inputSpacingData.Sort();
+
+                input = input.Select(o => new MapDataPoint(o.DataType, o.BeatsSince, Transform(o.BeatsSince, o.Spacing), o.Angle,
+                    o.NewCombo, o.SliderType, o.SliderLength, o.SliderSegments, o.Repeats, o.HitObject)).ToArray();
+
+                double Transform(double beats, double spacing) {
+                    var gap = MathHelper.Clamp((int)Math.Round(Math.Log2(beats) + 6), 0, 8);
+                    var index = inputSpacingData.IndexOf(spacing);
+                    if (spacingData[gap].Length == 0)
+                        return 0;
+                    return spacingData[gap][MathHelper.Clamp((int)Math.Round((double)index / inputSpacingData.Count * spacingData[gap].Length), 0, spacingData[gap].Length - 1)];
+                }
+            }
 
             var data = new RhythmDistanceTrieStructure();
             var matcher = new TrieDataMatcher(data, input);

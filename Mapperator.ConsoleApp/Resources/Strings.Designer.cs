@@ -145,6 +145,15 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Converting spacing to reference beatmap....
+        /// </summary>
+        internal static string Program_DoMapConvert_Converting_spacing_to_reference_beatmap___ {
+            get {
+                return ResourceManager.GetString("Program_DoMapConvert_Converting_spacing_to_reference_beatmap___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Elapsed Time is {0} ms.
         /// </summary>
         internal static string Program_DoMapConvert_Elapsed_Time_is {
