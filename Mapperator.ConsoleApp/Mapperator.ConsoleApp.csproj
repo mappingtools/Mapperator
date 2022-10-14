@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="MappingTools.Core" Version="0.5.2" />
+    <PackageReference Include="MappingTools.Core" Version="0.5.3" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="OsuParsers" Version="1.7.1" />
