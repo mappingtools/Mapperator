@@ -210,12 +210,12 @@ namespace Mapperator.ConsoleApp {
                 o.NewCombo, o.SliderType, o.SliderLength.HasValue ? Transform(o.SliderLength.Value, o.BeatsSince, sliderSpacingData) : null,
                 o.SliderSegments, o.Repeats, o.HitObject)).ToArray();
 
-            double Transform(double spacing, double beats, double[][] data) {
+            double Transform(double spacing, double beats, double[]?[] data) {
                 var gap = MathHelper.Clamp((int)Math.Round(Math.Log2(beats) + 6), 0, 8);
                 var index = inputSpacingData.IndexOf(spacing);
-                if (data[gap].Length == 0)
+                if (data[gap] is null || data[gap]!.Length == 0)
                     return 0;
-                return data[gap][MathHelper.Clamp((int)Math.Round((double)index / inputSpacingData.Count * data[gap].Length), 0, data[gap].Length - 1)];
+                return data[gap]![MathHelper.Clamp((int)Math.Round((double)index / inputSpacingData.Count * data[gap]!.Length), 0, data[gap]!.Length - 1)];
             }
         }
 
