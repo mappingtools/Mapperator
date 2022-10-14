@@ -34,7 +34,7 @@
     },
     "ConvertMapAll2": {
       "commandName": "Project",
-      "commandLineArgs": "convert -d AllRankedData -i \"Resources\\inputm\" -o output"
+      "commandLineArgs": "convert -d SotarksData -i \"Resources\\input\" -o output -s \"Resources\\inputm\""
     }
   }
 }

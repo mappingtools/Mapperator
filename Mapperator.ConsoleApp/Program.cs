@@ -188,6 +188,37 @@ namespace Mapperator.ConsoleApp {
             return 0;
         }
 
+        private static MapDataPoint[] TransferSpacing(MapDataPoint[] from, MapDataPoint[] to) {
+            var spacingData = new double[9][];
+            var groupedByBeats = from.GroupBy(o => MathHelper.Clamp((int) Math.Round(Math.Log2(o.BeatsSince) + 6), 0, 8));
+            foreach (var group in groupedByBeats) {
+                var arr = group.OrderBy(o => o.Spacing).Select(o => o.Spacing).ToArray();
+                spacingData[group.Key] = arr;
+            }
+            var sliderSpacingData = new double[9][];
+            var sliderGroupedByBeats = from.Where(o => o.SliderLength.HasValue)
+                .GroupBy(o => MathHelper.Clamp((int) Math.Round(Math.Log2(o.BeatsSince) + 6), 0, 8));
+            foreach (var group in sliderGroupedByBeats) {
+                var arr = group.OrderBy(o => o.SliderLength).Select(o => o.SliderLength!.Value).ToArray();
+                sliderSpacingData[group.Key] = arr;
+            }
+
+            var inputSpacingData = to.Select(o => o.Spacing).ToList();
+            inputSpacingData.Sort();
+
+            return to.Select(o => new MapDataPoint(o.DataType, o.BeatsSince, Transform(o.Spacing, o.BeatsSince, spacingData), o.Angle,
+                o.NewCombo, o.SliderType, o.SliderLength.HasValue ? Transform(o.SliderLength.Value, o.BeatsSince, sliderSpacingData) : null,
+                o.SliderSegments, o.Repeats, o.HitObject)).ToArray();
+
+            double Transform(double spacing, double beats, double[][] data) {
+                var gap = MathHelper.Clamp((int)Math.Round(Math.Log2(beats) + 6), 0, 8);
+                var index = inputSpacingData.IndexOf(spacing);
+                if (data[gap].Length == 0)
+                    return 0;
+                return data[gap][MathHelper.Clamp((int)Math.Round((double)index / inputSpacingData.Count * data[gap].Length), 0, data[gap].Length - 1)];
+            }
+        }
+
         private static int DoMapConvert(ConvertOptions opts) {
             if (opts.DataPath is null) throw new ArgumentNullException(nameof(opts));
 
@@ -204,27 +235,8 @@ namespace Mapperator.ConsoleApp {
             if (opts.SpacingBeatmapPath is not null) {
                 Console.WriteLine(Strings.Program_DoMapConvert_Converting_spacing_to_reference_beatmap___);
                 var spacingMap = new BeatmapEditor(Path.ChangeExtension(opts.SpacingBeatmapPath, ".osu")).ReadFile();
-                var spacingData = new double[9][];
-                var groupedByBeats = new DataExtractor().ExtractBeatmapData(spacingMap).GroupBy(o =>
-                    MathHelper.Clamp((int) Math.Round(Math.Log2(o.BeatsSince) + 6), 0, 8));
-                foreach (var group in groupedByBeats) {
-                    var arr = group.OrderBy(o => o.Spacing).Select(o => o.Spacing).ToArray();
-                    spacingData[group.Key] = arr;
-                }
-
-                var inputSpacingData = input.Select(o => o.Spacing).ToList();
-                inputSpacingData.Sort();
-
-                input = input.Select(o => new MapDataPoint(o.DataType, o.BeatsSince, Transform(o.BeatsSince, o.Spacing), o.Angle,
-                    o.NewCombo, o.SliderType, o.SliderLength, o.SliderSegments, o.Repeats, o.HitObject)).ToArray();
-
-                double Transform(double beats, double spacing) {
-                    var gap = MathHelper.Clamp((int)Math.Round(Math.Log2(beats) + 6), 0, 8);
-                    var index = inputSpacingData.IndexOf(spacing);
-                    if (spacingData[gap].Length == 0)
-                        return 0;
-                    return spacingData[gap][MathHelper.Clamp((int)Math.Round((double)index / inputSpacingData.Count * spacingData[gap].Length), 0, spacingData[gap].Length - 1)];
-                }
+                var spacingMapData = new DataExtractor().ExtractBeatmapData(spacingMap).ToArray();
+                input = TransferSpacing(spacingMapData, input);
             }
 
             var data = new RhythmDistanceTrieStructure();
