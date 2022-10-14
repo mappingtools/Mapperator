@@ -231,6 +231,9 @@ namespace Mapperator.ConsoleApp {
             var map = new BeatmapEditor(Path.ChangeExtension(opts.InputBeatmapPath, ".osu")).ReadFile();
             var input = new DataExtractor().ExtractBeatmapData(map).ToArray();
 
+            // TODO: add options to automatically add distance spacing
+            // TODO: also add options for ignoring angles, nc, or slider attributes
+            // TODO: discourage extreme scaling values
             // Change spacing distribution
             if (opts.SpacingBeatmapPath is not null) {
                 Console.WriteLine(Strings.Program_DoMapConvert_Converting_spacing_to_reference_beatmap___);

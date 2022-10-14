@@ -37,6 +37,7 @@ namespace Mapperator.Construction {
                 // Wrap pos
                 //pos = new Vector2(Helpers.Mod(pos.X, 512), Helpers.Mod(pos.Y, 384));
                 pos = Vector2.Clamp(pos, Vector2.Zero, new Vector2(512, 382));
+                // TODO: choose a mult such that the previous sv is retained and less greenline spam
 
                 //Console.WriteLine($"time = {time}, pos = {pos}, original = {original}, match = {match}");
 
