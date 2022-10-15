@@ -15,6 +15,7 @@ using Mapperator.Matching;
 using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Matchers;
 using Mapperator.Model;
+using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
 using OsuParsers.Database.Objects;
 using OsuParsers.Enums;
 using OsuParsers.Enums.Database;
@@ -300,6 +301,24 @@ namespace Mapperator.ConsoleApp {
             return 0;
         }
 
+        private static bool ValidBeatmap(IBeatmap? beatmap) {
+            if (beatmap == null)
+                return false;
+            // Non-finite timing points
+            if (beatmap.BeatmapTiming.TimingPoints.Any(x => !double.IsFinite(x.MpB)))
+                return false;
+            // Extreme BPM
+            if (beatmap.BeatmapTiming.Redlines.Any(x => x.GetBpm() > 10000 || x.GetBpm() < 1))
+                return false;
+            // Invisible circles
+            if (beatmap.HitObjects.OfType<Slider>().Any(x => x.IsInvisible()))
+                return false;
+            // Extremely long sliders
+            if (beatmap.HitObjects.OfType<Slider>().Any(x => x.PixelLength > 1000000))
+                return false;
+            return true;
+        }
+
         private static int DoDataExtraction(ExtractOptions opts) {
             if (opts.OutputName is null) throw new ArgumentNullException(nameof(opts));
 
@@ -325,7 +344,7 @@ namespace Mapperator.ConsoleApp {
                         Console.WriteLine(Strings.ErrorReadingFile, o, e);
                         return null;
                     }
-                }).Where(o => o is not null)
+                }).Where(ValidBeatmap)
                 .SelectMany(b => mirrors.Select(m => extractor.ExtractBeatmapData(b!, m)))
                 ));
             return 0;
