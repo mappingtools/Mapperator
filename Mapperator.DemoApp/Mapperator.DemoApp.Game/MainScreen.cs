@@ -221,7 +221,8 @@ namespace Mapperator.DemoApp.Game
 
             pos.MaxValue = obj.NewValue.HitObjects.Count - length - 1;
 
-            pattern = new DataExtractor().ExtractBeatmapData(obj.NewValue).ToArray();
+            // TODO: Add versioning support. Currently hardcoded to v1
+            pattern = new DataExtractor(1).ExtractBeatmapData(obj.NewValue).ToArray();
             matcher = new TrieDataMatcher2(dataStruct, pattern);
             filter = new OnScreenFilter();
             sorter = new BestScoreOrderFilter(new SuperJudge(), pattern, matcher);

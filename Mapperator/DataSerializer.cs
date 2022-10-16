@@ -5,7 +5,11 @@ using MoreLinq;
 
 namespace Mapperator {
     public static class DataSerializer {
+        public const int CurrentDataVersion = 1;
         private const string BeatmapSeparator = "/-\\_/-\\_/-\\";
+        private const string DataHeader = "Mapperator file format v";
+
+        public static string CurrentHeader => $"{DataHeader}{CurrentDataVersion}";
 
         public static IEnumerable<string> SerializeBeatmapData(IEnumerable<IEnumerable<MapDataPoint>> data) {
             foreach (var beatmap in data) {
@@ -19,6 +23,16 @@ namespace Mapperator {
 
         public static string SerializeBeatmapDataSample(MapDataPoint data) {
             return data.ToString();
+        }
+
+        public static (int, IEnumerable<IEnumerable<MapDataPoint>>) DeserializeBeatmapData(string dataPath) {
+            // ReSharper disable twice PossibleMultipleEnumeration
+            var lines = File.ReadLines(dataPath);
+            var firstLine = lines.FirstOrDefault() ?? "";
+            if (firstLine.StartsWith(DataHeader)) {
+                return (int.Parse(firstLine.Split('v').Last()), DeserializeBeatmapData(lines.Skip(1)));
+            }
+            return (1, DeserializeBeatmapData(lines));
         }
 
         public static IEnumerable<IEnumerable<MapDataPoint>> DeserializeBeatmapData(IEnumerable<string> data) {

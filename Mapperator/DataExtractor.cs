@@ -10,11 +10,13 @@ using Mapping_Tools_Core.MathUtil;
 namespace Mapperator {
     public class DataExtractor {
         private readonly HitObjectEncoder encoder;
+        private readonly int dataVersion;
 
-        public DataExtractor() : this(new HitObjectEncoder()) { }
+        public DataExtractor(int dataVersion = DataSerializer.CurrentDataVersion) : this(new HitObjectEncoder(), dataVersion) { }
 
-        public DataExtractor(HitObjectEncoder encoder) {
+        public DataExtractor(HitObjectEncoder encoder, int dataVersion) {
             this.encoder = encoder;
+            this.dataVersion = dataVersion;
         }
 
         public IEnumerable<MapDataPoint> ExtractBeatmapData(IBeatmap beatmap, bool mirror = false) {
