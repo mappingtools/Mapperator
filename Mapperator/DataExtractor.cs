@@ -45,9 +45,17 @@ namespace Mapperator {
                         var segments = 0;
                         var controlPoints = path.ControlPoints;
 
-                        for (var i = 0; i < controlPoints.Count; i++) {
-                            if (i == controlPoints.Count - 1 || controlPoints[i] == controlPoints[i + 1] && i != controlPoints.Count - 2) {
-                                segments++;
+                        if (dataVersion >= 2 && slider.SliderType == PathType.Linear) {
+                            for (var i = 0; i < controlPoints.Count - 1; i++) {
+                                if (controlPoints[i] != controlPoints[i + 1]) {
+                                    segments++;
+                                }
+                            }
+                        } else {
+                            for (var i = 0; i < controlPoints.Count; i++) {
+                                if (i == controlPoints.Count - 1 || controlPoints[i] == controlPoints[i + 1] && i != controlPoints.Count - 2) {
+                                    segments++;
+                                }
                             }
                         }
 

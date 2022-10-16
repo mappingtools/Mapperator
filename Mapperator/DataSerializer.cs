@@ -5,7 +5,7 @@ using MoreLinq;
 
 namespace Mapperator {
     public static class DataSerializer {
-        public const int CurrentDataVersion = 1;
+        public const int CurrentDataVersion = 2;
         private const string BeatmapSeparator = "/-\\_/-\\_/-\\";
         private const string DataHeader = "Mapperator file format v";
 
