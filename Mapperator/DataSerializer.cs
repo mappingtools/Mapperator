@@ -25,18 +25,13 @@ namespace Mapperator {
             return data.ToString();
         }
 
-        public static (int, IEnumerable<IEnumerable<MapDataPoint>>) DeserializeBeatmapData(string dataPath) {
+        public static (int, IEnumerable<IEnumerable<MapDataPoint>>) DeserializeBeatmapData(IEnumerable<string> data) {
             // ReSharper disable twice PossibleMultipleEnumeration
-            var lines = File.ReadLines(dataPath);
-            var firstLine = lines.FirstOrDefault() ?? "";
+            var firstLine = data.FirstOrDefault() ?? "";
             if (firstLine.StartsWith(DataHeader)) {
-                return (int.Parse(firstLine.Split('v').Last()), DeserializeBeatmapData(lines.Skip(1)));
+                return (int.Parse(firstLine.Split('v').Last()), data.Skip(1).Split(BeatmapSeparator, beatmapData => beatmapData.Select(DeserializeBeatmapDataSample)));
             }
-            return (1, DeserializeBeatmapData(lines));
-        }
-
-        public static IEnumerable<IEnumerable<MapDataPoint>> DeserializeBeatmapData(IEnumerable<string> data) {
-            return data.Split(BeatmapSeparator, beatmapData => beatmapData.Select(DeserializeBeatmapDataSample));
+            return (1, data.Split(BeatmapSeparator, beatmapData => beatmapData.Select(DeserializeBeatmapDataSample)));
         }
 
         public static MapDataPoint DeserializeBeatmapDataSample(string data) {

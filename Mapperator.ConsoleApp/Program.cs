@@ -173,7 +173,7 @@ namespace Mapperator.ConsoleApp {
             if (opts.OutputStructName is null) throw new ArgumentNullException(nameof(opts));
             if (opts.DataPath is null) throw new ArgumentNullException(nameof(opts));
 
-            var (_, trainData) = DataSerializer.DeserializeBeatmapData(Path.ChangeExtension(opts.DataPath, ".txt"));
+            var (_, trainData) = DataSerializer.DeserializeBeatmapData(File.ReadAllLines(Path.ChangeExtension(opts.DataPath, ".txt")));
             var data = new RhythmDistanceTrieStructure();
 
             if (data is not ISerializable sMatcher) {
@@ -229,7 +229,7 @@ namespace Mapperator.ConsoleApp {
             stopwatch.Start();
 
             Console.WriteLine(Strings.Program_DoMapConvert_Extracting_data___);
-            var (trainVersion, trainData) = DataSerializer.DeserializeBeatmapData(Path.ChangeExtension(opts.DataPath, ".txt"));
+            var (trainVersion, trainData) = DataSerializer.DeserializeBeatmapData(File.ReadAllLines(Path.ChangeExtension(opts.DataPath, ".txt")));
             var map = new BeatmapEditor(Path.ChangeExtension(opts.InputBeatmapPath, ".osu")).ReadFile();
             var input = new DataExtractor(trainVersion).ExtractBeatmapData(map).ToArray();
 
