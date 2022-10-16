@@ -18,6 +18,7 @@ namespace Mapperator.Matching.Matchers {
         private double? lastMult;
         private int? lastLength;
         private int? lastLookBack;
+        private int failedMatches;
         private int pogs;
         private double totalScore;
         private double totalMatchingCost;
@@ -36,6 +37,7 @@ namespace Mapperator.Matching.Matchers {
         public IEnumerable<(MapDataPoint, double)> FindSimilarData(Func<MapDataPoint, bool> isValidFunc) {
             Console.WriteLine("Searching for matches");
             lastId = null;
+            failedMatches = 0;
             pogs = 0;
             totalScore = 0;
             totalMatchingCost = 0;
@@ -44,6 +46,7 @@ namespace Mapperator.Matching.Matchers {
                 var match = FindBestMatch(i, isValidFunc);
                 yield return match;
             }
+            Console.WriteLine($"Failed matches = {failedMatches}");
             Console.WriteLine($"Pograte = {(float)pogs / pattern.Length}");
             Console.WriteLine($"Score = {totalScore / pattern.Length}");
             Console.WriteLine($"Avg matching cost = {totalMatchingCost / pattern.Length}");
@@ -117,6 +120,9 @@ namespace Mapperator.Matching.Matchers {
                 best.CharPosition == lastId.Value.CharPosition + 1) {
                 pogs++;
             }
+
+            if (double.IsNegativeInfinity(bestScore))
+                failedMatches++;
 
             lastId = best;
             lastLength = bestLength;

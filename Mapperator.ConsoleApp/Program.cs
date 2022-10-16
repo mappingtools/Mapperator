@@ -4,6 +4,7 @@ using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using Mapping_Tools_Core.MathUtil;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,7 @@ using Mapperator.Matching;
 using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Matchers;
 using Mapperator.Model;
+using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
 using OsuParsers.Database.Objects;
 using OsuParsers.Enums;
 using OsuParsers.Enums.Database;
@@ -28,17 +30,17 @@ namespace Mapperator.ConsoleApp {
             [Option('i', "minId", HelpText = "Filter the minimum beatmap set ID.")]
             public int? MinId { get; set; }
 
-            [Option('s', "status", HelpText = "Filter the ranked status.")]
-            public RankedStatus? RankedStatus { get; set; }
+            [Option('s', "status", HelpText = "Filter the ranked status.", Separator = ',')]
+            public IEnumerable<RankedStatus>? RankedStatus { get; set; }
 
-            [Option('m', "mode", HelpText = "Filter the game mode.")]
-            public Ruleset? Ruleset { get; set; }
+            [Option('m', "mode", HelpText = "Filter the game mode.", Default = Ruleset.Standard)]
+            public Ruleset Ruleset { get; set; }
 
             [Option('r', "starRating", HelpText = "Filter the star rating.")]
             public double? MinStarRating { get; set; }
 
-            [Option('a', "mapper", HelpText = "Filter on mapper name.")]
-            public string? Mapper { get; set; }
+            [Option('a', "mapper", HelpText = "Filter on mapper name.", Separator = ',')]
+            public IEnumerable<string>? Mapper { get; set; }
 
             [Option('v', "verbose", HelpText = "Print the name of each counted beatmap", Default = false)]
             public bool Verbose { get; set; }
@@ -52,17 +54,17 @@ namespace Mapperator.ConsoleApp {
             [Option('i', "minId", HelpText = "Filter the minimum beatmap set ID.")]
             public int? MinId { get; set; }
 
-            [Option('s', "status", HelpText = "Filter the ranked status.")]
-            public RankedStatus? RankedStatus { get; set; }
+            [Option('s', "status", HelpText = "Filter the ranked status.", Separator = ',')]
+            public IEnumerable<RankedStatus>? RankedStatus { get; set; }
 
-            [Option('m', "mode", HelpText = "Filter the game mode.")]
-            public Ruleset? Ruleset { get; set; }
+            [Option('m', "mode", HelpText = "Filter the game mode.", Default = Ruleset.Standard)]
+            public Ruleset Ruleset { get; set; }
 
             [Option('r', "starRating", HelpText = "Filter the star rating.")]
             public double? MinStarRating { get; set; }
 
-            [Option('a', "mapper", HelpText = "Filter on mapper name.")]
-            public string? Mapper { get; set; }
+            [Option('a', "mapper", HelpText = "Filter on mapper name.", Separator = ',')]
+            public IEnumerable<string>? Mapper { get; set; }
 
             [Option('o', "output", Required = true, HelpText = "Filename of the output.")]
             public string? OutputName { get; set; }
@@ -299,6 +301,24 @@ namespace Mapperator.ConsoleApp {
             return 0;
         }
 
+        private static bool ValidBeatmap(IBeatmap? beatmap) {
+            if (beatmap == null)
+                return false;
+            // Non-finite timing points
+            if (beatmap.BeatmapTiming.TimingPoints.Any(x => !double.IsFinite(x.MpB)))
+                return false;
+            // Extreme BPM
+            if (beatmap.BeatmapTiming.Redlines.Any(x => x.GetBpm() > 10000 || x.GetBpm() < 1))
+                return false;
+            // Invisible circles
+            if (beatmap.HitObjects.OfType<Slider>().Any(x => x.IsInvisible()))
+                return false;
+            // Extremely long sliders
+            if (beatmap.HitObjects.OfType<Slider>().Any(x => x.PixelLength > 1000000))
+                return false;
+            return true;
+        }
+
         private static int DoDataExtraction(ExtractOptions opts) {
             if (opts.OutputName is null) throw new ArgumentNullException(nameof(opts));
 
@@ -324,7 +344,7 @@ namespace Mapperator.ConsoleApp {
                         Console.WriteLine(Strings.ErrorReadingFile, o, e);
                         return null;
                     }
-                }).Where(o => o is not null)
+                }).Where(ValidBeatmap)
                 .SelectMany(b => mirrors.Select(m => extractor.ExtractBeatmapData(b!, m)))
                 ));
             return 0;
@@ -332,16 +352,16 @@ namespace Mapperator.ConsoleApp {
 
         private static bool DbBeatmapFilter(DbBeatmap o, IHasFilter opts) {
             // Regex which matches any diffname with a possessive indicator to anyone other than the mapper
-            var regex = opts.Mapper is not null ? new Regex(@$"(?!\s?(de\s)?(it|that|{Regex.Escape(opts.Mapper)}))(((^|[^\S\r\n])(\S)*([sz]'|'s))|((^|[^\S\r\n])de\s(\S)*))", RegexOptions.IgnoreCase) : null;
+            var regex = new Regex(@$"(?!\s?(de\s)?(it|that|{string.Join('|', opts.Mapper!.Select(Regex.Escape))}))(((^|[^\S\r\n])(\S)*([sz]'|'s))|((^|[^\S\r\n])de\s(\S)*))", RegexOptions.IgnoreCase);
 
             return (!opts.MinId.HasValue || o.BeatmapSetId >= opts.MinId)
-                   && (!opts.RankedStatus.HasValue || o.RankedStatus == opts.RankedStatus)
-                   && (!opts.Ruleset.HasValue || o.Ruleset == opts.Ruleset)
+                   && (!opts.RankedStatus!.Any() || opts.RankedStatus!.Contains(o.RankedStatus))
+                   && o.Ruleset == opts.Ruleset
                    && (!opts.MinStarRating.HasValue || GetDefaultStarRating(o) >= opts.MinStarRating)
-                   && (opts.Mapper is null || ((o.Creator == opts.Mapper || o.Difficulty.Contains(opts.Mapper))
-                                               && !o.Difficulty.Contains("Hitsounds", StringComparison.OrdinalIgnoreCase)
-                                               && !o.Difficulty.Contains("Collab", StringComparison.OrdinalIgnoreCase)
-                                               && !regex!.IsMatch(o.Difficulty)));
+                   && (!opts.Mapper!.Any() || (opts.Mapper!.Any(x => x == o.Creator || o.Difficulty.Contains(x))
+                                                && !o.Difficulty.Contains("Hitsounds", StringComparison.OrdinalIgnoreCase)
+                                                && !o.Difficulty.Contains("Collab", StringComparison.OrdinalIgnoreCase)
+                                                && !regex.IsMatch(o.Difficulty)));
         }
 
         private static double GetDefaultStarRating(DbBeatmap beatmap) {
@@ -356,9 +376,9 @@ namespace Mapperator.ConsoleApp {
 
     internal interface IHasFilter {
         int? MinId { get; }
-        RankedStatus? RankedStatus { get; }
-        Ruleset? Ruleset { get; }
+        IEnumerable<RankedStatus>? RankedStatus { get; }
+        Ruleset Ruleset { get; }
         double? MinStarRating { get; }
-        string? Mapper { get; }
+        IEnumerable<string>? Mapper { get; }
     }
 }

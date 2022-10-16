@@ -89,7 +89,8 @@ namespace Mapperator.Construction {
                             var ogSize = (lastSlider.EndPos - ogPos).Length;
                             var newSize = (pos - ogPos).Length;
                             var scale = newSize / ogSize;
-                            if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
+                            if (Vector2.DistanceSquared(ogPos, pos) > Precision.DOUBLE_EPSILON &&
+                                Vector2.DistanceSquared(ogPos, lastSlider.EndPos) > Precision.DOUBLE_EPSILON) {
                                 lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
                                 lastSlider.Transform(Matrix2.CreateScale(scale));
                                 lastSlider.Move(ogPos - lastSlider.Pos);
