@@ -7,6 +7,30 @@ namespace Mapperator;
 
 public class DistanceAnalyser {
     private const int Bins = 512;
+    private const int AngleBins = 629;
+
+    public double[] ExtractSliderAngles(IEnumerable<IBeatmap> beatmaps) {
+        var angles = new int[AngleBins];
+        foreach (var beatmap in beatmaps) {
+            beatmap.CalculateEndPositions();
+            foreach (var hitObject in beatmap.HitObjects) {
+                if (hitObject is not Slider s) continue;
+                if (s.PixelLength > 1.5 * Vector2.Distance(s.Pos, s.EndPos)) continue;
+
+                var angle = (s.EndPos - s.Pos).Theta;
+                var angleClass = MathHelper.Clamp((int)Math.Round((angle + Math.PI) * 100), 0, AngleBins - 1);
+                angles[angleClass]++;
+            }
+        }
+
+        var normalizedAngles = new double[AngleBins];
+        var sum = angles.Sum();
+        for (var i = 0; i < AngleBins; i++) {
+            normalizedAngles[i] = (double)angles[i] / sum;
+        }
+
+        return normalizedAngles;
+    }
 
     public double[] ExtractVisualSpacing(IEnumerable<IBeatmap> beatmaps) {
         var spacings = new int[Bins];
