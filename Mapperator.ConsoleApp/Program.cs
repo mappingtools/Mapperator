@@ -260,8 +260,9 @@ namespace Mapperator.ConsoleApp {
             // TODO: also add options for ignoring angles, nc, or slider attributes
             // TODO: discourage extreme scaling values
             // TODO: prevent offscreen slider body
-            // TODO: create some kind of procedural slider genration by splitting each slider segment into a separate data point
+            // TODO: create some kind of procedural slider generation by splitting each slider segment into a separate data point
             // TODO: add post-processing filters for fixing overlaps, stacks, and slider angles
+            // TODO: encourage better stream angles by removing pog bonus on NC
             // Change spacing distribution
             if (opts.SpacingBeatmapPath is not null) {
                 Console.WriteLine(Strings.Program_DoMapConvert_Converting_spacing_to_reference_beatmap___);
