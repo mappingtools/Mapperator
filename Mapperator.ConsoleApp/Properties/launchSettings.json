@@ -4,6 +4,10 @@
       "commandName": "Project",
       "commandLineArgs": "count -s Ranked -m Standard -a Sotarks -v"
     },
+    "VisualSpacingTest": {
+      "commandName": "Project",
+      "commandLineArgs": "extractSpacing -s Ranked -m Standard -a Cheri"
+    },
     "ExtractData": {
       "commandName": "Project",
       "commandLineArgs": "extract -c \"!Kroytz\" -o test"

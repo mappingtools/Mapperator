@@ -6,6 +6,7 @@ using Mapping_Tools_Core.MathUtil;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -109,16 +110,38 @@ namespace Mapperator.ConsoleApp {
             public string? CollectionName { get; set; }
         }
 
+        [Verb("extractSpacing", HelpText = "Extract the visual spacing.")]
+        private class VdsOptions : IHasFilter {
+            [Option('c', "collection", HelpText = "Name of osu! collection to be extracted.")]
+            public string? CollectionName { get; set; }
+
+            [Option('i', "minId", HelpText = "Filter the minimum beatmap set ID.")]
+            public int? MinId { get; set; }
+
+            [Option('s', "status", HelpText = "Filter the ranked status.", Separator = ',')]
+            public IEnumerable<RankedStatus>? RankedStatus { get; set; }
+
+            [Option('m', "mode", HelpText = "Filter the game mode.", Default = Ruleset.Standard)]
+            public Ruleset Ruleset { get; set; }
+
+            [Option('r', "starRating", HelpText = "Filter the star rating.")]
+            public double? MinStarRating { get; set; }
+
+            [Option('a', "mapper", HelpText = "Filter on mapper name.", Separator = ',')]
+            public IEnumerable<string>? Mapper { get; set; }
+        }
+
         private static int Main(string[] args) {
             ConfigManager.LoadConfig();
 
-            return Parser.Default.ParseArguments<CountOptions, ExtractOptions, BuildOptions, ConvertOptions, SearchOptions>(args)
+            return Parser.Default.ParseArguments<CountOptions, ExtractOptions, BuildOptions, ConvertOptions, SearchOptions, VdsOptions>(args)
               .MapResult(
                   (CountOptions opts) => DoDataCount(opts),
                 (ExtractOptions opts) => DoDataExtraction(opts),
                 (BuildOptions opts) => DoBuildGraph(opts),
                 (ConvertOptions opts) => DoMapConvert(opts),
                 (SearchOptions opts) => DoPatternSearch(opts),
+                (VdsOptions opts) => DoVisualSpacingExtract(opts),
                 _ => 1);
         }
 
@@ -237,8 +260,9 @@ namespace Mapperator.ConsoleApp {
             // TODO: also add options for ignoring angles, nc, or slider attributes
             // TODO: discourage extreme scaling values
             // TODO: prevent offscreen slider body
-            // TODO: create some kind of procedural slider genration by splitting each slider segment into a separate data point
+            // TODO: create some kind of procedural slider generation by splitting each slider segment into a separate data point
             // TODO: add post-processing filters for fixing overlaps, stacks, and slider angles
+            // TODO: encourage better stream angles by removing pog bonus on NC
             // Change spacing distribution
             if (opts.SpacingBeatmapPath is not null) {
                 Console.WriteLine(Strings.Program_DoMapConvert_Converting_spacing_to_reference_beatmap___);
@@ -298,6 +322,33 @@ namespace Mapperator.ConsoleApp {
                 .Count(o => { if (opts.Verbose) Console.WriteLine(Strings.FullBeatmapName, o.Artist, o.Title, o.Creator, o.Difficulty);
                     return true;
                 }));
+            return 0;
+        }
+
+        private static int DoVisualSpacingExtract(VdsOptions opts) {
+            var extractor = new DistanceAnalyser();
+            Console.WriteLine(string.Join(';', extractor.ExtractVisualSpacing(
+                (opts.CollectionName is null ? DbManager.GetAll() : DbManager.GetCollection(opts.CollectionName))
+                .Where(o => DbBeatmapFilter(o, opts))
+                .Select(o => Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim()))
+                .Where(o => {
+                    if (File.Exists(o)) {
+                        Console.Write('.');
+                        return true;
+                    }
+                    Console.WriteLine(Strings.CouldNotFindFile, o);
+                    return false;
+                })
+                .Select(o => {
+                    try {
+                        return new BeatmapEditor(o).ReadFile();
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine(Strings.ErrorReadingFile, o, e);
+                        return null;
+                    }
+                }).Where(ValidBeatmap)!)
+                .Select(o => o.ToString(CultureInfo.CurrentCulture))));
             return 0;
         }
 
