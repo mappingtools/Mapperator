@@ -26,7 +26,7 @@ public class DistanceAnalyser {
         var normalizedAngles = new double[AngleBins];
         var sum = angles.Sum();
         for (var i = 0; i < AngleBins; i++) {
-            normalizedAngles[i] = (double)angles[i] / sum;
+            normalizedAngles[i] = (double)angles[i] / sum * AngleBins;
         }
 
         return normalizedAngles;
@@ -44,7 +44,7 @@ public class DistanceAnalyser {
         var normalizedSpacings = new double[Bins];
         var sum = spacings.Sum();
         for (var i = 0; i < Bins; i++) {
-            normalizedSpacings[i] = (double)spacings[i] / sum;
+            normalizedSpacings[i] = (double)spacings[i] / sum * Bins;
         }
 
         return normalizedSpacings;
