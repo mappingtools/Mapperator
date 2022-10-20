@@ -6,7 +6,7 @@ namespace Mapperator.Matching.Filters;
 /// Makes sure the filtered matches stay completely on screen when placed in the editor.
 /// </summary>
 public class BestScoreOrderFilter : IMatchFilter {
-    private const int BufferSize = 1000;
+    private const int BufferSize = 10000;
 
     private readonly IJudge judge;
     private readonly ReadOnlyMemory<MapDataPoint> pattern;

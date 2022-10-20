@@ -5,12 +5,12 @@ namespace Mapperator.Matching.Judges;
 
 public class SuperJudge : IJudge {
     private const double LengthBonus = 50;
-    private const double SpacingWeight = 2;
+    private const double SpacingWeight = 100;
     private const double SliderLengthWeight = 2;
     private const double SliderSegmentWeight = 20;
     private const double AngleWeight = 1;
     private const double NcLoss = 5;
-    private const double WeightDeviation = 4;
+    private const double WeightDeviation = 2;
     private const double ExpectedMatchingCost = 10;  // Important parameter for speeding up search with early termination
 
     public double Judge(ReadOnlySpan<MapDataPoint> foundPattern, ReadOnlySpan<MapDataPoint> wantedPattern, int lookBack, double mult) {
@@ -27,8 +27,8 @@ public class SuperJudge : IJudge {
             score += weight * LengthBonus;
 
             // Subtract loss by difference in data points
-            score -= weight * SpacingWeight * Math.Pow(Math.Abs(foundPoint.Spacing * mult - wantedPoint.Spacing), 0.5);
-            score -= weight * (wantedPoint.Spacing < 100 && wantedPoint.BeatsSince < 4.9 ? 20 : 1) * AngleWeight * Math.Abs(foundPoint.Angle - wantedPoint.Angle);
+            score -= weight * SpacingWeight * Math.Abs(foundPoint.Spacing * mult - wantedPoint.Spacing) / (wantedPoint.Spacing + 2);
+            score -= weight * (wantedPoint.Spacing < 100 && wantedPoint.BeatsSince < 4.9 ? 20 : 1) * AngleWeight * Math.Abs(Math.Abs(foundPoint.Angle) - Math.Abs(wantedPoint.Angle));
 
             // Subtract points for having different combo's
             score -= weight * (foundPoint.NewCombo != wantedPoint.NewCombo ? NcLoss : 0);
@@ -50,8 +50,8 @@ public class SuperJudge : IJudge {
     public double MatchingCost(MapDataPoint expected, MapDataPoint actual, double mult) {
         var cost = 0d;
         // Subtract loss by difference in data points
-        cost += SpacingWeight * Math.Pow(Math.Abs(actual.Spacing * mult - expected.Spacing), 0.5);
-        cost += (expected.Spacing < 100 && expected.BeatsSince < 4.9 ? 20 : 1) * AngleWeight * Math.Abs(actual.Angle - expected.Angle);
+        cost += SpacingWeight * Math.Abs(actual.Spacing * mult - expected.Spacing) / (expected.Spacing + 2);
+        cost += (expected.Spacing < 100 && expected.BeatsSince < 4.9 ? 20 : 1) * AngleWeight * Math.Abs(Math.Abs(actual.Angle) - Math.Abs(expected.Angle));
 
         // Subtract points for having different combo's
         cost += actual.NewCombo != expected.NewCombo ? NcLoss : 0;
