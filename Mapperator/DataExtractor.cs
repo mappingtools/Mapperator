@@ -10,11 +10,13 @@ using Mapping_Tools_Core.MathUtil;
 namespace Mapperator {
     public class DataExtractor {
         private readonly HitObjectEncoder encoder;
+        private readonly int dataVersion;
 
-        public DataExtractor() : this(new HitObjectEncoder()) { }
+        public DataExtractor(int dataVersion = DataSerializer.CurrentDataVersion) : this(new HitObjectEncoder(), dataVersion) { }
 
-        public DataExtractor(HitObjectEncoder encoder) {
+        public DataExtractor(HitObjectEncoder encoder, int dataVersion) {
             this.encoder = encoder;
+            this.dataVersion = dataVersion;
         }
 
         public IEnumerable<MapDataPoint> ExtractBeatmapData(IBeatmap beatmap, bool mirror = false) {
@@ -43,9 +45,17 @@ namespace Mapperator {
                         var segments = 0;
                         var controlPoints = path.ControlPoints;
 
-                        for (var i = 0; i < controlPoints.Count; i++) {
-                            if (i == controlPoints.Count - 1 || controlPoints[i] == controlPoints[i + 1] && i != controlPoints.Count - 2) {
-                                segments++;
+                        if (dataVersion >= 2 && slider.SliderType == PathType.Linear) {
+                            for (var i = 0; i < controlPoints.Count - 1; i++) {
+                                if (controlPoints[i] != controlPoints[i + 1]) {
+                                    segments++;
+                                }
+                            }
+                        } else {
+                            for (var i = 0; i < controlPoints.Count; i++) {
+                                if (i == controlPoints.Count - 1 || controlPoints[i] == controlPoints[i + 1] && i != controlPoints.Count - 2) {
+                                    segments++;
+                                }
                             }
                         }
 

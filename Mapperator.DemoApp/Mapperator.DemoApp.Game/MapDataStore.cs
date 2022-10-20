@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -36,7 +37,10 @@ public class MapDataStore : IResourceStore<IEnumerable<IEnumerable<MapDataPoint>
         using Stream stream = store.GetStream(name);
         if (stream is null) return null;
         using StreamReader reader = new StreamReader(stream);
-        return DataSerializer.DeserializeBeatmapData(iterateLines(reader).ToArray());
+        var (version, data) = DataSerializer.DeserializeBeatmapData(iterateLines(reader).ToArray());
+        if (version != 1)
+            throw new NotImplementedException($"Data version {version} is not currently supported in MapDataStore");
+        return data;
     }
 
     public Task<IEnumerable<IEnumerable<MapDataPoint>>> GetAsync(string name, CancellationToken cancellationToken = new())
@@ -44,7 +48,10 @@ public class MapDataStore : IResourceStore<IEnumerable<IEnumerable<MapDataPoint>
         using Stream stream = store.GetStream(name);
         if (stream is null) return null;
         using StreamReader reader = new StreamReader(stream);
-        return Task.FromResult(DataSerializer.DeserializeBeatmapData(iterateLines(reader)));
+        var (version, data) = DataSerializer.DeserializeBeatmapData(iterateLines(reader));
+        if (version != 1)
+            throw new NotImplementedException($"Data version {version} is not currently supported in MapDataStore");
+        return Task.FromResult(data);
     }
 
     public Stream GetStream(string name)
