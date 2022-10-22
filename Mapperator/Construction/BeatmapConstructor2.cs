@@ -21,43 +21,10 @@ namespace Mapperator.Construction {
         }
 
         /// <summary>
-        /// Returns the continuation at the end of the hitobjects
-        /// </summary>
-        /// <param name="hitObjects"></param>
-        /// <returns></returns>
-        public static Continuation GetContinuation(IList<HitObject> hitObjects) {
-            if (hitObjects.Count == 0)
-                return new Continuation(new Vector2(256, 192), 0, 0);
-
-            var lastPos = hitObjects[^1].EndPos;
-
-            var beforeLastPos = new Vector2(256, 192);
-            for (var i = hitObjects.Count - 1; i >= 0; i--) {
-                var ho = hitObjects[i];
-
-                if (Vector2.DistanceSquared(ho.EndPos, lastPos) > Precision.DOUBLE_EPSILON) {
-                    beforeLastPos = ho.EndPos;
-                    break;
-                }
-
-                if (Vector2.DistanceSquared(ho.Pos, lastPos) > Precision.DOUBLE_EPSILON) {
-                    beforeLastPos = ho.Pos;
-                    break;
-                }
-            }
-
-            var angle = Vector2.DistanceSquared(beforeLastPos, lastPos) > Precision.DOUBLE_EPSILON
-                ? (lastPos - beforeLastPos).Theta
-                : 0;
-
-            return new Continuation(lastPos, angle, hitObjects[^1].EndTime);
-        }
-
-        /// <summary>
         /// Constructs the match onto the end of the list of hit objects.
         /// </summary>
         public Continuation Construct(IList<HitObject> hitObjects, Match match, ReadOnlySpan<MapDataPoint> input, Continuation? continuation = null, Timing? timing = null, List<ControlChange>? controlChanges = null) {
-            var (pos, angle, time) = continuation ?? GetContinuation(hitObjects);
+            var (pos, angle, time) = continuation ?? new Continuation(hitObjects);
 
             var mult = match.MinMult == 0 && double.IsPositiveInfinity(match.MaxMult) ? 1 : Math.Sqrt(match.MinMult * match.MaxMult);
 

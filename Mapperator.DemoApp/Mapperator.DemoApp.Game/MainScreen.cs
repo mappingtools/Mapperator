@@ -161,7 +161,7 @@ namespace Mapperator.DemoApp.Game
             patternIndex = pos.Value + length + beatmap.Value.HitObjects.Take(pos.Value + length).Count(o => o is Slider or Spinner);
 
             // Get matches for current index
-            var (endPos, angle, _) = BeatmapConstructor2.GetContinuation(beatmap.Value.HitObjects.GetRange(0, pos.Value + length));
+            var (endPos, angle, _) = new Continuation(beatmap.Value.HitObjects.GetRange(0, pos.Value + length));
             filter.Pos = endPos;
             filter.Angle = angle;
             sorter.PatternIndex = patternIndex;
