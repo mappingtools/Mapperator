@@ -37,6 +37,11 @@ public class BestScoreFilter : IMatchFilter {
         if (PogMatch.HasValue) {
             var score = RateMatchQuality(PogMatch.Value) + judge.PogScore();
             queue.Enqueue((PogMatch.Value, score), score);
+
+            if (score > bestScore && MinLengthProvider is not null) {
+                bestScore = score;
+                MinLengthProvider.MinLength = Math.Max(MinLengthProvider.MinLength, judge.MinLengthForScore(bestScore));
+            }
         }
 
         foreach (var match in matches) {
