@@ -12,4 +12,6 @@ public interface IJudge {
     double BestPossibleScore(int length, int lookBack);
 
     int MinLengthForScore(double wantedScore);
+
+    double PogScore();
 }

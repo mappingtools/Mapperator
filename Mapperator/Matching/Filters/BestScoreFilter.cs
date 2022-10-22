@@ -18,8 +18,11 @@ public class BestScoreFilter : IMatchFilter {
 
     public IMinLengthProvider? MinLengthProvider { get; init; }
 
+    public Match? PogMatch { get; set; }
 
     public BestScoreFilter(IJudge judge, ReadOnlyMemory<MapDataPoint> pattern, int bufferSize) {
+        if (bufferSize < 1) throw new ArgumentOutOfRangeException(nameof(bufferSize), bufferSize, @"Buffer size must be at least 1.");
+
         this.judge = judge;
         this.pattern = pattern;
         BufferSize = bufferSize;
@@ -30,6 +33,11 @@ public class BestScoreFilter : IMatchFilter {
     public IEnumerable<Match> FilterMatches(IEnumerable<Match> matches) {
         queue.Clear();
         var bestScore = double.NegativeInfinity;
+
+        if (PogMatch.HasValue) {
+            var score = RateMatchQuality(PogMatch.Value) + judge.PogScore();
+            queue.Enqueue((PogMatch.Value, score), score);
+        }
 
         foreach (var match in matches) {
             var score = RateMatchQuality(match);

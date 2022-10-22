@@ -6,7 +6,6 @@ using TrieNet;
 
 namespace Mapperator.Matching.Matchers {
     public class TrieDataMatcher : IDataMatcher {
-        private const double PogBonus = 80;
         private const int MaxSearch = 100000;
 
         private readonly RhythmDistanceTrieStructure data;
@@ -71,7 +70,7 @@ namespace Mapperator.Matching.Matchers {
                 var pogPos = new WordPosition<int>(lastId.Value.CharPosition + 1, lastId.Value.Value);
 
                 // Rate the quality of the match
-                bestScore = RateMatchQuality(pogPos, i, pogLength, lookBack, lastMult.Value) + PogBonus;
+                bestScore = RateMatchQuality(pogPos, i, pogLength, lookBack, lastMult.Value) + judge.PogScore();
                 best = pogPos;
                 bestLength = pogLength;
                 bestLookBack = lookBack;

@@ -136,4 +136,8 @@ public class SuperJudge : IJudge {
 
         return length;
     }
+
+    public double PogScore() {
+        return 80;
+    }
 }
