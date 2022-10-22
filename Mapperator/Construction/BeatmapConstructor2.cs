@@ -12,6 +12,8 @@ namespace Mapperator.Construction {
     public class BeatmapConstructor2 {
         private readonly HitObjectDecoder decoder;
 
+        public bool SelectNewObjects { get; set; }
+
         public BeatmapConstructor2() : this(new HitObjectDecoder()) { }
 
         public BeatmapConstructor2(HitObjectDecoder decoder) {
@@ -19,13 +21,13 @@ namespace Mapperator.Construction {
         }
 
         /// <summary>
-        /// Returns the (position, angle, time) at the end of the hitobjects
+        /// Returns the continuation at the end of the hitobjects
         /// </summary>
         /// <param name="hitObjects"></param>
         /// <returns></returns>
-        public static (Vector2, double, double) GetContinuation(IList<HitObject> hitObjects) {
+        public static Continuation GetContinuation(IList<HitObject> hitObjects) {
             if (hitObjects.Count == 0)
-                return ( new Vector2(256, 192), 0, 0);
+                return new Continuation(new Vector2(256, 192), 0, 0);
 
             var lastPos = hitObjects[^1].EndPos;
 
@@ -48,16 +50,15 @@ namespace Mapperator.Construction {
                 ? (lastPos - beforeLastPos).Theta
                 : 0;
 
-            return (lastPos, angle, hitObjects[^1].EndTime);
+            return new Continuation(lastPos, angle, hitObjects[^1].EndTime);
         }
 
         /// <summary>
         /// Constructs the match onto the end of the list of hit objects.
         /// </summary>
-        public void Construct(IList<HitObject> hitObjects, Match match, ReadOnlySpan<MapDataPoint> input, bool selectNewObjects, Timing? timing, out List<ControlChange> controlChanges) {
-            var (pos, angle, time) = GetContinuation(hitObjects);
-            MapDataPoint? lastDataPoint = null;
-            controlChanges = new List<ControlChange>();
+        public Continuation Construct(IList<HitObject> hitObjects, Match match, ReadOnlySpan<MapDataPoint> input, Continuation? continuation = null, Timing? timing = null, List<ControlChange>? controlChanges = null) {
+            var (pos, angle, time) = continuation ?? GetContinuation(hitObjects);
+
             var mult = match.MinMult == 0 && double.IsPositiveInfinity(match.MaxMult) ? 1 : Math.Sqrt(match.MinMult * match.MaxMult);
 
             for (var i = 0; i < match.Length; i++) {
@@ -76,107 +77,98 @@ namespace Mapperator.Construction {
 
                 //Console.WriteLine($"time = {time}, pos = {pos}, original = {original}, match = {match}");
 
-                if (dataPoint.DataType == DataType.Release) {
-                    if (lastDataPoint is { DataType: DataType.Hit }) {
+                if (dataPoint.DataType == DataType.Release && hitObjects.Count > 0) {
+                    if (hitObjects[^1] is Spinner lastSpinner) {
+                        // Make sure the last object ends at time t
+                        lastSpinner.SetEndTime(time);
+                    }
+                    else {
                         // Make sure the last object is a slider of the release datapoint
-                        if (hitObjects.LastOrDefault() is { } hitObject) {
-                            hitObjects.RemoveAt(hitObjects.Count - 1);
+                        var lastHitObject = hitObjects[^1];
+                        hitObjects.RemoveAt(hitObjects.Count - 1);
 
-                            var ho = decoder.Decode(dataPoint.HitObject);
-                            if (ho is Slider) {
-                                ho.StartTime = hitObject.StartTime;
-                                ho.Move(hitObject.Pos - ho.Pos);
-                            }
-                            else {
-                                ho = new Slider {
-                                    Pos = hitObject.Pos,
-                                    StartTime = hitObject.StartTime,
-                                    SliderType = PathType.Linear,
-                                    PixelLength = Vector2.Distance(hitObject.Pos, pos),
-                                    CurvePoints = { pos }
-                                };
-                            }
-
-                            if (original.Repeats.HasValue) {
-                                ((Slider)ho).RepeatCount = original.Repeats.Value;
-                            }
-
-                            if (originalHo is not null) {
-                                ho.ResetHitsounds();
-                                ho.Hitsounds = originalHo.Hitsounds;
-                                if (ho is Slider slider && originalHo is Slider slider2) {
-                                    slider.EdgeHitsounds = slider2.EdgeHitsounds;
-                                }
-                            }
-
-                            ho.NewCombo = hitObject.NewCombo;
-                            ho.IsSelected = selectNewObjects;
-                            hitObjects.Add(ho);
+                        var ho = decoder.Decode(dataPoint.HitObject);
+                        if (ho is Slider lastSlider) {
+                            ho.StartTime = lastHitObject.StartTime;
+                            ho.Move(lastHitObject.Pos - ho.Pos);
                         }
+                        else {
+                            lastSlider = new Slider {
+                                Pos = lastHitObject.Pos,
+                                StartTime = lastHitObject.StartTime,
+                                SliderType = PathType.Linear,
+                                PixelLength = Vector2.Distance(lastHitObject.Pos, pos),
+                                CurvePoints = { pos }
+                            };
+                        }
+
+                        if (original.Repeats.HasValue) {
+                            lastSlider.RepeatCount = original.Repeats.Value;
+                        }
+
+                        if (originalHo is not null) {
+                            lastSlider.ResetHitsounds();
+                            lastSlider.Hitsounds = originalHo.Hitsounds;
+                            if (originalHo is Slider slider2) {
+                                lastSlider.EdgeHitsounds = slider2.EdgeHitsounds;
+                            }
+                        }
+
+                        lastSlider.NewCombo = lastHitObject.NewCombo;
+                        lastSlider.IsSelected = SelectNewObjects;
+                        hitObjects.Add(lastSlider);
 
                         // Make sure the last object ends at time t and around pos
-                        if (hitObjects.LastOrDefault() is Slider lastSlider) {
-                            // Rotate and scale the end towards the release pos
-                            lastSlider.RecalculateEndPosition();
-                            var ogPos = lastSlider.Pos;
-                            var ogTheta = (lastSlider.EndPos - ogPos).Theta;
-                            var newTheta = (pos - ogPos).Theta;
-                            var ogSize = (lastSlider.EndPos - ogPos).Length;
-                            var newSize = (pos - ogPos).Length;
-                            var scale = newSize / ogSize;
+                        // Rotate and scale the end towards the release pos
+                        lastSlider.RecalculateEndPosition();
+                        var ogPos = lastSlider.Pos;
+                        var ogTheta = (lastSlider.EndPos - ogPos).Theta;
+                        var newTheta = (pos - ogPos).Theta;
+                        var ogSize = (lastSlider.EndPos - ogPos).Length;
+                        var newSize = (pos - ogPos).Length;
+                        var scale = newSize / ogSize;
 
-                            if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
-                                lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
-                                lastSlider.Transform(Matrix2.CreateScale(scale));
-                                lastSlider.Move(ogPos - lastSlider.Pos);
-                                lastSlider.PixelLength *= scale;
-                            }
-
-                            // Add the right number of repeats
-                            if (original.Repeats.HasValue) {
-                                lastSlider.RepeatCount = original.Repeats.Value;
-                            }
-
-                            if (timing is not null) {
-                                // Adjust SV
-                                var tp = timing.GetTimingPointAtTime(lastSlider.StartTime).Copy();
-                                var mpb = timing.GetMpBAtTime(lastSlider.StartTime);
-                                tp.Offset = lastSlider.StartTime;
-                                tp.Uninherited = false;
-                                tp.SetSliderVelocity(lastSlider.PixelLength / ((time - lastSlider.StartTime) / mpb *
-                                                                               100 * timing.GlobalSliderMultiplier));
-                                controlChanges.Add(new ControlChange(tp, true));
-                            }
-                        }
-                    } else if (lastDataPoint is { DataType: DataType.Spin }) {
-                        // Make sure the last object is a spinner
-                        if (hitObjects.LastOrDefault() is HitCircle lastCircle) {
-                            hitObjects.RemoveAt(hitObjects.Count - 1);
-                            var spinner = new Spinner {
-                                Pos = new Vector2(256, 196),
-                                StartTime = lastCircle.StartTime,
-                                Hitsounds = lastCircle.Hitsounds,
-                                IsSelected = selectNewObjects
-                            };
-                            spinner.SetEndTime(time);
-                            hitObjects.Add(spinner);
+                        if (!double.IsNaN(ogTheta) && !double.IsNaN(newTheta)) {
+                            lastSlider.Transform(Matrix2.CreateRotation(ogTheta - newTheta));
+                            lastSlider.Transform(Matrix2.CreateScale(scale));
+                            lastSlider.Move(ogPos - lastSlider.Pos);
+                            lastSlider.PixelLength *= scale;
                         }
 
-                        // Make sure the last object ends at time t
-                        if (hitObjects.LastOrDefault() is Spinner lastSpinner) {
-                            lastSpinner.SetEndTime(time);
+                        // Add the right number of repeats
+                        if (original.Repeats.HasValue) {
+                            lastSlider.RepeatCount = original.Repeats.Value;
+                        }
+
+                        if (timing is not null && controlChanges is not null) {
+                            // Adjust SV
+                            var tp = timing.GetTimingPointAtTime(lastSlider.StartTime).Copy();
+                            var mpb = timing.GetMpBAtTime(lastSlider.StartTime);
+                            tp.Offset = lastSlider.StartTime;
+                            tp.Uninherited = false;
+                            tp.SetSliderVelocity(lastSlider.PixelLength / ((time - lastSlider.StartTime) / mpb *
+                                                                           100 * timing.GlobalSliderMultiplier));
+                            controlChanges.Add(new ControlChange(tp, true));
                         }
                     }
                 }
 
-                if (!string.IsNullOrEmpty(dataPoint.HitObject) && dataPoint.DataType != DataType.Release) {
-                    var ho = decoder.Decode(dataPoint.HitObject);
+                // Add hitobject on hit
+                if (dataPoint.DataType != DataType.Release) {
+                    var ho = !string.IsNullOrEmpty(dataPoint.HitObject)
+                        ? decoder.Decode(dataPoint.HitObject)
+                        : null;
 
-                    if (ho is Slider) {
-                        ho = new HitCircle();
+                    switch (dataPoint.DataType) {
+                        case DataType.Spin when ho is not Spinner:
+                            ho = new Spinner();
+                            break;
+                        case DataType.Hit when ho is not HitCircle:
+                            ho = new HitCircle();
+                            break;
                     }
 
-                    ho.IsSelected = selectNewObjects;
+                    ho!.IsSelected = SelectNewObjects;
                     ho.StartTime = time;
                     ho.NewCombo = original.NewCombo;
                     ho.Move(pos - ho.Pos);
@@ -188,9 +180,9 @@ namespace Mapperator.Construction {
 
                     hitObjects.Add(ho);
                 }
-
-                lastDataPoint = dataPoint;
             }
+
+            return new Continuation(pos, angle, time);
         }
     }
 }

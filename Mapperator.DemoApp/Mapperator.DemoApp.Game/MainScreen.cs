@@ -189,8 +189,9 @@ namespace Mapperator.DemoApp.Game
 
             // Show the matched objects in the right visualizer
             var newHitObjects = beatmap.Value.HitObjects.GetRange(pos.Value, length);
-            var constructor = new BeatmapConstructor2();
-            constructor.Construct(newHitObjects, match, pattern.AsSpan()[patternIndex..], true, null, out _);
+            var constructor = new BeatmapConstructor2 { SelectNewObjects = true };
+            constructor.Construct(newHitObjects, match, pattern.AsSpan()[patternIndex..]);
+
             newHitObjects.GiveObjectsTimingContext(beatmap.Value.BeatmapTiming);
             newHitObjects.CalculateEndPositions();
             newHitObjects.UpdateStacking(beatmap.Value.Difficulty.StackOffset, beatmap.Value.General.StackLeniency, beatmap.Value.Difficulty.ApproachTime);
