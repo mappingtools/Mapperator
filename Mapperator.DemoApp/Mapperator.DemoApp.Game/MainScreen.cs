@@ -18,7 +18,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input;
 using osu.Framework.Screens;
 using osuTK;
 using osuTK.Graphics;
@@ -39,7 +38,7 @@ namespace Mapperator.DemoApp.Game
         private IEnumerator<Match> matchIterator;
         private BasicButton variantButton;
         private OnScreenFilter filter;
-        private BestScoreOrderFilter sorter;
+        private BestScoreFilter sorter;
 
         [BackgroundDependencyLoader]
         private void load(BeatmapStore beatmapStore, MapDataStore mapDataStore)
@@ -225,7 +224,7 @@ namespace Mapperator.DemoApp.Game
             pattern = new DataExtractor().ExtractBeatmapData(obj.NewValue).ToArray();
             matcher = new TrieDataMatcher2(dataStruct, pattern);
             filter = new OnScreenFilter();
-            sorter = new BestScoreOrderFilter(new SuperJudge(), pattern, matcher);
+            sorter = new BestScoreFilter(new SuperJudge(), pattern, 1000) { MinLengthProvider = matcher };
         }
     }
 }

@@ -3,14 +3,14 @@
 namespace Mapperator.Matching.Filters;
 
 /// <summary>
-/// Looks ahead by BufferSize and yields the highest score match in the buffer.
-/// This will eventually yield all items.
+/// Exhausts the enumerable and yields the <see cref="BufferSize"/> number of best matches.
 /// </summary>
-public class BestScoreOrderFilter : IMatchFilter {
+public class BestScoreFilter : IMatchFilter {
     private readonly IJudge judge;
     private readonly ReadOnlyMemory<MapDataPoint> pattern;
 
-    private readonly PriorityQueue<Match, double> queue;
+    private readonly PriorityQueue<(Match, double), double> queue;
+    private readonly Match[] bestMatches;
 
     public int BufferSize { get; }
 
@@ -18,11 +18,13 @@ public class BestScoreOrderFilter : IMatchFilter {
 
     public IMinLengthProvider? MinLengthProvider { get; init; }
 
-    public BestScoreOrderFilter(IJudge judge, ReadOnlyMemory<MapDataPoint> pattern, int bufferSize) {
+
+    public BestScoreFilter(IJudge judge, ReadOnlyMemory<MapDataPoint> pattern, int bufferSize) {
         this.judge = judge;
         this.pattern = pattern;
         BufferSize = bufferSize;
-        queue = new PriorityQueue<Match, double>(BufferSize);
+        queue = new PriorityQueue<(Match, double), double>(BufferSize);
+        bestMatches = new Match[BufferSize];
     }
 
     public IEnumerable<Match> FilterMatches(IEnumerable<Match> matches) {
@@ -32,10 +34,13 @@ public class BestScoreOrderFilter : IMatchFilter {
         foreach (var match in matches) {
             var score = RateMatchQuality(match);
 
-            if (queue.Count >= BufferSize) {
-                yield return queue.EnqueueDequeue(match, -score);
+            if (queue.Count < BufferSize) {
+                queue.Enqueue((match, score), score);
             } else {
-                queue.Enqueue(match, -score);
+                var (_, minScore) = queue.Peek();
+                if (score <= minScore) continue;
+
+                queue.EnqueueDequeue((match, score), score);
             }
 
             if (!(score > bestScore) || MinLengthProvider is null) continue;
@@ -44,8 +49,13 @@ public class BestScoreOrderFilter : IMatchFilter {
             MinLengthProvider.MinLength = Math.Max(MinLengthProvider.MinLength, judge.MinLengthForScore(bestScore));
         }
 
-        while (queue.Count > 0) {
-            yield return queue.Dequeue();
+        var n = Math.Min(BufferSize, queue.Count);
+        for (var i = 0; i < n; i++) {
+            bestMatches[n - i - 1] = queue.Dequeue().Item1;
+        }
+
+        for (var i = 0; i < n; i++) {
+            yield return bestMatches[i];
         }
     }
 
