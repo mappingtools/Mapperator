@@ -23,12 +23,13 @@ namespace Mapperator.Construction {
         /// <summary>
         /// Constructs the match onto the end of the list of hit objects.
         /// </summary>
-        public Continuation Construct(IList<HitObject> hitObjects, Match match, ReadOnlySpan<MapDataPoint> input, Continuation? continuation = null, Timing? timing = null, List<ControlChange>? controlChanges = null) {
+        public Continuation Construct(IList<HitObject> hitObjects, Match match, ReadOnlySpan<MapDataPoint> input, Continuation? continuation = null, int? maxPlacements = null, Timing? timing = null, List<ControlChange>? controlChanges = null) {
             var (pos, angle, time) = continuation ?? new Continuation(hitObjects);
 
             var mult = match.MinMult == 0 && double.IsPositiveInfinity(match.MaxMult) ? 1 : Math.Sqrt(match.MinMult * match.MaxMult);
+            var n = maxPlacements.HasValue ? Math.Min(match.Length, maxPlacements.Value) : match.Length;
 
-            for (var i = 0; i < match.Length; i++) {
+            for (var i = 0; i < n; i++) {
                 var dataPoint = match.Sequence.Span[i];
 
                 var original = input[i];
