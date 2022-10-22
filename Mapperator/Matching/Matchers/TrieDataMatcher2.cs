@@ -8,6 +8,8 @@ namespace Mapperator.Matching.Matchers {
 
         public int MinLength { get; set; }
 
+        public int Length => patternRhythmString.Length;
+
         public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlySpan<MapDataPoint> pattern) : this(data, RhythmDistanceTrieStructure.ToRhythmString(pattern)) { }
 
         public TrieDataMatcher2(RhythmDistanceTrieStructure data, ReadOnlyMemory<RhythmToken> rhythmString) {
