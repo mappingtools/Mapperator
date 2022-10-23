@@ -53,6 +53,7 @@ public class Mapperator {
             judge.PatternIndex = i;
             visualSpacingJudge.Init(hitObjects, state, i);
             bestScoreFilter.PogMatch = pogMatch;
+            judge.PogMatch = pogMatch;
             matcher.MinLength = 1;
 
             var matches = bestScoreFilter2.FilterMatches(bestScoreFilter.FilterMatches(onScreenFilter.FilterMatches(matcher.FindMatches(i))));

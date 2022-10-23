@@ -76,8 +76,4 @@ public class VisualSpacingJudge : IJudge {
     public int MinLengthForScore(double wantedScore) {
         return 1;
     }
-
-    public double PogScore() {
-        return 1;
-    }
 }

@@ -30,7 +30,7 @@ public class BestScoreFilter : IMatchFilter {
         var bestScore = double.NegativeInfinity;
 
         if (PogMatch.HasValue) {
-            var score = judge.Judge(PogMatch.Value) + judge.PogScore();
+            var score = judge.Judge(PogMatch.Value);
             queue.Enqueue((PogMatch.Value, score), score);
 
             if (score > bestScore && MinLengthProvider is not null) {

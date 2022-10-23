@@ -11,10 +11,13 @@ public class SuperJudge : IJudge {
     private const double NcLoss = 5;
     private const double WeightDeviation = 2;
     private const double ExpectedMatchingCost = 10;  // Important parameter for speeding up search with early termination
+    private const double PogBonus = 80;
 
     private readonly ReadOnlyMemory<MapDataPoint> pattern;
 
     public int PatternIndex { get; set; }
+
+    public Match? PogMatch { get; set; }
 
     public SuperJudge(ReadOnlyMemory<MapDataPoint> pattern) {
         this.pattern = pattern;
@@ -52,6 +55,9 @@ public class SuperJudge : IJudge {
             }
         }
 
+        if (PogMatch.HasValue && match.SeqPos.Value == PogMatch.Value.SeqPos.Value && match.SeqPos.CharPosition == PogMatch.Value.SeqPos.CharPosition)
+            score += PogBonus;
+
         return score;
     }
 
@@ -70,9 +76,5 @@ public class SuperJudge : IJudge {
         }
 
         return length;
-    }
-
-    public double PogScore() {
-        return 80;
     }
 }

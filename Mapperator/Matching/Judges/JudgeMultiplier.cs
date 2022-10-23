@@ -16,8 +16,4 @@ public class JudgeMultiplier : IJudge {
     public int MinLengthForScore(double wantedScore) {
         return 1;
     }
-
-    public double PogScore() {
-        return judge.PogScore();
-    }
 }
