@@ -24,6 +24,7 @@ public class Mapperator {
     private readonly BestScoreFilter bestScoreFilter;
     private readonly BestScoreFilter bestScoreFilter2;
     private readonly OnScreenFilter onScreenFilter;
+    private readonly TryMoreStuffFilter tryMoreStuffFilter;
 
     public Mapperator(RhythmDistanceTrieStructure data, ReadOnlyMemory<MapDataPoint> pattern, double lookBack, double objectRadius) {
         this.data = data;
@@ -36,6 +37,7 @@ public class Mapperator {
         bestScoreFilter2 = new BestScoreFilter(new JudgeMultiplier(judge, new IJudge[] { visualSpacingJudge, sliderAngleJudge }), 1);
         constructor = new BeatmapConstructor();
         onScreenFilter = new OnScreenFilter();
+        tryMoreStuffFilter = new TryMoreStuffFilter();
     }
 
     /// <summary>
@@ -59,7 +61,11 @@ public class Mapperator {
             judge.PogMatch = pogMatch;
             matcher.MinLength = 1;
 
-            var matches = bestScoreFilter2.FilterMatches(bestScoreFilter.FilterMatches(onScreenFilter.FilterMatches(matcher.FindMatches(i))));
+            var matches = bestScoreFilter2.FilterMatches(
+                tryMoreStuffFilter.FilterMatches(
+                    bestScoreFilter.FilterMatches(
+                        onScreenFilter.FilterMatches(
+                            matcher.FindMatches(i)))));
 
             Match match;
             try {
