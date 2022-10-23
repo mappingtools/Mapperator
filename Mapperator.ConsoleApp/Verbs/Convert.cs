@@ -94,7 +94,7 @@ public static class Convert {
         map.HitObjects.Clear();
         map.Editor.Bookmarks.Clear();
 
-        var mapperator = new Mapperator(data, input, map.Difficulty.ApproachTime, map.Difficulty.HitObjectRadius);
+        var mapperator = new Mapperator(data, input, map.Difficulty.ApproachTime + 500, map.Difficulty.HitObjectRadius);
         mapperator.MapPattern(map);
 
         new BeatmapEditor(Path.ChangeExtension(opts.OutputName, ".osu")).WriteFile(map);

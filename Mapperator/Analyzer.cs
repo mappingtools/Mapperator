@@ -69,7 +69,7 @@ public static class Analyzer {
                 if (neighbour is not HitCircle && neighbour is not Slider) continue;
 
                 var neighbourIndex = beatmap.HitObjects.IndexOf(neighbour);
-                var maxDist = CalculateMaxDist(neighbourIndex, hitObjectIndex, beatmap, hoPoints);
+                var maxDist = CalculateMaxDist(neighbourIndex, hitObjectIndex, beatmap.HitObjects, hoPoints);
 
                 var dist = ShortestDistance(hoPoints[hitObject], hoPoints[neighbour]);
                 var distClass = (int)Math.Round(dist / radius * 100);
@@ -81,29 +81,29 @@ public static class Analyzer {
         return spacings;
     }
 
-    public static double CalculateMaxDist(int neighbourIndex, int hitObjectIndex, IBeatmap beatmap, Dictionary<HitObject, Vector2[]> points) {
+    public static double CalculateMaxDist(int neighbourIndex, int hitObjectIndex, IList<HitObject> hitObjects, Dictionary<HitObject, Vector2[]> points) {
         var maxDist = 0d;
         if (neighbourIndex < hitObjectIndex) {
-            var lastPos = points[beatmap.HitObjects[neighbourIndex]][^1];
+            var lastPos = points[hitObjects[neighbourIndex]][^1];
             for (var i = neighbourIndex + 1; i < hitObjectIndex; i++) {
-                var curr = points[beatmap.HitObjects[i]];
+                var curr = points[hitObjects[i]];
                 foreach (var p in curr) {
                     maxDist += Vector2.Distance(lastPos, p);
                     lastPos = p;
                 }
             }
-            maxDist += Vector2.Distance(lastPos, points[beatmap.HitObjects[hitObjectIndex]][0]);
+            maxDist += Vector2.Distance(lastPos, points[hitObjects[hitObjectIndex]][0]);
         }
         else {
-            var lastPos = points[beatmap.HitObjects[hitObjectIndex]][^1];
+            var lastPos = points[hitObjects[hitObjectIndex]][^1];
             for (var i = hitObjectIndex + 1; i < neighbourIndex; i++) {
-                var curr = points[beatmap.HitObjects[i]];
+                var curr = points[hitObjects[i]];
                 foreach (var p in curr) {
                     maxDist += Vector2.Distance(lastPos, p);
                     lastPos = p;
                 }
             }
-            maxDist += Vector2.Distance(lastPos, points[beatmap.HitObjects[neighbourIndex]][0]);
+            maxDist += Vector2.Distance(lastPos, points[hitObjects[neighbourIndex]][0]);
         }
 
         return maxDist;
