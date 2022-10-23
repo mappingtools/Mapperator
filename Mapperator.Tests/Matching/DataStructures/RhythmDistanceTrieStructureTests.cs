@@ -6,9 +6,9 @@ using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using NUnit.Framework;
 using TrieNet;
 
-namespace Mapperator.Tests.Matching;
+namespace Mapperator.Tests.Matching.DataStructures;
 
-public class TrieDataMatcherTests {
+public class RhythmDistanceTrieStructureTests {
     private RhythmDistanceTrieStructure data;
 
     [OneTimeSetUp]
