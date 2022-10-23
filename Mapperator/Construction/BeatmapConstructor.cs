@@ -1,5 +1,6 @@
 ﻿using Mapperator.Matching;
 using Mapperator.Model;
+using Mapping_Tools_Core.BeatmapHelper.Contexts;
 using Mapping_Tools_Core.BeatmapHelper.Enums;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
@@ -84,6 +85,8 @@ namespace Mapperator.Construction {
 
                         lastSlider.NewCombo = lastHitObject.NewCombo;
                         lastSlider.IsSelected = SelectNewObjects;
+                        lastSlider.SetContext(new TimingContext(timing?.GlobalSliderMultiplier ?? 1.4, 1, new TimingPoint(), new TimingPoint(), new TimingPoint()));
+                        lastSlider.SetEndTimeBySliderVelocity(time);
                         hitObjects.Add(lastSlider);
 
                         // Make sure the last object ends at time t and around pos

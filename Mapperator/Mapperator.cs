@@ -18,16 +18,20 @@ public class Mapperator {
     private readonly RhythmDistanceTrieStructure data;
     private readonly ReadOnlyMemory<MapDataPoint> pattern;
     private readonly SuperJudge judge;
+    private readonly VisualSpacingJudge visualSpacingJudge;
     private readonly BeatmapConstructor constructor;
     private readonly BestScoreFilter bestScoreFilter;
+    private readonly BestScoreFilter bestScoreFilter2;
     private readonly OnScreenFilter onScreenFilter;
 
-    public Mapperator(RhythmDistanceTrieStructure data, ReadOnlyMemory<MapDataPoint> pattern) {
+    public Mapperator(RhythmDistanceTrieStructure data, ReadOnlyMemory<MapDataPoint> pattern, double lookBack, double objectRadius) {
         this.data = data;
         this.pattern = pattern;
         matcher = new TrieDataMatcher(data, pattern.Span);
         judge = new SuperJudge(pattern);
-        bestScoreFilter = new BestScoreFilter(judge, 1) { MinLengthProvider = matcher };
+        visualSpacingJudge = new VisualSpacingJudge(pattern, lookBack, objectRadius);
+        bestScoreFilter = new BestScoreFilter(judge, 1000) { MinLengthProvider = matcher };
+        bestScoreFilter2 = new BestScoreFilter(visualSpacingJudge, 1);
         constructor = new BeatmapConstructor();
         onScreenFilter = new OnScreenFilter();
     }
@@ -47,10 +51,11 @@ public class Mapperator {
             onScreenFilter.Pos = state.Pos;
             onScreenFilter.Angle = state.Angle;
             judge.PatternIndex = i;
+            visualSpacingJudge.Init(hitObjects, state, i);
             bestScoreFilter.PogMatch = pogMatch;
             matcher.MinLength = 1;
 
-            var matches = bestScoreFilter.FilterMatches(onScreenFilter.FilterMatches(matcher.FindMatches(i)));
+            var matches = bestScoreFilter2.FilterMatches(bestScoreFilter.FilterMatches(onScreenFilter.FilterMatches(matcher.FindMatches(i))));
 
             Match match;
             try {

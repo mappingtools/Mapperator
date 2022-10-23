@@ -22,7 +22,7 @@ public class VisualSpacingJudge : IJudge {
     private HitObject[]? neighbours;
     private Dictionary<HitObject, Vector2[]>? hoPoints;
 
-    public VisualSpacingJudge(double lookBack, ReadOnlyMemory<MapDataPoint> pattern, double objectRadius) {
+    public VisualSpacingJudge(ReadOnlyMemory<MapDataPoint> pattern, double lookBack, double objectRadius) {
         this.lookBack = lookBack;
         this.pattern = pattern;
         this.objectRadius = objectRadius;
