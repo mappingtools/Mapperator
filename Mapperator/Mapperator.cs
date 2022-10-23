@@ -19,6 +19,7 @@ public class Mapperator {
     private readonly ReadOnlyMemory<MapDataPoint> pattern;
     private readonly SuperJudge judge;
     private readonly VisualSpacingJudge visualSpacingJudge;
+    private readonly SliderAngleJudge sliderAngleJudge;
     private readonly BeatmapConstructor constructor;
     private readonly BestScoreFilter bestScoreFilter;
     private readonly BestScoreFilter bestScoreFilter2;
@@ -29,9 +30,10 @@ public class Mapperator {
         this.pattern = pattern;
         matcher = new TrieDataMatcher(data, pattern.Span);
         judge = new SuperJudge(pattern);
-        visualSpacingJudge = new VisualSpacingJudge(pattern, lookBack, objectRadius);
         bestScoreFilter = new BestScoreFilter(judge, 1000) { MinLengthProvider = matcher };
-        bestScoreFilter2 = new BestScoreFilter(new JudgeMultiplier(judge, new IJudge[] { visualSpacingJudge }), 1);
+        visualSpacingJudge = new VisualSpacingJudge(pattern, lookBack, objectRadius);
+        sliderAngleJudge = new SliderAngleJudge();
+        bestScoreFilter2 = new BestScoreFilter(new JudgeMultiplier(judge, new IJudge[] { visualSpacingJudge, sliderAngleJudge }), 1);
         constructor = new BeatmapConstructor();
         onScreenFilter = new OnScreenFilter();
     }
@@ -52,6 +54,7 @@ public class Mapperator {
             onScreenFilter.Angle = state.Angle;
             judge.PatternIndex = i;
             visualSpacingJudge.Init(hitObjects, state, i);
+            sliderAngleJudge.Angle = state.Angle;
             bestScoreFilter.PogMatch = pogMatch;
             judge.PogMatch = pogMatch;
             matcher.MinLength = 1;
