@@ -62,10 +62,9 @@ public class Mapperator {
             matcher.MinLength = 1;
 
             var matches = bestScoreFilter2.FilterMatches(
-                tryMoreStuffFilter.FilterMatches(
                     bestScoreFilter.FilterMatches(
                         onScreenFilter.FilterMatches(
-                            matcher.FindMatches(i)))));
+                            matcher.FindMatches(i))));
 
             Match match;
             try {

@@ -40,7 +40,7 @@ public class BestScoreFilter : IMatchFilter {
             }
         }
 
-        const int nTasks = 1000;
+        const int nTasks = 100;
         var t = 0;
         var tasks = new Task[nTasks];
         for (var i = 0; i < nTasks; i++) {
