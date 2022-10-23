@@ -1,4 +1,5 @@
 ﻿using Mapperator.Construction;
+using Mapperator.Matching;
 using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Filters;
 using Mapperator.Matching.Matchers;
@@ -9,7 +10,7 @@ using Mapping_Tools_Core.BeatmapHelper.TimingStuff;
 using Mapping_Tools_Core.ToolHelpers;
 using TrieNet;
 
-namespace Mapperator.Matching;
+namespace Mapperator;
 
 public class Mapperator {
     private readonly TrieDataMatcher2 matcher;

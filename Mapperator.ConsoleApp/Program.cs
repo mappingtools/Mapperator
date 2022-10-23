@@ -14,6 +14,8 @@ using Mapperator.ConsoleApp.Resources;
 using Mapperator.Construction;
 using Mapperator.Matching;
 using Mapperator.Matching.DataStructures;
+using Mapperator.Matching.Filters;
+using Mapperator.Matching.Judges;
 using Mapperator.Matching.Matchers;
 using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
@@ -271,16 +273,14 @@ namespace Mapperator.ConsoleApp {
                 input = TransferSpacing(spacingMapData, input);
             }
 
-            var data = new RhythmDistanceTrieStructure();
-            var matcher = new TrieDataMatcher(data, input);
-
             // Add the data to the matcher or load the data
             Console.WriteLine(Strings.Program_DoMapConvert_Adding_data___);
-            if (data is ISerializable sMatcher &&
-                !string.IsNullOrEmpty(opts.InputStructName) && 
-                File.Exists(Path.ChangeExtension(opts.InputStructName, sMatcher.DefaultExtension))) {
-                using Stream file = File.OpenRead(Path.ChangeExtension(opts.InputStructName, sMatcher.DefaultExtension));
-                sMatcher.Load(trainData, file);
+            var data = new RhythmDistanceTrieStructure();
+            if (data is ISerializable sData &&
+                !string.IsNullOrEmpty(opts.InputStructName) &&
+                File.Exists(Path.ChangeExtension(opts.InputStructName, sData.DefaultExtension))) {
+                using Stream file = File.OpenRead(Path.ChangeExtension(opts.InputStructName, sData.DefaultExtension));
+                sData.Load(trainData, file);
             } else {
                 Stopwatch buildStopwatch = new Stopwatch();
                 buildStopwatch.Start();
@@ -293,9 +293,9 @@ namespace Mapperator.ConsoleApp {
                 buildStopwatch.Stop();
                 Console.WriteLine(Strings.Program_DoMapConvert_Elapsed_Time_is, buildStopwatch.ElapsedMilliseconds.ToString());
 
-                if (matcher is ISerializable sMatcher2 && !string.IsNullOrEmpty(opts.OutputStructName)) {
-                    using Stream file = File.Create(Path.ChangeExtension(opts.OutputStructName, sMatcher2.DefaultExtension));
-                    sMatcher2.Save(file);
+                if (data is ISerializable sData2 && !string.IsNullOrEmpty(opts.OutputStructName)) {
+                    using Stream file = File.Create(Path.ChangeExtension(opts.OutputStructName, sData2.DefaultExtension));
+                    sData2.Save(file);
                 }
             }
 
@@ -304,8 +304,9 @@ namespace Mapperator.ConsoleApp {
             map.Metadata.Version = "Converted";
             map.HitObjects.Clear();
             map.Editor.Bookmarks.Clear();
-            var constructor = new BeatmapConstructor();
-            constructor.PopulateBeatmap(map, input, matcher);
+
+            var mapperator = new Mapperator(data, input, new BeatmapConstructor2(), new SuperJudge(), new OnScreenFilter());
+            mapperator.MapPattern(map);
 
             new BeatmapEditor(Path.ChangeExtension(opts.OutputName, ".osu")).WriteFile(map);
 
