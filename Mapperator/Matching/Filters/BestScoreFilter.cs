@@ -1,5 +1,4 @@
-﻿using Mapperator.Model;
-
+﻿
 namespace Mapperator.Matching.Filters;
 
 /// <summary>
@@ -7,24 +6,20 @@ namespace Mapperator.Matching.Filters;
 /// </summary>
 public class BestScoreFilter : IMatchFilter {
     private readonly IJudge judge;
-    private readonly ReadOnlyMemory<MapDataPoint> pattern;
 
     private readonly PriorityQueue<(Match, double), double> queue;
     private readonly Match[] bestMatches;
 
     public int BufferSize { get; }
 
-    public int PatternIndex { get; set; }
-
     public IMinLengthProvider? MinLengthProvider { get; init; }
 
     public Match? PogMatch { get; set; }
 
-    public BestScoreFilter(IJudge judge, ReadOnlyMemory<MapDataPoint> pattern, int bufferSize) {
+    public BestScoreFilter(IJudge judge, int bufferSize) {
         if (bufferSize < 1) throw new ArgumentOutOfRangeException(nameof(bufferSize), bufferSize, @"Buffer size must be at least 1.");
 
         this.judge = judge;
-        this.pattern = pattern;
         BufferSize = bufferSize;
         queue = new PriorityQueue<(Match, double), double>(BufferSize);
         bestMatches = new Match[BufferSize];
@@ -35,7 +30,7 @@ public class BestScoreFilter : IMatchFilter {
         var bestScore = double.NegativeInfinity;
 
         if (PogMatch.HasValue) {
-            var score = RateMatchQuality(PogMatch.Value) + judge.PogScore();
+            var score = judge.Judge(PogMatch.Value) + judge.PogScore();
             queue.Enqueue((PogMatch.Value, score), score);
 
             if (score > bestScore && MinLengthProvider is not null) {
@@ -45,7 +40,7 @@ public class BestScoreFilter : IMatchFilter {
         }
 
         foreach (var match in matches) {
-            var score = RateMatchQuality(match);
+            var score = judge.Judge(match);
 
             if (queue.Count < BufferSize) {
                 queue.Enqueue((match, score), score);
@@ -70,10 +65,5 @@ public class BestScoreFilter : IMatchFilter {
         for (var i = 0; i < n; i++) {
             yield return bestMatches[i];
         }
-    }
-
-    private double RateMatchQuality(Match match) {
-        var mult = match.MinMult == 0 && double.IsPositiveInfinity(match.MaxMult) ? 1 : Math.Sqrt(match.MinMult * match.MaxMult);
-        return judge.Judge(match.Sequence.Span, pattern.Span.Slice(PatternIndex, match.Length), 0, mult);
     }
 }

@@ -2,6 +2,7 @@
 using Mapperator.Matching;
 using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Filters;
+using Mapperator.Matching.Judges;
 using Mapperator.Matching.Matchers;
 using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper;
@@ -16,17 +17,19 @@ public class Mapperator {
     private readonly TrieDataMatcher matcher;
     private readonly RhythmDistanceTrieStructure data;
     private readonly ReadOnlyMemory<MapDataPoint> pattern;
+    private readonly SuperJudge judge;
     private readonly BeatmapConstructor constructor;
     private readonly BestScoreFilter bestScoreFilter;
     private readonly OnScreenFilter onScreenFilter;
 
-    public Mapperator(RhythmDistanceTrieStructure data, ReadOnlyMemory<MapDataPoint> pattern, BeatmapConstructor constructor, IJudge judge, OnScreenFilter onScreenFilter) {
-        matcher = new TrieDataMatcher(data, pattern.Span);
-        bestScoreFilter = new BestScoreFilter(judge, pattern, 1) { MinLengthProvider = matcher };
+    public Mapperator(RhythmDistanceTrieStructure data, ReadOnlyMemory<MapDataPoint> pattern) {
         this.data = data;
         this.pattern = pattern;
-        this.constructor = constructor;
-        this.onScreenFilter = onScreenFilter;
+        matcher = new TrieDataMatcher(data, pattern.Span);
+        judge = new SuperJudge(pattern);
+        bestScoreFilter = new BestScoreFilter(judge, 1) { MinLengthProvider = matcher };
+        constructor = new BeatmapConstructor();
+        onScreenFilter = new OnScreenFilter();
     }
 
     /// <summary>
@@ -43,7 +46,7 @@ public class Mapperator {
 
             onScreenFilter.Pos = state.Pos;
             onScreenFilter.Angle = state.Angle;
-            bestScoreFilter.PatternIndex = i;
+            judge.PatternIndex = i;
             bestScoreFilter.PogMatch = pogMatch;
             matcher.MinLength = 1;
 

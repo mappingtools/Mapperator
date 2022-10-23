@@ -5,11 +5,8 @@ using System.Linq;
 using CommandLine;
 using JetBrains.Annotations;
 using Mapperator.ConsoleApp.Resources;
-using Mapperator.Construction;
 using Mapperator.Matching;
 using Mapperator.Matching.DataStructures;
-using Mapperator.Matching.Filters;
-using Mapperator.Matching.Judges;
 using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using Mapping_Tools_Core.MathUtil;
@@ -97,7 +94,7 @@ public static class Convert {
         map.HitObjects.Clear();
         map.Editor.Bookmarks.Clear();
 
-        var mapperator = new Mapperator(data, input, new BeatmapConstructor(), new SuperJudge(), new OnScreenFilter());
+        var mapperator = new Mapperator(data, input);
         mapperator.MapPattern(map);
 
         new BeatmapEditor(Path.ChangeExtension(opts.OutputName, ".osu")).WriteFile(map);

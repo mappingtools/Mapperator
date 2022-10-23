@@ -39,6 +39,7 @@ namespace Mapperator.DemoApp.Game
         private BasicButton variantButton;
         private OnScreenFilter filter;
         private BestScoreFilter sorter;
+        private SuperJudge judge;
 
         [BackgroundDependencyLoader]
         private void load(BeatmapStore beatmapStore, MapDataStore mapDataStore)
@@ -164,7 +165,7 @@ namespace Mapperator.DemoApp.Game
             var (endPos, angle, _) = new Continuation(beatmap.Value.HitObjects.GetRange(0, pos.Value + length));
             filter.Pos = endPos;
             filter.Angle = angle;
-            sorter.PatternIndex = patternIndex;
+            judge.PatternIndex = patternIndex;
             matcher.MinLength = 1;
             var matches = sorter.FilterMatches(filter.FilterMatches(matcher.FindMatches(patternIndex)));
 
@@ -224,7 +225,8 @@ namespace Mapperator.DemoApp.Game
             pattern = new DataExtractor().ExtractBeatmapData(obj.NewValue).ToArray();
             matcher = new TrieDataMatcher(dataStruct, pattern);
             filter = new OnScreenFilter();
-            sorter = new BestScoreFilter(new SuperJudge(), pattern, 1000) { MinLengthProvider = matcher };
+            judge = new SuperJudge(pattern);
+            sorter = new BestScoreFilter(judge, 1000) { MinLengthProvider = matcher };
         }
     }
 }
