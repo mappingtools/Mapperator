@@ -31,7 +31,7 @@ public class Mapperator {
         judge = new SuperJudge(pattern);
         visualSpacingJudge = new VisualSpacingJudge(pattern, lookBack, objectRadius);
         bestScoreFilter = new BestScoreFilter(judge, 1000) { MinLengthProvider = matcher };
-        bestScoreFilter2 = new BestScoreFilter(new JudgeMultiplier(judge, visualSpacingJudge), 1);
+        bestScoreFilter2 = new BestScoreFilter(new JudgeMultiplier(judge, new IJudge[] { visualSpacingJudge }), 1);
         constructor = new BeatmapConstructor();
         onScreenFilter = new OnScreenFilter();
     }

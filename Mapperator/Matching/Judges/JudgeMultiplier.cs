@@ -2,15 +2,20 @@
 
 public class JudgeMultiplier : IJudge {
     private readonly IJudge judge;
-    private readonly IJudge multiplier;
+    private readonly IJudge[] multipliers;
 
-    public JudgeMultiplier(IJudge judge, IJudge multiplier) {
+    public JudgeMultiplier(IJudge judge, IJudge[] multipliers) {
         this.judge = judge;
-        this.multiplier = multiplier;
+        this.multipliers = multipliers;
     }
 
     public double Judge(Match match) {
-        return judge.Judge(match) * multiplier.Judge(match);
+        var score = judge.Judge(match);
+        foreach (var multiplier in multipliers) {
+            score *= multiplier.Judge(match);
+        }
+
+        return score;
     }
 
     public int MinLengthForScore(double wantedScore) {
