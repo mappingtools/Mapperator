@@ -3,6 +3,7 @@ using Mapperator.Matching.DataStructures;
 using Mapperator.Matching.Filters;
 using Mapperator.Matching.Matchers;
 using Mapperator.Model;
+using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.TimingStuff;
 using Mapping_Tools_Core.ToolHelpers;
@@ -55,6 +56,16 @@ public class Mapperator {
             lastMatch = match;
         }
 
+        return state;
+    }
+
+    /// <summary>
+    /// Mapperates all of the pattern onto the beatmap.
+    /// </summary>
+    public Continuation MapPattern(IBeatmap beatmap, Continuation? continuation = null) {
+        var controlChanges = new List<ControlChange>();
+        var state = MapPattern(beatmap.HitObjects, continuation, beatmap.BeatmapTiming, controlChanges);
+        ControlChange.ApplyChanges(beatmap.BeatmapTiming, controlChanges);
         return state;
     }
 }
