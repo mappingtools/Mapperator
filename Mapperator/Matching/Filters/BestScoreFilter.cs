@@ -9,6 +9,7 @@ public class BestScoreFilter : IMatchFilter {
 
     private readonly PriorityQueue<(Match, double), double> queue;
     private readonly Match[] bestMatches;
+    private readonly object queueLock = new();
 
     public int BufferSize { get; }
 
@@ -39,23 +40,40 @@ public class BestScoreFilter : IMatchFilter {
             }
         }
 
-        foreach (var match in matches) {
-            var score = judge.Judge(match);
-
-            if (queue.Count < BufferSize) {
-                queue.Enqueue((match, score), score);
-            } else {
-                var (_, minScore) = queue.Peek();
-                if (score <= minScore) continue;
-
-                queue.EnqueueDequeue((match, score), score);
-            }
-
-            if (!(score > bestScore) || MinLengthProvider is null) continue;
-
-            bestScore = score;
-            MinLengthProvider.MinLength = Math.Max(MinLengthProvider.MinLength, judge.MinLengthForScore(bestScore));
+        const int nTasks = 1000;
+        var t = 0;
+        var tasks = new Task[nTasks];
+        for (var i = 0; i < nTasks; i++) {
+            tasks[i] = Task.CompletedTask;
         }
+        foreach (var match in matches) {
+            tasks[t++] = Task.Run(() => {
+                var score = judge.Judge(match);
+
+                lock(queueLock) {
+                    if (queue.Count < BufferSize) {
+                        queue.Enqueue((match, score), score);
+                    }
+                    else {
+                        var (_, minScore) = queue.Peek();
+                        if (score <= minScore) return;
+
+                        queue.EnqueueDequeue((match, score), score);
+                    }
+
+                    if (!(score > bestScore) || MinLengthProvider is null) return;
+
+                    bestScore = score;
+                    MinLengthProvider.MinLength = Math.Max(MinLengthProvider.MinLength, judge.MinLengthForScore(bestScore));
+                }
+            });
+
+            if (t != nTasks) continue;
+            Task.WaitAll(tasks);
+            t = 0;
+        }
+
+        Task.WaitAll(tasks);
 
         var n = Math.Min(BufferSize, queue.Count);
         for (var i = 0; i < n; i++) {
