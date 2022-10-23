@@ -97,7 +97,7 @@ public static class Convert {
         map.HitObjects.Clear();
         map.Editor.Bookmarks.Clear();
 
-        var mapperator = new Mapperator(data, input, new BeatmapConstructor2(), new SuperJudge(), new OnScreenFilter());
+        var mapperator = new Mapperator(data, input, new BeatmapConstructor(), new SuperJudge(), new OnScreenFilter());
         mapperator.MapPattern(map);
 
         new BeatmapEditor(Path.ChangeExtension(opts.OutputName, ".osu")).WriteFile(map);

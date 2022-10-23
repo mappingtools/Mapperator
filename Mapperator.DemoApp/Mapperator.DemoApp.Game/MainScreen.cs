@@ -33,7 +33,7 @@ namespace Mapperator.DemoApp.Game
         private PatternVisualizer newVisualizer;
         private RhythmDistanceTrieStructure dataStruct;
         private MapDataPoint[] pattern;
-        private TrieDataMatcher2 matcher;
+        private TrieDataMatcher matcher;
         private int patternIndex;
         private IEnumerator<Match> matchIterator;
         private BasicButton variantButton;
@@ -188,7 +188,7 @@ namespace Mapperator.DemoApp.Game
 
             // Show the matched objects in the right visualizer
             var newHitObjects = beatmap.Value.HitObjects.GetRange(pos.Value, length);
-            var constructor = new BeatmapConstructor2 { SelectNewObjects = true };
+            var constructor = new BeatmapConstructor { SelectNewObjects = true };
             constructor.Construct(newHitObjects, match, pattern.AsSpan()[patternIndex..]);
 
             newHitObjects.GiveObjectsTimingContext(beatmap.Value.BeatmapTiming);
@@ -222,7 +222,7 @@ namespace Mapperator.DemoApp.Game
             pos.MaxValue = obj.NewValue.HitObjects.Count - length - 1;
 
             pattern = new DataExtractor().ExtractBeatmapData(obj.NewValue).ToArray();
-            matcher = new TrieDataMatcher2(dataStruct, pattern);
+            matcher = new TrieDataMatcher(dataStruct, pattern);
             filter = new OnScreenFilter();
             sorter = new BestScoreFilter(new SuperJudge(), pattern, 1000) { MinLengthProvider = matcher };
         }

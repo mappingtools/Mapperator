@@ -13,15 +13,15 @@ using TrieNet;
 namespace Mapperator;
 
 public class Mapperator {
-    private readonly TrieDataMatcher2 matcher;
+    private readonly TrieDataMatcher matcher;
     private readonly RhythmDistanceTrieStructure data;
     private readonly ReadOnlyMemory<MapDataPoint> pattern;
-    private readonly BeatmapConstructor2 constructor;
+    private readonly BeatmapConstructor constructor;
     private readonly BestScoreFilter bestScoreFilter;
     private readonly OnScreenFilter onScreenFilter;
 
-    public Mapperator(RhythmDistanceTrieStructure data, ReadOnlyMemory<MapDataPoint> pattern, BeatmapConstructor2 constructor, IJudge judge, OnScreenFilter onScreenFilter) {
-        matcher = new TrieDataMatcher2(data, pattern.Span);
+    public Mapperator(RhythmDistanceTrieStructure data, ReadOnlyMemory<MapDataPoint> pattern, BeatmapConstructor constructor, IJudge judge, OnScreenFilter onScreenFilter) {
+        matcher = new TrieDataMatcher(data, pattern.Span);
         bestScoreFilter = new BestScoreFilter(judge, pattern, 1) { MinLengthProvider = matcher };
         this.data = data;
         this.pattern = pattern;
