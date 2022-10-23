@@ -5,11 +5,11 @@ using Mapping_Tools_Core.MathUtil;
 
 namespace Mapperator;
 
-public class DistanceAnalyser {
+public static class Analyzer {
     private const int Bins = 512;
     private const int AngleBins = 629;
 
-    public double[] ExtractSliderAngles(IEnumerable<IBeatmap> beatmaps) {
+    public static double[] ExtractSliderAngles(IEnumerable<IBeatmap> beatmaps) {
         var angles = new int[AngleBins];
         foreach (var beatmap in beatmaps) {
             beatmap.CalculateEndPositions();
@@ -32,7 +32,7 @@ public class DistanceAnalyser {
         return normalizedAngles;
     }
 
-    public double[] ExtractVisualSpacing(IEnumerable<IBeatmap> beatmaps) {
+    public static double[] ExtractVisualSpacing(IEnumerable<IBeatmap> beatmaps) {
         var spacings = new int[Bins];
         foreach (var beatmap in beatmaps) {
             var beatmapSpacings = ExtractVisualSpacing(beatmap);
@@ -50,7 +50,7 @@ public class DistanceAnalyser {
         return normalizedSpacings;
     }
 
-    public int[] ExtractVisualSpacing(IBeatmap beatmap) {
+    public static int[] ExtractVisualSpacing(IBeatmap beatmap) {
         var spacings = new int[Bins];
         var radius = beatmap.Difficulty.HitObjectRadius;
         var margin = beatmap.Difficulty.ApproachTime;
@@ -81,7 +81,7 @@ public class DistanceAnalyser {
         return spacings;
     }
 
-    private static double CalculateMaxDist(int neighbourIndex, int hitObjectIndex, IBeatmap beatmap, Dictionary<HitObject, Vector2[]> points) {
+    public static double CalculateMaxDist(int neighbourIndex, int hitObjectIndex, IBeatmap beatmap, Dictionary<HitObject, Vector2[]> points) {
         var maxDist = 0d;
         if (neighbourIndex < hitObjectIndex) {
             var lastPos = points[beatmap.HitObjects[neighbourIndex]][^1];
@@ -109,21 +109,25 @@ public class DistanceAnalyser {
         return maxDist;
     }
 
-    private static Dictionary<HitObject, Vector2[]> GetHitObjectsAsPoints(IEnumerable<HitObject> hitObjects) {
+    public static Dictionary<HitObject, Vector2[]> GetHitObjectsAsPoints(IEnumerable<HitObject> hitObjects) {
         var hoPoints = new Dictionary<HitObject, Vector2[]>();
         foreach (var hitObject in hitObjects) {
             if (hitObject is not HitCircle && hitObject is not Slider) continue;
 
-            hoPoints[hitObject] = hitObject switch {
-                Slider s => GetSliderPoints(s),
-                _ => new[]{ hitObject.Pos }
-            };
+            hoPoints[hitObject] = GetHitObjectAsPoints(hitObject);
         }
 
         return hoPoints;
     }
 
-    private static Vector2[] GetSliderPoints(Slider s) {
+    public static Vector2[] GetHitObjectAsPoints(HitObject hitObject) {
+        return hitObject switch {
+            Slider s => GetSliderPoints(s),
+            _ => new[]{ hitObject.Pos }
+        };
+    }
+
+    public static Vector2[] GetSliderPoints(Slider s) {
         const int pointCount = 100;
         var path = s.GetSliderPath();
         var points = new Vector2[pointCount];
@@ -134,7 +138,7 @@ public class DistanceAnalyser {
         return points;
     }
 
-    private static double ShortestDistance(Vector2[] a, Vector2[] b) {
+    public static double ShortestDistance(Vector2[] a, Vector2[] b) {
         var minDist = double.PositiveInfinity;
         for (var i = 0; i < a.Length; i++) {
             for (var j = 0; j < b.Length; j++) {

@@ -6,7 +6,7 @@
     },
     "VisualSpacingTest": {
       "commandName": "Project",
-      "commandLineArgs": "extractSpacing -s Ranked -m Standard -a Cheri"
+      "commandLineArgs": "analyze -s Ranked -m Standard -a Sotarks"
     },
     "ExtractData": {
       "commandName": "Project",

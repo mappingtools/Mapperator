@@ -12,9 +12,8 @@ public static class Analyze {
     public class AnalyzeOptions : FilterBase { }
 
     public static int DoVisualSpacingExtract(AnalyzeOptions opts) {
-        var extractor = new DistanceAnalyser();
         Console.WriteLine(string.Join(';',
-            extractor.ExtractVisualSpacing(DbManager.GetFilteredAndRead(opts))
+            Analyzer.ExtractVisualSpacing(DbManager.GetFilteredAndRead(opts))
                 .Select(o => o.ToString(CultureInfo.CurrentCulture))));
 
         return 0;
