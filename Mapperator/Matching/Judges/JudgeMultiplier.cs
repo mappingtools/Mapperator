@@ -2,9 +2,9 @@
 
 public class JudgeMultiplier : IJudge {
     private readonly IJudge judge;
-    private readonly IJudge[] multipliers;
+    private readonly ICollection<IJudge> multipliers;
 
-    public JudgeMultiplier(IJudge judge, IJudge[] multipliers) {
+    public JudgeMultiplier(IJudge judge, ICollection<IJudge> multipliers) {
         this.judge = judge;
         this.multipliers = multipliers;
     }

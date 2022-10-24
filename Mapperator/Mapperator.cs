@@ -26,7 +26,7 @@ public class Mapperator {
     private readonly OnScreenFilter onScreenFilter;
     private readonly TryMoreStuffFilter tryMoreStuffFilter;
 
-    public Mapperator(RhythmDistanceTrieStructure data, ReadOnlyMemory<MapDataPoint> pattern, double lookBack, double objectRadius) {
+    public Mapperator(RhythmDistanceTrieStructure data, ReadOnlyMemory<MapDataPoint> pattern, double lookBack, double objectRadius, bool useVisualSpacing, bool useSliderAngles) {
         this.data = data;
         this.pattern = pattern;
         matcher = new TrieDataMatcher(data, pattern.Span);
@@ -34,10 +34,15 @@ public class Mapperator {
         bestScoreFilter = new BestScoreFilter(judge, 1000) { MinLengthProvider = matcher };
         visualSpacingJudge = new VisualSpacingJudge(pattern, lookBack, objectRadius);
         sliderAngleJudge = new SliderAngleJudge();
-        bestScoreFilter2 = new BestScoreFilter(new JudgeMultiplier(judge, new IJudge[] { visualSpacingJudge, sliderAngleJudge }), 1);
         constructor = new BeatmapConstructor();
         onScreenFilter = new OnScreenFilter();
         tryMoreStuffFilter = new TryMoreStuffFilter();
+        var multipliers = new List<IJudge>(2);
+        if (useVisualSpacing)
+            multipliers.Add(visualSpacingJudge);
+        if (useSliderAngles)
+            multipliers.Add(sliderAngleJudge);
+        bestScoreFilter2 = new BestScoreFilter(new JudgeMultiplier(judge, multipliers), 1);
     }
 
     /// <summary>

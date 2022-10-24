@@ -33,6 +33,12 @@ public static class Convert {
 
         [Option('s', "spacingMap", HelpText = "Filename a beatmap with the desired spacing distribution.")]
         public string? SpacingBeatmapPath { get; [UsedImplicitly] set; }
+
+        [Option('v', "visualSpacing", HelpText = "Optimize visual spacing", Default = true)]
+        public bool VisualSpacing { get; [UsedImplicitly] set; }
+
+        [Option('a', "sliderAngles", HelpText = "Optimize slider angles", Default = true)]
+        public bool SliderAngles { get; [UsedImplicitly] set; }
     }
 
     public static int DoMapConvert(ConvertOptions opts) {
@@ -94,7 +100,8 @@ public static class Convert {
         map.HitObjects.Clear();
         map.Editor.Bookmarks.Clear();
 
-        var mapperator = new Mapperator(data, input, map.Difficulty.ApproachTime + 500, map.Difficulty.HitObjectRadius);
+        var mapperator = new Mapperator(data, input, map.Difficulty.ApproachTime + 500, map.Difficulty.HitObjectRadius,
+            opts.VisualSpacing, opts.SliderAngles);
         mapperator.MapPattern(map);
 
         new BeatmapEditor(Path.ChangeExtension(opts.OutputName, ".osu")).WriteFile(map);
