@@ -42,7 +42,7 @@ public class Mapperator {
             multipliers.Add(visualSpacingJudge);
         if (useSliderAngles)
             multipliers.Add(sliderAngleJudge);
-        bestScoreFilter2 = new BestScoreFilter(new JudgeMultiplier(judge, multipliers), 1);
+        bestScoreFilter2 = new BestScoreFilter(new JudgeMultiplier(judge, multipliers), 1) { Parallel = useVisualSpacing };
     }
 
     /// <summary>

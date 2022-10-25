@@ -15,6 +15,8 @@ public class BestScoreFilter : IMatchFilter {
 
     public IMinLengthProvider? MinLengthProvider { get; init; }
 
+    public bool Parallel { get; init; }
+
     public Match? PogMatch { get; set; }
 
     public BestScoreFilter(IJudge judge, int bufferSize) {
@@ -40,40 +42,53 @@ public class BestScoreFilter : IMatchFilter {
             }
         }
 
-        const int nTasks = 100;
-        var t = 0;
-        var tasks = new Task[nTasks];
-        for (var i = 0; i < nTasks; i++) {
-            tasks[i] = Task.CompletedTask;
-        }
-        foreach (var match in matches) {
-            tasks[t++] = Task.Run(() => {
-                var score = judge.Judge(match);
+        if (Parallel) {
+            const int nTasks = 100;
+            var t = 0;
+            var tasks = new Task[nTasks];
+            for (var i = 0; i < nTasks; i++) {
+                tasks[i] = Task.CompletedTask;
+            }
 
-                lock(queueLock) {
-                    if (queue.Count < BufferSize) {
-                        queue.Enqueue((match, score), score);
-                    }
-                    else {
-                        var (_, minScore) = queue.Peek();
-                        if (score <= minScore) return;
+            foreach (var match in matches) {
+                tasks[t++] = Task.Run(() => {
+                    ProcessMatch(match);
+                });
 
-                        queue.EnqueueDequeue((match, score), score);
-                    }
+                if (t != nTasks) continue;
+                Task.WaitAll(tasks);
+                t = 0;
+            }
 
-                    if (!(score > bestScore) || MinLengthProvider is null) return;
-
-                    bestScore = score;
-                    MinLengthProvider.MinLength = Math.Max(MinLengthProvider.MinLength, judge.MinLengthForScore(bestScore));
-                }
-            });
-
-            if (t != nTasks) continue;
             Task.WaitAll(tasks);
-            t = 0;
+        } else {
+            foreach (var match in matches) {
+                ProcessMatch(match);
+            }
         }
 
-        Task.WaitAll(tasks);
+        void ProcessMatch(Match match) {
+            // ReSharper disable once InconsistentlySynchronizedField
+            var score = judge.Judge(match);
+
+            lock (queueLock) {
+                if (queue.Count < BufferSize) {
+                    queue.Enqueue((match, score), score);
+                }
+                else {
+                    var (_, minScore) = queue.Peek();
+                    if (score <= minScore) return;
+
+                    queue.EnqueueDequeue((match, score), score);
+                }
+
+                if (!(score > bestScore) || MinLengthProvider is null) return;
+
+                bestScore = score;
+                MinLengthProvider.MinLength =
+                    Math.Max(MinLengthProvider.MinLength, judge.MinLengthForScore(bestScore));
+            }
+        }
 
         var n = Math.Min(BufferSize, queue.Count);
         for (var i = 0; i < n; i++) {
