@@ -34,10 +34,10 @@ public static class Convert {
         [Option('s', "spacingMap", HelpText = "Filename a beatmap with the desired spacing distribution.")]
         public string? SpacingBeatmapPath { get; [UsedImplicitly] set; }
 
-        [Option('v', "visualSpacing", HelpText = "Optimize visual spacing", Default = true)]
+        [Option('v', "visualSpacing", HelpText = "Optimize visual spacing", Default = false)]
         public bool VisualSpacing { get; [UsedImplicitly] set; }
 
-        [Option('a', "sliderAngles", HelpText = "Optimize slider angles", Default = true)]
+        [Option('a', "sliderAngles", HelpText = "Optimize slider angles", Default = false)]
         public bool SliderAngles { get; [UsedImplicitly] set; }
     }
 
