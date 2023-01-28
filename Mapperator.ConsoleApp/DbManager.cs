@@ -67,7 +67,7 @@ namespace Mapperator.ConsoleApp {
         public static IEnumerable<IBeatmap> GetFilteredAndRead(IHasFilter opts) {
             return GetFiltered(opts)
                 .Select(o => Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim()))
-                .Where(o => {
+                .Where((o) => {
                     if (File.Exists(o)) {
                         Console.Write('.');
                         return true;
@@ -85,6 +85,29 @@ namespace Mapperator.ConsoleApp {
                         return null;
                     }
                 }).Where(ValidBeatmap)!;
+        }
+
+        public static IEnumerable<(IBeatmap, DbBeatmap)> GetFilteredAndRead2(IHasFilter opts) {
+            return GetFiltered(opts)
+                .Select(o => (Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim()), o))
+                .Where(o => {
+                    if (File.Exists(o.Item1)) {
+                        Console.Write('.');
+                        return true;
+                    }
+
+                    Console.WriteLine(Strings.CouldNotFindFile, o.Item1);
+                    return false;
+                })
+                .Select<(string, DbBeatmap), (IBeatmap?, DbBeatmap)>(o => {
+                    try {
+                        return (new BeatmapEditor(o.Item1).ReadFile(), o.Item2);
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine(Strings.ErrorReadingFile, o.Item1, e);
+                        return (null, o.Item2);
+                    }
+                }).Where(o => ValidBeatmap(o.Item1))!;
         }
 
         public static bool ValidBeatmap(IBeatmap? beatmap) {

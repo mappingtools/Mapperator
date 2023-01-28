@@ -2,7 +2,7 @@
   "profiles": {
     "CountData": {
       "commandName": "Project",
-      "commandLineArgs": "count -s Ranked -m Standard -a Sotarks -v"
+      "commandLineArgs": "count -m Standard -s Ranked"
     },
     "VisualSpacingTest": {
       "commandName": "Project",
@@ -15,6 +15,10 @@
     "ExtractAllData": {
       "commandName": "Project",
       "commandLineArgs": "extract -s Ranked -m Standard -a Sotarks -o SotarksData"
+    },
+    "ExtractAllData122123": {
+      "commandName": "Project",
+      "commandLineArgs": "count -m Standard -a \"I Must Decrease\" -v"
     },
     "ConvertMap": {
       "commandName": "Project",
