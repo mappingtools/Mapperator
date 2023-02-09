@@ -8,9 +8,9 @@ namespace Mapperator {
     public static class DataSerializer2 {
         private const string BeatmapSeparator = "/-\\_/-\\_/-\\";
 
-        public static IEnumerable<string> SerializeBeatmapData(IEnumerable<(IEnumerable<MapDataPoint2>, SectionDifficulty, double)> data) {
-            foreach (var (beatmap, difficulty, sr) in data) {
-                yield return sr.ToString(CultureInfo.InvariantCulture);
+        public static IEnumerable<string> SerializeBeatmapData(IEnumerable<(IEnumerable<MapDataPoint2>, SectionDifficulty, int)> data) {
+            foreach (var (beatmap, difficulty, beatmapId) in data) {
+                yield return beatmapId.ToString(CultureInfo.InvariantCulture);
                 yield return difficulty.ApproachRate.ToString(CultureInfo.InvariantCulture);
                 yield return difficulty.CircleSize.ToString(CultureInfo.InvariantCulture);
                 yield return difficulty.OverallDifficulty.ToString(CultureInfo.InvariantCulture);

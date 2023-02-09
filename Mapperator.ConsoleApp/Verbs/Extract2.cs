@@ -20,7 +20,7 @@ public static class Extract2 {
         var extractor = new DataExtractor2();
         File.WriteAllLines(Path.ChangeExtension(opts.OutputName, ".txt"),
             DataSerializer2.SerializeBeatmapData(DbManager.GetFilteredAndRead2(opts)
-                .SelectMany(b => mirrors.Select(m => (extractor.ExtractBeatmapData(b.Item1, m), b.Item1.Difficulty, DbManager.GetDefaultStarRating(b.Item2))))
+                .Select(b => (extractor.ExtractBeatmapData(b.Item1), b.Item1.Difficulty, b.Item2.BeatmapId))
             ));
 
         return 0;
