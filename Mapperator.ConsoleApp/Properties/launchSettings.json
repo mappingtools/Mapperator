@@ -2,7 +2,7 @@
   "profiles": {
     "CountData": {
       "commandName": "Project",
-      "commandLineArgs": "count -m Standard -s Ranked"
+      "commandLineArgs": "count -m Standard -s Ranked -i 200000 -u -f"
     },
     "VisualSpacingTest": {
       "commandName": "Project",

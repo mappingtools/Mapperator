@@ -90,6 +90,24 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Total duration: {0}.
+        /// </summary>
+        internal static string Count_DoDataCount_Total_duration___0_ {
+            get {
+                return ResourceManager.GetString("Count_DoDataCount_Total_duration___0_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total file size: {0} MB.
+        /// </summary>
+        internal static string Count_DoDataCount_Total_file_size___0__MB {
+            get {
+                return ResourceManager.GetString("Count_DoDataCount_Total_file_size___0__MB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error reading file &apos;{0}&apos;:
         ///{1}.
         /// </summary>
