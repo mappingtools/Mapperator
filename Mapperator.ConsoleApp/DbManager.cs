@@ -10,6 +10,7 @@ using Mapperator.ConsoleApp.Resources;
 using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
+using OsuParsers.Database;
 using OsuParsers.Enums;
 
 namespace Mapperator.ConsoleApp {
@@ -30,10 +31,17 @@ namespace Mapperator.ConsoleApp {
             return collection.MD5Hashes.SelectMany(o => beatmaps.Where(b => b.MD5Hash == o));
         }
 
-        public static List<DbBeatmap> GetAll() {
+        public static OsuDatabase GetOsuDatabase() {
             var osuDbPath = Path.Join(ConfigManager.Config.OsuPath, "osu!.db");
-            var db = DatabaseDecoder.DecodeOsu(osuDbPath);
-            return db.Beatmaps;
+            return DatabaseDecoder.DecodeOsu(osuDbPath);
+        }
+
+        public static List<DbBeatmap> GetAll() {
+            return GetOsuDatabase().Beatmaps;
+        }
+
+        public static IEnumerable<DbBeatmap> GetMapSet(OsuDatabase db, int setId) {
+            return db.Beatmaps.Where(o => o.BeatmapSetId == setId);
         }
 
         public static IEnumerable<DbBeatmap> GetFiltered(IHasFilter opts) {

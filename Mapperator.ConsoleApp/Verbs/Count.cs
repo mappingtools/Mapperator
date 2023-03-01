@@ -32,7 +32,7 @@ public static class Count {
                 if (opts.Verbose) Console.WriteLine(Strings.FullBeatmapName, o.Artist, o.Title, o.Creator, o.Difficulty);
                 if (!opts.UniqueSong) return true;
                 string songFile = Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.AudioFileName.Trim());
-                string songName = $"{o.Artist} - {RemovePartsBetweenParentheses(o.Title)}";
+                string songName = $"{o.Artist} - {Dataset.RemovePartsBetweenParentheses(o.Title)}";
                 if (!string.Equals(Path.GetExtension(songFile), ".mp3", StringComparison.OrdinalIgnoreCase)) return false;
                 if (songNames.Contains(songName)) return false;
                 songNames.Add(songName);
@@ -57,19 +57,5 @@ public static class Count {
         }
 
         return 0;
-    }
-
-    private static string RemovePartsBetweenParentheses(string str) {
-        Span<char> span = stackalloc char[str.Length];
-        int j = 0;
-        for (int i = 0; i < str.Length; i++) {
-            if (str[i] == '(') {
-                if (i > 0 && str[i - 1] == ' ') j--;
-                while (str[i] != ')') i++;
-                continue;
-            }
-            span[j++] = str[i];
-        }
-        return span[..j].ToString();
     }
 }

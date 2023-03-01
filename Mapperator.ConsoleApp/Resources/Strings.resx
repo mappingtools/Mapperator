@@ -178,4 +178,16 @@ Basic usage:
   <data name="Count_DoDataCount_Total_duration___0_" xml:space="preserve">
     <value>Total duration: {0}</value>
   </data>
+  <data name="Dataset_DoDataExtraction_Finding_beatmap_sets___" xml:space="preserve">
+    <value>Finding beatmap sets...</value>
+  </data>
+  <data name="Dataset_DoDataExtraction_Count_Update" xml:space="preserve">
+    <value>{0} sets found</value>
+  </data>
+  <data name="Dataset_DoDataExtraction_Writing_dataset___" xml:space="preserve">
+    <value>Writing dataset...</value>
+  </data>
+  <data name="Dataset_DoDataExtraction_Copy_Update" xml:space="preserve">
+    <value>Copied beatmap set {0}/{1}</value>
+  </data>
 </root>
