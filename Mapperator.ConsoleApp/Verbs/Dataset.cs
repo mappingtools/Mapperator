@@ -61,7 +61,7 @@ public static class Dataset {
             try {
                 new BeatmapEditor(mapFile).ReadFile();
             } catch (Exception e) {
-                Console.WriteLine(Strings.ErrorReadingFile, o, e);
+                Console.WriteLine(Strings.ErrorReadingFile, mapFile, e);
                 continue;
             }
 
@@ -107,7 +107,7 @@ public static class Dataset {
                     ClearStoryboard(beatmap.Storyboard);
 
                     string mapName = $"M{mapCount:D3}";
-                    string mapOutputName = Path.Combine(opts.OutputFolder, mapSetFolderName, mapSubFolder, mapName);
+                    string mapOutputName = Path.Combine(opts.OutputFolder, mapSetFolderName, mapSubFolder, mapName + ".osu");
                     editor.Path = mapOutputName;
                     editor.WriteFile(beatmap);
 
@@ -116,7 +116,7 @@ public static class Dataset {
                     mapCount++;
                     lastMap = dbBeatmap;
                 } catch (Exception e) {
-                    Console.WriteLine(Strings.ErrorReadingFile, dbBeatmap, e);
+                    Console.WriteLine(Strings.ErrorReadingFile, mapFile, e);
                 }
             }
 
