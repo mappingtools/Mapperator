@@ -52,7 +52,7 @@ public class BestScoreFilter : IMatchFilter {
 
             foreach (var match in matches) {
                 tasks[t++] = Task.Run(() => {
-                    ProcessMatch(match);
+                    processMatch(match);
                 });
 
                 if (t != nTasks) continue;
@@ -63,11 +63,11 @@ public class BestScoreFilter : IMatchFilter {
             Task.WaitAll(tasks);
         } else {
             foreach (var match in matches) {
-                ProcessMatch(match);
+                processMatch(match);
             }
         }
 
-        void ProcessMatch(Match match) {
+        void processMatch(Match match) {
             // ReSharper disable once InconsistentlySynchronizedField
             var score = judge.Judge(match);
 
