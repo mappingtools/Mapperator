@@ -72,6 +72,15 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading ML model....
+        /// </summary>
+        internal static string ConvertML_DoMapConvert_Loading_ML_model___ {
+            get {
+                return ResourceManager.GetString("ConvertML_DoMapConvert_Loading_ML_model___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find collection &apos;{0}&apos;..
         /// </summary>
         internal static string CouldNotFindCollection {

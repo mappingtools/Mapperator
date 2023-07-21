@@ -172,4 +172,7 @@ Basic usage:
   <data name="Program_DoMapConvert_Converting_spacing_to_reference_beatmap___" xml:space="preserve">
     <value>Converting spacing to reference beatmap...</value>
   </data>
+  <data name="ConvertML_DoMapConvert_Loading_ML_model___" xml:space="preserve">
+    <value>Loading ML model...</value>
+  </data>
 </root>
