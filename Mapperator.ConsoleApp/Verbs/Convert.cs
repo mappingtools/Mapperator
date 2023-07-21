@@ -131,11 +131,11 @@ public static class Convert {
         var inputSpacingData = to.Select(o => o.Spacing).ToList();
         inputSpacingData.Sort();
 
-        return to.Select(o => new MapDataPoint(o.DataType, o.BeatsSince, Transform(o.Spacing, o.BeatsSince, spacingData), o.Angle,
-            o.NewCombo, o.SliderType, o.SliderLength.HasValue ? Transform(o.SliderLength.Value, o.BeatsSince, sliderSpacingData) : null,
+        return to.Select(o => new MapDataPoint(o.DataType, o.BeatsSince, transform(o.Spacing, o.BeatsSince, spacingData), o.Angle,
+            o.NewCombo, o.SliderType, o.SliderLength.HasValue ? transform(o.SliderLength.Value, o.BeatsSince, sliderSpacingData) : null,
             o.SliderSegments, o.Repeats, o.HitObject)).ToArray();
 
-        double Transform(double spacing, double beats, double[]?[] data) {
+        double transform(double spacing, double beats, double[]?[] data) {
             var gap = MathHelper.Clamp((int)Math.Round(Math.Log2(beats) + 6), 0, 8);
             var index = inputSpacingData.IndexOf(spacing);
             if (data[gap] is null || data[gap]!.Length == 0)

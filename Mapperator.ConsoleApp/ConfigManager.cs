@@ -8,7 +8,7 @@ using Mapperator.ConsoleApp.Resources;
 
 namespace Mapperator.ConsoleApp {
     public static class ConfigManager {
-        private static readonly JsonSerializer Serializer = new() {
+        private static readonly JsonSerializer serializer = new() {
             NullValueHandling = NullValueHandling.Ignore,
             Formatting = Formatting.Indented
         };
@@ -28,7 +28,7 @@ namespace Mapperator.ConsoleApp {
             try {
                 using var sr = new StreamReader(Constants.ConfigPath);
                 using var reader = new JsonTextReader(sr);
-                Config = Serializer.Deserialize<Config>(reader) ?? Config;
+                Config = serializer.Deserialize<Config>(reader) ?? Config;
             } catch (Exception ex) {
                 Console.WriteLine(ex);
             }
@@ -38,7 +38,7 @@ namespace Mapperator.ConsoleApp {
             try {
                 using var sw = new StreamWriter(Constants.ConfigPath);
                 using var writer = new JsonTextWriter(sw);
-                Serializer.Serialize(writer, Config);
+                serializer.Serialize(writer, Config);
             } catch (Exception ex) {
                 Console.WriteLine(ex);
             }
