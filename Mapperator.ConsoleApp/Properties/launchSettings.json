@@ -1,5 +1,9 @@
 {
   "profiles": {
+    "CreateDataSet": {
+      "commandName": "Project",
+      "commandLineArgs": "dataset -m Standard -s Ranked -i 200000 -o \"D:\\Osu! Dingen\\Beatmap ML Datasets\\Big\""
+    },
     "CountData": {
       "commandName": "Project",
       "commandLineArgs": "count -m Standard -s Ranked -i 200000 -u -f"
