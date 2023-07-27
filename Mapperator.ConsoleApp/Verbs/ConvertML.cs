@@ -35,7 +35,7 @@ public static class ConvertML {
         var input = new DataExtractor().ExtractBeatmapData(map).ToArray();
 
         Console.WriteLine(Strings.ConvertML_DoMapConvert_Loading_ML_model___);
-        var mapperator = new MapperatorML(opts.ModelPath, 2000, 4);
+        var mapperator = new MapperatorML(opts.ModelPath);
 
         // Construct new beatmap
         Console.WriteLine(Strings.Program_DoMapConvert_Constructing_beatmap___);
