@@ -12,6 +12,7 @@ using Mapperator.ConsoleApp.Resources;
 using Mapping_Tools_Core.Audio;
 using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
+using NVorbis;
 using OsuParsers.Database.Objects;
 using OsuParsers.Enums;
 using OsuParsers.Enums.Database;
@@ -35,6 +36,7 @@ public static class Dataset {
         Console.WriteLine(Strings.Dataset_DoDataExtraction_Finding_beatmap_sets___);
 
         var mapSets = new Dictionary<(string, string), (int, string)>();
+        var mapSetIds = new HashSet<int>();
         long totalSize = 0;
         var totalTime = TimeSpan.Zero;
 
@@ -42,16 +44,26 @@ public static class Dataset {
             string songFile = Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.AudioFileName.Trim());
             string mapFile = Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim());
             var songName = (o.Artist, RemovePartsBetweenParentheses(o.Title));
+            string extension = Path.GetExtension(songFile).ToLower();
 
-            if (!string.Equals(Path.GetExtension(songFile), ".mp3", StringComparison.OrdinalIgnoreCase)) continue;
             if (mapSets.ContainsKey(songName)) continue;
+            if (mapSetIds.Contains(o.BeatmapSetId)) continue;
 
             var info = new FileInfo(songFile);
             if (!info.Exists) continue;
 
             totalSize += info.Length;
             try {
-                totalTime += new Mp3FileReader(songFile).TotalTime;
+                switch (extension) {
+                    case ".mp3":
+                        totalTime += new Mp3FileReader(songFile).TotalTime;
+                        break;
+                    case ".ogg":
+                        totalTime += new VorbisReader(songFile).TotalTime;
+                        break;
+                    default:
+                        continue;
+                }
             } catch (InvalidOperationException e) {
                 Console.WriteLine(e);
                 continue;
@@ -66,6 +78,7 @@ public static class Dataset {
             }
 
             mapSets.Add(songName, (o.BeatmapSetId, songFile));
+            mapSetIds.Add(o.BeatmapSetId);
             Console.Write('\r');
             Console.Write(Strings.Dataset_DoDataExtraction_Count_Update, mapSets.Count);
         }
@@ -76,13 +89,14 @@ public static class Dataset {
         Console.WriteLine(Strings.Dataset_DoDataExtraction_Writing_dataset___);
 
         const string mapSubFolder = "beatmaps";
-        const string audioName = "audio.mp3";
+        const string audioName = "audio";
         const string metadataName = "metadata.json";
         var options = new JsonSerializerOptions { WriteIndented = true, Converters = { new DictionaryConverter() }};
 
         var sortedMapSets = mapSets.Values.OrderBy(o => o.Item1).ToArray();
         var db = DbManager.GetOsuDatabase();
         int mapSetCount = 0;
+        int totalBeatmapCount = 0;
         for (var i = 0; i < sortedMapSets.Length; i++) {
             var (mapSetId, songFile) = sortedMapSets[i];
             var maps = DbManager.GetMapSet(db, mapSetId).OrderBy(DbManager.GetDefaultStarRating).ToArray();
@@ -106,14 +120,42 @@ public static class Dataset {
                     var beatmap = editor.ReadFile();
                     ClearStoryboard(beatmap.Storyboard);
 
-                    string mapName = $"M{mapCount:D3}";
+                    // Make sure the beatmap ID matches the one in the database
+                    beatmap.Metadata.BeatmapId = dbBeatmap.BeatmapId;
+                    beatmap.Metadata.BeatmapSetId = dbBeatmap.BeatmapSetId;
+
+                    string mapName = $"{totalBeatmapCount:D6}M{mapCount:D3}";
                     string mapOutputName = Path.Combine(opts.OutputFolder, mapSetFolderName, mapSubFolder, mapName + ".osu");
                     editor.Path = mapOutputName;
                     editor.WriteFile(beatmap);
 
-                    beatmapMetadatas.Add(mapName, new BeatmapMetadata(dbBeatmap.BeatmapId, dbBeatmap.OnlineOffset, dbBeatmap.DrainTime, dbBeatmap.TotalTime, dbBeatmap.RankedStatus, dbBeatmap.StandardStarRating, dbBeatmap.TaikoStarRating, dbBeatmap.CatchStarRating, dbBeatmap.ManiaStarRating));
+                    beatmapMetadatas.Add(mapName, new BeatmapMetadata(
+                        totalBeatmapCount,
+                        dbBeatmap.BeatmapId,
+                        dbBeatmap.Ruleset,
+                        dbBeatmap.MD5Hash,
+                        dbBeatmap.Difficulty,
+                        dbBeatmap.OnlineOffset,
+                        dbBeatmap.DrainTime,
+                        dbBeatmap.TotalTime,
+                        dbBeatmap.RankedStatus,
+                        dbBeatmap.CirclesCount,
+                        dbBeatmap.SpinnersCount,
+                        dbBeatmap.SlidersCount,
+                        dbBeatmap.CircleSize,
+                        dbBeatmap.ApproachRate,
+                        dbBeatmap.OverallDifficulty,
+                        dbBeatmap.HPDrain,
+                        dbBeatmap.SliderVelocity,
+                        dbBeatmap.StackLeniency,
+                        dbBeatmap.StandardStarRating,
+                        dbBeatmap.TaikoStarRating,
+                        dbBeatmap.CatchStarRating,
+                        dbBeatmap.ManiaStarRating
+                        ));
 
                     mapCount++;
+                    totalBeatmapCount++;
                     lastMap = dbBeatmap;
                 } catch (Exception e) {
                     Console.WriteLine(Strings.ErrorReadingFile, mapFile, e);
@@ -127,12 +169,23 @@ public static class Dataset {
             }
 
             // Write metadata
-            var metadata = new Metadata(mapSetId, lastMap.Artist, lastMap.Title, audioName, mapSubFolder, beatmapMetadatas);
+            string audioNameWithExtension = audioName + Path.GetExtension(songFile).ToLower();
+            var metadata = new Metadata(
+                mapSetId,
+                lastMap.Artist,
+                lastMap.Title,
+                lastMap.Creator,
+                lastMap.Source,
+                lastMap.Tags,
+                audioNameWithExtension,
+                mapSubFolder,
+                beatmapMetadatas
+                );
             string json = JsonSerializer.Serialize(metadata, options);
             File.WriteAllText(Path.Combine(mapSetFolderPath, metadataName), json);
 
             // Copy audio file
-            File.Copy(songFile, Path.Combine(opts.OutputFolder, mapSetFolderName, audioName), true);
+            File.Copy(songFile, Path.Combine(opts.OutputFolder, mapSetFolderName, audioNameWithExtension), true);
 
             Console.Write('\r');
             Console.Write(Strings.Dataset_DoDataExtraction_Copy_Update, i + 1, sortedMapSets.Length);
@@ -183,8 +236,38 @@ public static class Dataset {
     }
 
     [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Local")]
-    private record Metadata(int BeatmapSetId, string Artist, string Title, string AudioFile, string MapDir, Dictionary<string, BeatmapMetadata> Beatmaps);
+    private record Metadata(
+        int BeatmapSetId,
+        string Artist,
+        string Title,
+        string Source,
+        string Creator,
+        string Tags,
+        string AudioFile,
+        string MapDir,
+        Dictionary<string, BeatmapMetadata> Beatmaps);
 
     [SuppressMessage("ReSharper", "NotAccessedPositionalProperty.Local")]
-    private record BeatmapMetadata(int BeatmapId, short OnlineOffset, int DrainTime, int TotalTime, RankedStatus RankedStatus, Dictionary<Mods, double> StandardStarRating, Dictionary<Mods, double> TaikoStarRating, Dictionary<Mods, double> CatchStarRating, Dictionary<Mods, double> ManiaStarRating);
+    private record BeatmapMetadata(int Index,
+        int BeatmapId,
+        Ruleset Ruleset,
+        string MD5Hash,
+        string Difficulty,
+        short OnlineOffset,
+        int DrainTime,
+        int TotalTime,
+        RankedStatus RankedStatus,
+        int CirclesCount,
+        int SpinnersCount,
+        int SlidersCount,
+        float CircleSize,
+        float ApproachRate,
+        float OverallDifficulty,
+        float HPDrain,
+        double SliderVelocity,
+        float StackLeniency,
+        Dictionary<Mods, double> StandardStarRating,
+        Dictionary<Mods, double> TaikoStarRating,
+        Dictionary<Mods, double> CatchStarRating,
+        Dictionary<Mods, double> ManiaStarRating);
 }
