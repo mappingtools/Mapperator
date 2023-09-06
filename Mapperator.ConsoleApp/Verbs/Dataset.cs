@@ -43,7 +43,7 @@ public static class Dataset {
         foreach (var o in DbManager.GetFiltered(opts)) {
             string songFile = Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.AudioFileName.Trim());
             string mapFile = Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim());
-            var songName = (o.Artist, RemovePartsBetweenParentheses(o.Title));
+            var songName = (o.Artist, o.Title);
             string extension = Path.GetExtension(songFile).ToLower();
 
             if (mapSets.ContainsKey(songName)) continue;
