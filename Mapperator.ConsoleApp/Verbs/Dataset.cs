@@ -35,7 +35,7 @@ public static class Dataset {
 
         Console.WriteLine(Strings.Dataset_DoDataExtraction_Finding_beatmap_sets___);
 
-        var mapSets = new Dictionary<(string, string), (int, string)>();
+        var mapSets = new List<(int, string)>();
         var mapSetIds = new HashSet<int>();
         long totalSize = 0;
         var totalTime = TimeSpan.Zero;
@@ -43,10 +43,8 @@ public static class Dataset {
         foreach (var o in DbManager.GetFiltered(opts)) {
             string songFile = Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.AudioFileName.Trim());
             string mapFile = Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim());
-            var songName = (o.Artist, o.Title);
             string extension = Path.GetExtension(songFile).ToLower();
 
-            if (mapSets.ContainsKey(songName)) continue;
             if (mapSetIds.Contains(o.BeatmapSetId)) continue;
 
             var info = new FileInfo(songFile);
@@ -77,7 +75,7 @@ public static class Dataset {
                 continue;
             }
 
-            mapSets.Add(songName, (o.BeatmapSetId, songFile));
+            mapSets.Add((o.BeatmapSetId, songFile));
             mapSetIds.Add(o.BeatmapSetId);
             Console.Write('\r');
             Console.Write(Strings.Dataset_DoDataExtraction_Count_Update, mapSets.Count);
@@ -93,7 +91,7 @@ public static class Dataset {
         const string metadataName = "metadata.json";
         var options = new JsonSerializerOptions { WriteIndented = true, Converters = { new DictionaryConverter() }};
 
-        var sortedMapSets = mapSets.Values.OrderBy(o => o.Item1).ToArray();
+        var sortedMapSets = mapSets.OrderBy(o => o.Item1).ToArray();
         var db = DbManager.GetOsuDatabase();
         int mapSetCount = 0;
         int totalBeatmapCount = 0;
