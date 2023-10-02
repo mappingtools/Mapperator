@@ -37,6 +37,7 @@ public static class Dataset {
 
         var mapSets = new List<(int, string)>();
         var mapSetIds = new HashSet<int>();
+        var mapMd5Hashes = new HashSet<string>();
         long totalSize = 0;
         var totalTime = TimeSpan.Zero;
 
@@ -44,6 +45,8 @@ public static class Dataset {
             string songFile = Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.AudioFileName.Trim());
             string mapFile = Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim());
             string extension = Path.GetExtension(songFile).ToLower();
+
+            mapMd5Hashes.Add(o.MD5Hash);
 
             if (mapSetIds.Contains(o.BeatmapSetId)) continue;
 
@@ -109,7 +112,7 @@ public static class Dataset {
             DbBeatmap? lastMap = null;
             var beatmapMetadatas = new Dictionary<string, BeatmapMetadata>();
             foreach (var dbBeatmap in maps) {
-                if (!DbManager.DbBeatmapFilter(dbBeatmap, opts)) continue;
+                if (!DbManager.DbBeatmapFilter(dbBeatmap, opts) || !mapMd5Hashes.Contains(dbBeatmap.MD5Hash)) continue;
 
                 string mapFile = Path.Combine(ConfigManager.Config.SongsPath, dbBeatmap.FolderName.Trim(), dbBeatmap.FileName.Trim());
                 if (!File.Exists(mapFile)) continue;
