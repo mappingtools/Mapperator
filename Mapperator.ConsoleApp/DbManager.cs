@@ -10,6 +10,7 @@ using Mapperator.ConsoleApp.Resources;
 using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
 using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
+using OsuParsers.Database;
 using OsuParsers.Enums;
 
 namespace Mapperator.ConsoleApp {
@@ -30,10 +31,17 @@ namespace Mapperator.ConsoleApp {
             return collection.MD5Hashes.SelectMany(o => beatmaps.Where(b => b.MD5Hash == o));
         }
 
-        public static List<DbBeatmap> GetAll() {
+        public static OsuDatabase GetOsuDatabase() {
             var osuDbPath = Path.Join(ConfigManager.Config.OsuPath, "osu!.db");
-            var db = DatabaseDecoder.DecodeOsu(osuDbPath);
-            return db.Beatmaps;
+            return DatabaseDecoder.DecodeOsu(osuDbPath);
+        }
+
+        public static List<DbBeatmap> GetAll() {
+            return GetOsuDatabase().Beatmaps;
+        }
+
+        public static IEnumerable<DbBeatmap> GetMapSet(OsuDatabase db, int setId) {
+            return db.Beatmaps.Where(o => o.BeatmapSetId == setId);
         }
 
         public static IEnumerable<DbBeatmap> GetFiltered(IHasFilter opts) {
@@ -46,9 +54,11 @@ namespace Mapperator.ConsoleApp {
             var regex = new Regex(@$"(?!\s?(de\s)?(it|that|{string.Join('|', opts.Mapper!.Select(Regex.Escape))}))(((^|[^\S\r\n])(\S)*([sz]'|'s))|((^|[^\S\r\n])de\s(\S)*))", RegexOptions.IgnoreCase);
 
             return (!opts.MinId.HasValue || o.BeatmapSetId >= opts.MinId)
+                   && (!opts.MaxId.HasValue || o.BeatmapSetId <= opts.MaxId)
                    && (!opts.RankedStatus!.Any() || opts.RankedStatus!.Contains(o.RankedStatus))
                    && o.Ruleset == opts.Ruleset
                    && (!opts.MinStarRating.HasValue || GetDefaultStarRating(o) >= opts.MinStarRating)
+                   && (!opts.MaxStarRating.HasValue || GetDefaultStarRating(o) <= opts.MaxStarRating)
                    && (!opts.Mapper!.Any() || (opts.Mapper!.Any(x => x == o.Creator || o.Difficulty.Contains(x))
                                                && !o.Difficulty.Contains("Hitsounds", StringComparison.OrdinalIgnoreCase)
                                                && !o.Difficulty.Contains("Collab", StringComparison.OrdinalIgnoreCase)
@@ -56,18 +66,20 @@ namespace Mapperator.ConsoleApp {
         }
 
         public static double GetDefaultStarRating(DbBeatmap beatmap) {
-            return beatmap.Ruleset switch {
-                Ruleset.Taiko => beatmap.TaikoStarRating[Mods.None],
-                Ruleset.Mania => beatmap.ManiaStarRating[Mods.None],
-                Ruleset.Fruits => beatmap.CatchStarRating[Mods.None],
-                _ => beatmap.StandardStarRating[Mods.None]
+            var dict = beatmap.Ruleset switch {
+                Ruleset.Taiko => beatmap.TaikoStarRating,
+                Ruleset.Mania => beatmap.ManiaStarRating,
+                Ruleset.Fruits => beatmap.CatchStarRating,
+                _ => beatmap.StandardStarRating
             };
+
+            return dict.TryGetValue(Mods.None, out double value) ? value : double.NaN;
         }
 
         public static IEnumerable<IBeatmap> GetFilteredAndRead(IHasFilter opts) {
             return GetFiltered(opts)
                 .Select(o => Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim()))
-                .Where(o => {
+                .Where((o) => {
                     if (File.Exists(o)) {
                         Console.Write('.');
                         return true;
@@ -85,6 +97,29 @@ namespace Mapperator.ConsoleApp {
                         return null;
                     }
                 }).Where(ValidBeatmap)!;
+        }
+
+        public static IEnumerable<(IBeatmap, DbBeatmap)> GetFilteredAndRead2(IHasFilter opts) {
+            return GetFiltered(opts)
+                .Select(o => (Path.Combine(ConfigManager.Config.SongsPath, o.FolderName.Trim(), o.FileName.Trim()), o))
+                .Where(o => {
+                    if (File.Exists(o.Item1)) {
+                        Console.Write('.');
+                        return true;
+                    }
+
+                    Console.WriteLine(Strings.CouldNotFindFile, o.Item1);
+                    return false;
+                })
+                .Select<(string, DbBeatmap), (IBeatmap?, DbBeatmap)>(o => {
+                    try {
+                        return (new BeatmapEditor(o.Item1).ReadFile(), o.Item2);
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine(Strings.ErrorReadingFile, o.Item1, e);
+                        return (null, o.Item2);
+                    }
+                }).Where(o => ValidBeatmap(o.Item1))!;
         }
 
         public static bool ValidBeatmap(IBeatmap? beatmap) {

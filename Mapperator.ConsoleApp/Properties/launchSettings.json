@@ -1,12 +1,16 @@
 {
   "profiles": {
+    "CreateDataSet": {
+      "commandName": "Project",
+      "commandLineArgs": "dataset -m Standard -s Ranked -i 20000 -x 25000 -r 4 -o \"D:\\Osu! Dingen\\Beatmap ML Datasets\\old_test\""
+    },
     "ConvertMapML": {
       "commandName": "Project",
       "commandLineArgs": "convert-ml -m \"Resources\\sdf_osu_5_fine_2.h5\" -i \"Resources\\input\" -o output"
     },
     "CountData": {
       "commandName": "Project",
-      "commandLineArgs": "count -s Ranked -m Standard -a Sotarks -v"
+      "commandLineArgs": "count -m Standard -s Ranked -i 20000 -x 25000 -r 4 -f"
     },
     "VisualSpacingTest": {
       "commandName": "Project",
@@ -19,6 +23,10 @@
     "ExtractAllData": {
       "commandName": "Project",
       "commandLineArgs": "extract -s Ranked -m Standard -a Sotarks -o SotarksData"
+    },
+    "ExtractAllData122123": {
+      "commandName": "Project",
+      "commandLineArgs": "extract2 -s Ranked -m Standard -o pp_data_v2"
     },
     "ConvertMap": {
       "commandName": "Project",
