@@ -22,6 +22,14 @@ Reconstruct a beatmap using the extracted data
 .\Mapperator.ConsoleApp.exe convert -d SotarksData -i path_to_beatmap.osu -o converted_beatmap
 ```
 
+You can specify an osu! folder. There should be a `config.json` next to the executable with some paths. This is the contents:
+```
+{
+  "OsuPath": "C:\\Users\\name\\AppData\\Local\\osu!",
+  "SongsPath": "C:\\Users\\name\\AppData\\Local\\osu!\\Songs"
+}
+```
+
 ## Demo App
 
 ![](https://i.imgur.com/iU5TE28.png)

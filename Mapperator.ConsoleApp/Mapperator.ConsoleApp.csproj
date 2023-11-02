@@ -10,7 +10,7 @@
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="MappingTools.Core" Version="0.5.3" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OsuParsers" Version="1.7.1" />
   </ItemGroup>
 
@@ -42,9 +42,19 @@
     <None Update="Resources\input2.osu">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\sdf_osu_5.h5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\sdf_osu_5_fine.h5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\sdf_osu_5_fine_2.h5">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Mapperator.ML\Mapperator.ML.csproj" />
     <ProjectReference Include="..\Mapperator\Mapperator.csproj" />
   </ItemGroup>
 

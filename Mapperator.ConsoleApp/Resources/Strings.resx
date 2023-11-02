@@ -189,5 +189,7 @@ Basic usage:
   </data>
   <data name="Dataset_DoDataExtraction_Copy_Update" xml:space="preserve">
     <value>Copied beatmap set {0}/{1}</value>
+  <data name="ConvertML_DoMapConvert_Loading_ML_model___" xml:space="preserve">
+    <value>Loading ML model...</value>
   </data>
 </root>
