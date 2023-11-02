@@ -54,9 +54,11 @@ namespace Mapperator.ConsoleApp {
             var regex = new Regex(@$"(?!\s?(de\s)?(it|that|{string.Join('|', opts.Mapper!.Select(Regex.Escape))}))(((^|[^\S\r\n])(\S)*([sz]'|'s))|((^|[^\S\r\n])de\s(\S)*))", RegexOptions.IgnoreCase);
 
             return (!opts.MinId.HasValue || o.BeatmapSetId >= opts.MinId)
+                   && (!opts.MaxId.HasValue || o.BeatmapSetId <= opts.MaxId)
                    && (!opts.RankedStatus!.Any() || opts.RankedStatus!.Contains(o.RankedStatus))
                    && o.Ruleset == opts.Ruleset
                    && (!opts.MinStarRating.HasValue || GetDefaultStarRating(o) >= opts.MinStarRating)
+                   && (!opts.MaxStarRating.HasValue || GetDefaultStarRating(o) <= opts.MaxStarRating)
                    && (!opts.Mapper!.Any() || (opts.Mapper!.Any(x => x == o.Creator || o.Difficulty.Contains(x))
                                                && !o.Difficulty.Contains("Hitsounds", StringComparison.OrdinalIgnoreCase)
                                                && !o.Difficulty.Contains("Collab", StringComparison.OrdinalIgnoreCase)
@@ -64,12 +66,14 @@ namespace Mapperator.ConsoleApp {
         }
 
         public static double GetDefaultStarRating(DbBeatmap beatmap) {
-            return beatmap.Ruleset switch {
-                Ruleset.Taiko => beatmap.TaikoStarRating[Mods.None],
-                Ruleset.Mania => beatmap.ManiaStarRating[Mods.None],
-                Ruleset.Fruits => beatmap.CatchStarRating[Mods.None],
-                _ => beatmap.StandardStarRating[Mods.None]
+            var dict = beatmap.Ruleset switch {
+                Ruleset.Taiko => beatmap.TaikoStarRating,
+                Ruleset.Mania => beatmap.ManiaStarRating,
+                Ruleset.Fruits => beatmap.CatchStarRating,
+                _ => beatmap.StandardStarRating
             };
+
+            return dict.TryGetValue(Mods.None, out double value) ? value : double.NaN;
         }
 
         public static IEnumerable<IBeatmap> GetFilteredAndRead(IHasFilter opts) {

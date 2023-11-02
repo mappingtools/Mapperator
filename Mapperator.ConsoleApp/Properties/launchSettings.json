@@ -2,11 +2,11 @@
   "profiles": {
     "CreateDataSet": {
       "commandName": "Project",
-      "commandLineArgs": "dataset -m Standard -s Ranked -i 200000 -o \"D:\\Osu! Dingen\\Beatmap ML Datasets\\Big\""
+      "commandLineArgs": "dataset -m Standard -s Ranked -i 20000 -x 25000 -r 4 -o \"D:\\Osu! Dingen\\Beatmap ML Datasets\\old_test\""
     },
     "CountData": {
       "commandName": "Project",
-      "commandLineArgs": "count -m Standard -s Ranked -i 200000 -u -f"
+      "commandLineArgs": "count -m Standard -s Ranked -i 20000 -x 25000 -r 4 -f"
     },
     "VisualSpacingTest": {
       "commandName": "Project",
