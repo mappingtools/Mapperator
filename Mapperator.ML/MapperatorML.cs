@@ -29,15 +29,15 @@ public class MapperatorML {
     private readonly Tensor coordinates;
     private readonly Tensor coordinatesFlat;
 
-    public MapperatorML(string modelPath, int width = 128, int height = 96, float maxSdfDistance = 20) {
-        lookBack = 1500;
-        numWindows = 3;
+    public MapperatorML(string modelPath, double lookBack = 2000, int numWindows = 4, int width = 128, int height = 96, float maxSdfDistance = 20) {
+        this.lookBack = lookBack;
+        this.numWindows = numWindows;
         this.maxSdfDistance = maxSdfDistance;
         this.width = width;
         this.height = height;
         decoder = new HitObjectDecoder();
 
-        model = Models.GetModel3(new Shape(height, width, numWindows));
+        model = Models.GetModel2(new Shape(height, width, numWindows));
         model.load_weights(modelPath);
 
         flatNum = width * height;
@@ -60,16 +60,12 @@ public class MapperatorML {
             var dataPoint = pattern.Span[i];
             var originalHo = string.IsNullOrWhiteSpace(dataPoint.HitObject) ? null : decoder.Decode(dataPoint.HitObject);
 
-            double oldTime = time;
-            time = timing?.WalkBeatsInMillisecondTime(dataPoint.BeatsSince, time) ?? time + 1;
-            double dt = time - oldTime;
-
             // Predict new position using AI
             var input = tf.expand_dims(GetMultiSdf(hitObjectData, hitObjectRadius, time), 0);
-            var tInput = tf.expand_dims(GetTimestepEmbedding(dt), 0);
-            var output = model.predict(new Tensors(input, tInput));
+            var output = model.predict(input);
             var probsByDist = DistanceProbability(ToArray(pos), Math.Max(dataPoint.Spacing, 1));
             pos = WeightedRandomPosition(probsByDist * output);
+            time = timing?.WalkBeatsInMillisecondTime(dataPoint.BeatsSince, time) ?? time + 1;
 
             Console.WriteLine($"time = {time}, pos = {pos}");
 
@@ -169,28 +165,12 @@ public class MapperatorML {
         }
     }
 
-    private static Tensor GetTimestepEmbedding(double timestep, int dim = 64, double maxPeriod = 10000) {
-        int half = dim / 2;
-        var freqs = tf.exp(-Math.Log(maxPeriod) * tf.range(0, half, dtype: tf.float32) / half);
-        var args = tf.constant(timestep, dtype: tf.float32) * freqs;
-        var embedding = tf.concat(new[] { tf.cos(args), tf.sin(args) }, 0);
-        return embedding;
-    }
-
     private Vector2 WeightedRandomPosition(Tensor weights) {
         var probsBatch = tf.reshape(weights, new Shape(1, -1));
         var logProbBatch = tf.log(probsBatch).numpy();
         var indices = tf.random.categorical(logProbBatch, 1, output_dtype: dtypes.int32).numpy();
         var posIndexTensor = np.reshape(indices, new Shape(Array.Empty<int>()));
         var posIndex = (int)posIndexTensor;
-        double[] posArray = coordinatesFlat[posIndex].ToArray<double>();
-        return new Vector2(posArray[0], posArray[1]);
-    }
-
-    private Vector2 GreedyPosition(Tensor weights) {
-        var probsBatch = tf.reshape(weights, new Shape(1, -1));
-        var posIndexTensor = tf.arg_max(probsBatch, 1, output_type: tf.int32);
-        var posIndex = (int)tf.reshape(posIndexTensor, new Shape(Array.Empty<int>()));
         double[] posArray = coordinatesFlat[posIndex].ToArray<double>();
         return new Vector2(posArray[0], posArray[1]);
     }
@@ -210,19 +190,15 @@ public class MapperatorML {
 
     private Tensor GetMultiSdf(IList<(double, Tensor)> hitObjectData, float hitObjectRadius, double time) {
         double windowSize = lookBack / numWindows;
-        var sdfs = new Tensor[numWindows + 1];
-
-        var lastData = hitObjectData.FirstOrDefault(o => Precision.DefinitelySmaller(o.Item1, time));
-        var lastPos = lastData.Item2 is null ? tf.zeros(new Shape(0, 2), dtypes.float32) : lastData.Item2[-1];
-        sdfs[0] = GeometryToSdf(lastPos, hitObjectRadius);
+        var sdfs = new Tensor[numWindows];
 
         for (var i = 0; i < numWindows; i++) {
             double start = time - (i + 1) * windowSize;
-            double end = time - i * windowSize - Precision.DOUBLE_EPSILON;
+            double end = time - i * windowSize + Precision.DOUBLE_EPSILON;
 
             var geometryInWindow = GetHitObjectDataInWindow(hitObjectData, start, end).ToArray();
             var data = geometryInWindow.Length > 0 ? tf.concat(geometryInWindow, 0) : tf.zeros(new Shape(0, 2), dtypes.float32);
-            sdfs[i + 1] = GeometryToSdf(data, hitObjectRadius);
+            sdfs[i] = GeometryToSdf(data, hitObjectRadius);
         }
 
         return tf.stack(sdfs, 2);
@@ -299,7 +275,7 @@ public class MapperatorML {
     }
 
     private static IEnumerable<Tensor> GetHitObjectDataInWindow(IEnumerable<(double, Tensor)> hitObjects, double start, double end) {
-        return hitObjects.Where(o => o.Item1 >= start && o.Item1 < end).Select(o => o.Item2);
+        return hitObjects.Where(o => o.Item1 > start && o.Item1 <= end).Select(o => o.Item2);
     }
 
     /// <summary>
