@@ -4,10 +4,6 @@
       "commandName": "Project",
       "commandLineArgs": "dataset -m Standard -s Ranked -i 20000 -x 25000 -r 4 -o \"D:\\Osu! Dingen\\Beatmap ML Datasets\\old_test\""
     },
-    "ConvertMapML": {
-      "commandName": "Project",
-      "commandLineArgs": "convert-ml -m \"my_checkpoint.h5\" -i \"Resources\\input\" -o output"
-    },
     "CountData": {
       "commandName": "Project",
       "commandLineArgs": "count -m Standard -s Ranked -i 20000 -x 25000 -r 4 -f"
