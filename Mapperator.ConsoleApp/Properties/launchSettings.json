@@ -6,7 +6,7 @@
     },
     "ConvertMapML": {
       "commandName": "Project",
-      "commandLineArgs": "convert-ml -m \"Resources\\sdf_osu_5.h5\" -i \"Resources\\dorchadas\" -o output"
+      "commandLineArgs": "convert-ml -m \"Resources\\sdf_osu_4.h5\" -i \"Resources\\input\" -o output"
     },
     "CountData": {
       "commandName": "Project",

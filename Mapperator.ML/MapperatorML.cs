@@ -31,7 +31,7 @@ public class MapperatorML {
 
     public MapperatorML(string modelPath, int width = 128, int height = 96, float maxSdfDistance = 20) {
         lookBack = 1500;
-        numWindows = 2;
+        numWindows = 3;
         this.maxSdfDistance = maxSdfDistance;
         this.width = width;
         this.height = height;
@@ -55,7 +55,6 @@ public class MapperatorML {
         (var pos, double _, double time) = new Continuation(hitObjects);
 
         var hitObjectData = new List<(double, Tensor)>(hitObjects.Where(o => o is not Spinner).Select(GetData));
-        var lastTInput = tf.expand_dims(GetTimestepEmbedding(1000), 0);
 
         for (var i = 0; i < pattern.Length; i++) {
             var dataPoint = pattern.Span[i];
@@ -68,16 +67,12 @@ public class MapperatorML {
             // Predict new position using AI
             var input = tf.expand_dims(GetMultiSdf(hitObjectData, hitObjectRadius, time), 0);
             var tInput = tf.expand_dims(GetTimestepEmbedding(dt), 0);
-            var output = model.predict(new Tensors(input, tInput, lastTInput));
+            var output = model.predict(new Tensors(input, tInput));
             var probsByDist = DistanceProbability(ToArray(pos), Math.Max(dataPoint.Spacing, 1));
             pos = WeightedRandomPosition(probsByDist * output);
 
             Console.WriteLine($"time = {time}, pos = {pos}");
 
-            if (dataPoint.DataType == Model.DataType.Hit)
-                lastTInput = tInput;
-
-            // Add hit object
             if (dataPoint.DataType == Model.DataType.Release && hitObjects.Count > 0) {
                 if (hitObjects[^1] is Spinner lastSpinner) {
                     // Make sure the last object ends at time t
@@ -215,15 +210,11 @@ public class MapperatorML {
 
     private Tensor GetMultiSdf(IList<(double, Tensor)> hitObjectData, float hitObjectRadius, double time) {
         double windowSize = lookBack / numWindows;
-        var sdfs = new Tensor[numWindows + 2];
+        var sdfs = new Tensor[numWindows + 1];
 
         var lastData = hitObjectData.FirstOrDefault(o => Precision.DefinitelySmaller(o.Item1, time));
         var lastPos = lastData.Item2 is null ? tf.zeros(new Shape(0, 2), dtypes.float32) : lastData.Item2[-1];
         sdfs[0] = GeometryToSdf(lastPos, hitObjectRadius);
-
-        var lastLastData = hitObjectData.FirstOrDefault(o => Precision.DefinitelySmaller(o.Item1, lastData.Item1));
-        var lastLastPos = lastLastData.Item2 is null ? tf.zeros(new Shape(0, 2), dtypes.float32) : lastLastData.Item2[-1];
-        sdfs[1] = GeometryToSdf(lastLastPos, hitObjectRadius);
 
         for (var i = 0; i < numWindows; i++) {
             double start = time - (i + 1) * windowSize;
@@ -231,7 +222,7 @@ public class MapperatorML {
 
             var geometryInWindow = GetHitObjectDataInWindow(hitObjectData, start, end).ToArray();
             var data = geometryInWindow.Length > 0 ? tf.concat(geometryInWindow, 0) : tf.zeros(new Shape(0, 2), dtypes.float32);
-            sdfs[i + 2] = GeometryToSdf(data, hitObjectRadius);
+            sdfs[i + 1] = GeometryToSdf(data, hitObjectRadius);
         }
 
         return tf.stack(sdfs, 2);

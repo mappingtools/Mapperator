@@ -76,15 +76,10 @@ public class Models {
 
     public static IModel GetModel3(Shape imgSize) {
         var inputs = keras.Input(imgSize);
-        var t1EmbedInput = keras.Input(64);
-        var t2EmbedInput = keras.Input(64);
+        var tEmbedInput = keras.Input(64);
 
-        var t1Emb = keras.layers.Dense(128).Apply(t1EmbedInput);
-        t1Emb = keras.layers.Swish().Apply(t1Emb);
-        var t2Emb = keras.layers.Dense(128).Apply(t2EmbedInput);
-        t2Emb = keras.layers.Swish().Apply(t2Emb);
-
-        var tEmb = keras.layers.Concatenate().Apply(new Tensors(t1Emb, t2Emb));
+        var tEmb = keras.layers.Dense(128).Apply(tEmbedInput);
+        tEmb = keras.layers.Swish().Apply(tEmb);
         tEmb = keras.layers.Dense(512).Apply(tEmb);
         tEmb = keras.layers.Reshape(new Shape(1, 1, 512)).Apply(tEmb);
 
@@ -105,6 +100,6 @@ public class Models {
         output = keras.layers.Flatten().Apply(output);
         output = keras.layers.Softmax().Apply(output);
 
-        return keras.Model(new Tensors(inputs, t1EmbedInput, t2EmbedInput), output, name: "U-Net3");
+        return keras.Model(new Tensors(inputs, tEmbedInput), output, name: "U-Net3");
     }
 }

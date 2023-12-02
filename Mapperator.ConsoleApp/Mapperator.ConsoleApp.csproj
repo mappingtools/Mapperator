@@ -42,7 +42,7 @@
     <None Update="Resources\input2.osu">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Resources\sdf_osu_5.h5">
+    <None Update="Resources\sdf_osu_4.h5">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
