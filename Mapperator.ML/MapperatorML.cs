@@ -10,7 +10,6 @@ using Mapping_Tools_Core.BeatmapHelper.TimingStuff;
 using Mapping_Tools_Core.MathUtil;
 using Mapping_Tools_Core.ToolHelpers;
 using Tensorflow.Keras.Engine;
-using Tensorflow.NumPy;
 
 namespace Mapperator.ML;
 
@@ -25,7 +24,6 @@ public class MapperatorML {
     private readonly float maxSdfDistance;
     private readonly int width;
     private readonly int height;
-    private readonly int flatNum;
     private readonly Tensor coordinates;
     private readonly Tensor coordinatesFlat;
 
@@ -38,9 +36,10 @@ public class MapperatorML {
         decoder = new HitObjectDecoder();
 
         model = Models.GetModel2(new Shape(height, width, numWindows));
-        model.load_weights(modelPath);
+        // TODO: https://github.com/SciSharp/TensorFlow.NET/issues/1150
+        //model.load_weights(modelPath);\
 
-        flatNum = width * height;
+        int flatNum = width * height;
         var x = math_ops.linspace(tf.constant(0d), tf.constant(512d), width);
         var y = math_ops.linspace(tf.constant(0d), tf.constant(384d), height);
         var XY = array_ops.meshgrid(new[] { x, y });
@@ -63,8 +62,11 @@ public class MapperatorML {
             // Predict new position using AI
             var input = tf.expand_dims(GetMultiSdf(hitObjectData, hitObjectRadius, time), 0);
             var output = model.predict(input);
-            var probsByDist = DistanceProbability(ToArray(pos), Math.Max(dataPoint.Spacing, 1));
-            pos = WeightedRandomPosition(probsByDist * output);
+
+            int posIndex = WeightedRandomIndex(output);
+            double[] posArray = coordinatesFlat[posIndex].ToArray<double>();
+            pos = new Vector2(posArray[0], posArray[1]);
+
             time = timing?.WalkBeatsInMillisecondTime(dataPoint.BeatsSince, time) ?? time + 1;
 
             Console.WriteLine($"time = {time}, pos = {pos}");
@@ -165,14 +167,9 @@ public class MapperatorML {
         }
     }
 
-    private Vector2 WeightedRandomPosition(Tensor weights) {
-        var probsBatch = tf.reshape(weights, new Shape(1, -1));
-        var logProbBatch = tf.log(probsBatch).numpy();
-        var indices = tf.random.categorical(logProbBatch, 1, output_dtype: dtypes.int32).numpy();
-        var posIndexTensor = np.reshape(indices, new Shape(Array.Empty<int>()));
-        var posIndex = (int)posIndexTensor;
-        double[] posArray = coordinatesFlat[posIndex].ToArray<double>();
-        return new Vector2(posArray[0], posArray[1]);
+    private static int WeightedRandomIndex(Tensor weights) {
+        var index = (int)tf.reshape(tf.random.categorical(tf.log(weights.numpy()).numpy(), 1, output_dtype: dtypes.int32).numpy(), new Shape(Array.Empty<int>()));
+        return index;
     }
 
     private static (double, Tensor) GetData(HitObject ho) {
@@ -250,28 +247,6 @@ public class MapperatorML {
         }
 
         return tf.constant(sdf);
-    }
-
-    private Tensor DistanceProbability(Tensor pos, double distance) {
-        return
-            tf.exp(
-            -tf.square(
-                tf.sqrt(
-                    tf.sum(
-                        tf.square(
-                            tf.tile(
-                                tf.reshape(
-                                    pos,
-                                    (1, 2)
-                                    ),
-                                (flatNum, 1)
-                                ) - coordinatesFlat
-                            ),
-                        1
-                        )
-                    ) / distance - 1
-                ) * 4
-            );
     }
 
     private static IEnumerable<Tensor> GetHitObjectDataInWindow(IEnumerable<(double, Tensor)> hitObjects, double start, double end) {
