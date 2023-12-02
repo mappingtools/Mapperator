@@ -19,8 +19,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator.DemoApp.Game.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator.DemoApp.Resources", "Mapperator.DemoApp\Mapperator.DemoApp.Resources\Mapperator.DemoApp.Resources.csproj", "{3F72551A-58DA-4E86-99BD-8EC81219DC76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapperator.ML", "Mapperator.ML\Mapperator.ML.csproj", "{76D9EC50-8890-4744-85CF-B859690F4520}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,10 +53,6 @@ Global
 		{3F72551A-58DA-4E86-99BD-8EC81219DC76}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F72551A-58DA-4E86-99BD-8EC81219DC76}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F72551A-58DA-4E86-99BD-8EC81219DC76}.Release|Any CPU.Build.0 = Release|Any CPU
-		{76D9EC50-8890-4744-85CF-B859690F4520}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{76D9EC50-8890-4744-85CF-B859690F4520}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{76D9EC50-8890-4744-85CF-B859690F4520}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{76D9EC50-8890-4744-85CF-B859690F4520}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

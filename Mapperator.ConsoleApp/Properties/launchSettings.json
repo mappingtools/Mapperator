@@ -24,10 +24,6 @@
       "commandName": "Project",
       "commandLineArgs": "extract -s Ranked -m Standard -a Sotarks -o SotarksData"
     },
-    "ExtractAllData122123": {
-      "commandName": "Project",
-      "commandLineArgs": "extract2 -s Ranked -m Standard -o pp_data_v2"
-    },
     "ConvertMap": {
       "commandName": "Project",
       "commandLineArgs": "convert -d test -i \"Resources\\input\" -o output"

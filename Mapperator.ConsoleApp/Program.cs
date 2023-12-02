@@ -7,7 +7,7 @@ namespace Mapperator.ConsoleApp {
         private static int Main(string[] args) {
             ConfigManager.LoadConfig();
 
-            return Parser.Default.ParseArguments<Count.CountOptions, Extract.ExtractOptions, Build.BuildOptions, Convert.ConvertOptions, Search.SearchOptions, Analyze.AnalyzeOptions, Extract2.Extract2Options, Dataset.DatasetOptions, ConvertML.ConvertMLOptions>(args)
+            return Parser.Default.ParseArguments<Count.CountOptions, Extract.ExtractOptions, Build.BuildOptions, Convert.ConvertOptions, Search.SearchOptions, Analyze.AnalyzeOptions, Extract2.Extract2Options, Dataset.DatasetOptions>(args)
               .MapResult(
                   (Count.CountOptions opts) => Count.DoDataCount(opts),
                 (Extract.ExtractOptions opts) => Extract.DoDataExtraction(opts),
@@ -17,7 +17,6 @@ namespace Mapperator.ConsoleApp {
                 (Analyze.AnalyzeOptions opts) => Analyze.DoVisualSpacingExtract(opts),
                 (Extract2.Extract2Options opts) => Extract2.DoDataExtraction(opts),
                 (Dataset.DatasetOptions opts) => Dataset.DoDataExtraction(opts),
-                (ConvertML.ConvertMLOptions opts) => ConvertML.DoMapConvert(opts),
                 _ => 1);
         }
     }
