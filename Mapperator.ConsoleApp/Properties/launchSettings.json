@@ -1,5 +1,9 @@
 {
   "profiles": {
+    "CreateDataSet2": {
+      "commandName": "Project",
+      "commandLineArgs": "dataset2 -t \"C:\\Users\\Olivier\\Documents\\GitHub\\Mapperatorinator\\datasets\\beatmap_descriptors.csv\" -i \"C:\\Users\\Olivier\\Documents\\Collections\\Ranked Sets Patches\" -o \"C:\\Users\\Olivier\\Documents\\Collections\\Beatmap ML Datasets\\test2\""
+    },
     "CreateDataSet": {
       "commandName": "Project",
       "commandLineArgs": "dataset -m Standard -s Ranked -i 20000 -x 25000 -r 4 -o \"D:\\Osu! Dingen\\Beatmap ML Datasets\\old_test\""
