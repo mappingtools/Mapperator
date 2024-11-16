@@ -443,7 +443,7 @@ public static class Dataset2 {
     private static List<float> CalculateDifficultyValues(string beatmapPath) {
         var beatmap = DifficultyCalculatorUtils.GetBeatmap(beatmapPath);
         var difficultyCalculator = DifficultyCalculatorUtils.CreateDifficultyCalculator(beatmap);
-        float[] speeds = [0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f];
+        float[] speeds = [0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f];
         var starRating = new List<float>();
 
         foreach (float speed in speeds) {
