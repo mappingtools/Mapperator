@@ -164,7 +164,7 @@ public static class Dataset2 {
                 lastApiCallTime = DateTime.Now;
 
                 // Make an API request to get the beatmap set information
-                beatmapsetInfo = GetBeatmapsetInfo(client, setId).Result;
+                beatmapsetInfo = GetBeatmapSetInfo(client, setId).Result;
                 // Cache the information by appending to the online cache file
                 onlineCache[setId] = beatmapsetInfo;
                 File.AppendAllLines(onlineCachePath, [beatmapsetInfo.GetRawText()]);
@@ -188,7 +188,7 @@ public static class Dataset2 {
             string title = beatmapsetInfo.GetProperty("title").GetString()!;
 
             var outputSetFolder = $"{beatmapSetId} {artist} - {title}";
-            outputSetFolder = TrimBeatmapsetFolderName(outputSetFolder);
+            outputSetFolder = TrimBeatmapSetFolderName(outputSetFolder);
             string outputSetPath = Path.Combine(args.OutputFolder, dataFolder, outputSetFolder);
 
             // Make sure the folder exists
@@ -324,7 +324,7 @@ public static class Dataset2 {
         // Report any missing ranked beatmaps
         if (args.ValidationData is not null) {
             var validationData = File.ReadLines(args.ValidationData).Select(int.Parse).ToHashSet();
-            var processedBeatmaps = allMetadata.Values.Select(x => x.BeatmapsetId).ToHashSet();
+            var processedBeatmaps = allMetadata.Values.Select(x => x.BeatmapSetId).ToHashSet();
             Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Missing_ranked_beatmap_sets_);
             foreach (int beatmapSetId in validationData.Except(processedBeatmaps)) {
                 Console.WriteLine(beatmapSetId);
@@ -393,7 +393,7 @@ public static class Dataset2 {
         Console.WriteLine(Strings.Count_DoDataCount_Total_duration___0_, totalTime);
 
         // Count total beatmap sets and beatmaps
-        int totalBeatmapSets = allMetadata.Values.Select(x => x.BeatmapsetId).Distinct().Count();
+        int totalBeatmapSets = allMetadata.Values.Select(x => x.BeatmapSetId).Distinct().Count();
         int totalBeatmaps = allMetadata.Count;
 
         Console.WriteLine();
@@ -408,7 +408,7 @@ public static class Dataset2 {
         return result ?? oszFile.Entries.FirstOrDefault(entry => WindowsZipFilenameStrip(entry.Name).Equals(audioFilename, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static string TrimBeatmapsetFolderName(string folderName) {
+    private static string TrimBeatmapSetFolderName(string folderName) {
         folderName = WindowsPathStrip(folderName);
 
         const int maxPathLength = 248;
@@ -566,7 +566,7 @@ public static class Dataset2 {
 
     private const string ApiUrl = "https://osu.ppy.sh/api/v2/beatmapsets";
 
-    private static async Task<JsonElement> GetBeatmapsetInfo(HttpClient client, int setId) {
+    private static async Task<JsonElement> GetBeatmapSetInfo(HttpClient client, int setId) {
         const int maxRetries = 10;
         var retries = 0;
         HttpResponseMessage? response = null;
@@ -608,16 +608,16 @@ public static class Dataset2 {
             ArtistUnicode = beatmapset.GetProperty("artist_unicode").GetString()!,
             Creator = beatmapset.GetProperty("creator").GetString()!,
             FavouriteCount = beatmapset.GetProperty("favourite_count").GetInt32(),
-            BeatmapsetId = beatmapset.GetProperty("id").GetInt32(),
+            BeatmapSetId = beatmapset.GetProperty("id").GetInt32(),
             Nsfw = beatmapset.GetProperty("nsfw").GetBoolean(),
             Offset = beatmapset.GetProperty("offset").GetInt32(),
-            BeatmapsetPlayCount = beatmapset.GetProperty("play_count").GetInt32(),
+            BeatmapSetPlayCount = beatmapset.GetProperty("play_count").GetInt32(),
             Source = beatmapset.GetProperty("source").GetString()!,
-            BeatmapsetStatus = beatmapset.GetProperty("status").GetString()!,
+            BeatmapSetStatus = beatmapset.GetProperty("status").GetString()!,
             Spotlight = beatmapset.GetProperty("spotlight").GetBoolean(),
             Title = beatmapset.GetProperty("title").GetString()!,
             TitleUnicode = beatmapset.GetProperty("title_unicode").GetString()!,
-            BeatmapsetUserId = beatmapset.GetProperty("user_id").GetInt32(),
+            BeatmapSetUserId = beatmapset.GetProperty("user_id").GetInt32(),
             Video = beatmapset.GetProperty("video").GetBoolean(),
             Description = beatmapset.GetProperty("description").GetProperty("description").GetString()!,
             GenreId = beatmapset.GetProperty("genre").GetProperty("id").GetRawText() == "null" ? -1 : beatmapset.GetProperty("genre").GetProperty("id").GetInt32(),
@@ -629,12 +629,12 @@ public static class Dataset2 {
 
             // BeatmapsetExtended
             DownloadDisabled = beatmapset.GetProperty("availability").GetProperty("download_disabled").GetBoolean(),
-            BeatmapsetBpm = beatmapset.GetProperty("bpm").GetSingle(),
+            BeatmapSetBpm = beatmapset.GetProperty("bpm").GetSingle(),
             CanBeHyped = beatmapset.GetProperty("can_be_hyped").GetBoolean(),
             DiscussionLocked = beatmapset.GetProperty("discussion_locked").GetBoolean(),
             BeatmapSetIsScoreable = beatmapset.GetProperty("is_scoreable").GetBoolean(),
-            BeatmapsetLastUpdated = beatmapset.GetProperty("last_updated").GetDateTime(),
-            BeatmapsetRanked = beatmapset.GetProperty("ranked").GetInt32(),
+            BeatmapSetLastUpdated = beatmapset.GetProperty("last_updated").GetDateTime(),
+            BeatmapSetRanked = beatmapset.GetProperty("ranked").GetInt32(),
             RankedDate = beatmapset.TryGetProperty("ranked_date", out var rankedDateElem) ? rankedDateElem.TryGetDateTime(out var rankedDate) ? rankedDate : null : null,
             Storyboard = beatmapset.GetProperty("storyboard").GetBoolean(),
             SubmittedDate = beatmapset.TryGetProperty("submitted_date", out var submittedDateElem) ? submittedDateElem.TryGetDateTime(out var submittedDate) ? submittedDate : null : null,
@@ -674,16 +674,16 @@ public static class Dataset2 {
         public string ArtistUnicode { get; set; } = null!;
         public string Creator { get; set; } = null!;
         public int FavouriteCount { get; set; }
-        public int BeatmapsetId { get; set; }
+        public int BeatmapSetId { get; set; }
         public bool Nsfw { get; set; }
         public int Offset { get; set; }
-        public int BeatmapsetPlayCount { get; set; }
+        public int BeatmapSetPlayCount { get; set; }
         public string Source { get; set; } = null!;
-        public string BeatmapsetStatus { get; set; } = null!;
+        public string BeatmapSetStatus { get; set; } = null!;
         public bool Spotlight { get; set; }
         public string Title { get; set; } = null!;
         public string TitleUnicode { get; set; } = null!;
-        public int BeatmapsetUserId { get; set; }
+        public int BeatmapSetUserId { get; set; }
         public bool Video { get; set; }
         public string Description { get; set; } = null!;
         public int GenreId { get; set; }
@@ -695,12 +695,12 @@ public static class Dataset2 {
 
         // BeatmapsetExtended
         public bool DownloadDisabled { get; set; }
-        public float BeatmapsetBpm { get; set; }
+        public float BeatmapSetBpm { get; set; }
         public bool CanBeHyped { get; set; }
         public bool DiscussionLocked { get; set; }
         public bool BeatmapSetIsScoreable { get; set; }
-        public DateTime BeatmapsetLastUpdated { get; set; }
-        public int BeatmapsetRanked { get; set; }
+        public DateTime BeatmapSetLastUpdated { get; set; }
+        public int BeatmapSetRanked { get; set; }
         public DateTime? RankedDate { get; set; }
         public bool Storyboard { get; set; }
         public DateTime? SubmittedDate { get; set; }
