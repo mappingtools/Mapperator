@@ -10,7 +10,7 @@
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="MappingTools.Core" Version="0.6.2" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <PackageReference Include="OsuParsers" Version="1.7.1" />
+    <PackageReference Include="OsuParsers" Version="1.7.2" />
     <PackageReference Include="Parquet.Net" Version="5.0.1" />
     <PackageReference Include="ppy.osu.Game" Version="2024.1104.0" />
     <PackageReference Include="ppy.osu.Game.Rulesets.Catch" Version="2024.1104.0" />

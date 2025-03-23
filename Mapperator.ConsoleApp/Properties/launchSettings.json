@@ -10,7 +10,7 @@
     },
     "CountData": {
       "commandName": "Project",
-      "commandLineArgs": "count -m Standard -s Ranked -i 20000 -x 25000 -r 4 -f"
+      "commandLineArgs": "count -m Standard -s Ranked"
     },
     "VisualSpacingTest": {
       "commandName": "Project",
