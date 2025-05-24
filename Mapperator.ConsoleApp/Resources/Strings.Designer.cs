@@ -390,6 +390,16 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to get osu! API access token. Make sure your ClientId and ClientSecret are correctly set in config.json..
+        /// </summary>
+        internal static string Dataset2_GetAccessToken_Failed_to_get_osu__API_access_token__Make_sure_your_ClientId_and_ClientSecret_are_correctly_set_in_config_json_ {
+            get {
+                return ResourceManager.GetString("Dataset2_GetAccessToken_Failed_to_get_osu__API_access_token__Make_sure_your_Clien" +
+                        "tId_and_ClientSecret_are_correctly_set_in_config_json_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Rate limited, waiting 10 seconds....
         /// </summary>
         internal static string Dataset2_GetBeatmapsetInfo_Rate_limited__waiting_10_seconds___ {

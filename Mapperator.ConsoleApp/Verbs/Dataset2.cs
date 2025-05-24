@@ -615,6 +615,7 @@ public static class Dataset2 {
             return tokenResponse!.AccessToken;
         }
 
+        Console.WriteLine(Strings.Dataset2_GetAccessToken_Failed_to_get_osu__API_access_token__Make_sure_your_ClientId_and_ClientSecret_are_correctly_set_in_config_json_);
         throw new Exception($"Error: {response.StatusCode}");
     }
 

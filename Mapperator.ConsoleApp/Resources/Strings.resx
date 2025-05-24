@@ -278,4 +278,7 @@ Basic usage:
   <data name="Dataset2_DoDataExtraction2_BeatmapSetID_not_found_in__0___Skipping__1__" xml:space="preserve">
     <value>BeatmapSetID not found in {0}. Skipping {1}.</value>
   </data>
+  <data name="Dataset2_GetAccessToken_Failed_to_get_osu__API_access_token__Make_sure_your_ClientId_and_ClientSecret_are_correctly_set_in_config_json_" xml:space="preserve">
+    <value>Failed to get osu! API access token. Make sure your ClientId and ClientSecret are correctly set in config.json.</value>
+  </data>
 </root>
