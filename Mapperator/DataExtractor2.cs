@@ -1,10 +1,8 @@
 ﻿using Mapperator.Model;
 using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.Contexts;
-using Mapping_Tools_Core.BeatmapHelper.Enums;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.HitObjects.Objects;
-using Mapping_Tools_Core.BeatmapHelper.IO.Encoding.HitObjects;
 using Mapping_Tools_Core.BeatmapHelper.TimingStuff;
 using Mapping_Tools_Core.MathUtil;
 

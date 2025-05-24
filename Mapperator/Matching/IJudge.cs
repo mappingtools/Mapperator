@@ -1,6 +1,4 @@
-﻿using Mapperator.Model;
-
-namespace Mapperator.Matching;
+﻿namespace Mapperator.Matching;
 
 public interface IJudge {
     double Judge(Match match);

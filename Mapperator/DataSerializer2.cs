@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using Mapperator.Model;
-using Mapping_Tools_Core.BeatmapHelper.Enums;
 using Mapping_Tools_Core.BeatmapHelper.Sections;
 using MoreLinq;
 

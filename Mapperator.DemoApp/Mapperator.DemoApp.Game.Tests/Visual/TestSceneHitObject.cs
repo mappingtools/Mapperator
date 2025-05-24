@@ -1,11 +1,6 @@
 using Mapperator.DemoApp.Game.Drawables;
 using Mapping_Tools_Core.BeatmapHelper.IO.Decoding.HitObjects;
-using osu.Framework.Graphics;
 using NUnit.Framework;
-using osu.Framework.Graphics.Shapes;
-using osu.Framework.Graphics.Sprites;
-using osuTK;
-using osuTK.Graphics;
 
 namespace Mapperator.DemoApp.Game.Tests.Visual
 {
