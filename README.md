@@ -3,7 +3,7 @@
 Mapperator is a library meant for efficient beatmap pattern search based on features like rhythm and distance.
 This enables the conversion of features to real patterns to playable beatmaps.
 
-Mapperator requires .NET 6 to run and only works for osu! standard gamemode beatmaps.
+Mapperator requires .NET 8 to run and only works for osu! standard gamemode beatmaps.
 
 ## Console App
 
