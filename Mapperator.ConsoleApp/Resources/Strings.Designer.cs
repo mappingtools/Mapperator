@@ -199,6 +199,15 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Beatmap sets skipped due to issues:.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Beatmap_sets_skipped_due_to_issues_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Beatmap_sets_skipped_due_to_issues_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Beatmap sets with issues:.
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Beatmap_sets_with_issues_ {
@@ -213,6 +222,15 @@ namespace Mapperator.ConsoleApp.Resources {
         internal static string Dataset2_DoDataExtraction2_Beatmap_sets_with_mismatched_checksums_ {
             get {
                 return ResourceManager.GetString("Dataset2_DoDataExtraction2_Beatmap_sets_with_mismatched_checksums_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BeatmapSetID not found in {0}. Skipping {1}..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_BeatmapSetID_not_found_in__0___Skipping__1__ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_BeatmapSetID_not_found_in__0___Skipping__1__", resourceCulture);
             }
         }
         
@@ -245,11 +263,30 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid .osz file name format: {0}. Expected format: &lt;SetID&gt; &lt;Artist&gt; - &lt;Title&gt;.osz.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Invalid__osz_file_name_format___0___Expected_format___SetID___Artist_____Title__osz {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Invalid__osz_file_name_format___0___Expected_format___" +
+                        "SetID___Artist_____Title__osz", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading existing metadata....
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Loading_existing_metadata___ {
             get {
                 return ResourceManager.GetString("Dataset2_DoDataExtraction2_Loading_existing_metadata___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading existing sets skipped....
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Loading_existing_sets_skipped___ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Loading_existing_sets_skipped___", resourceCulture);
             }
         }
         
@@ -313,6 +350,15 @@ namespace Mapperator.ConsoleApp.Resources {
         internal static string Dataset2_DoDataExtraction2_Missing_ranked_beatmap_sets_ {
             get {
                 return ResourceManager.GetString("Dataset2_DoDataExtraction2_Missing_ranked_beatmap_sets_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No .osu file found in {0}. Skipping..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_No__osu_file_found_in__0___Skipping_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_No__osu_file_found_in__0___Skipping_", resourceCulture);
             }
         }
         

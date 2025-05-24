@@ -52,6 +52,9 @@ public static class Dataset2 {
 
         [Option('x', "validate", Default = false, Required = false, HelpText = "Validate the dataset. Makes sure each beatmap in the data folder has a corresponding metadata entry and vice versa.")]
         public bool Validate { get; [UsedImplicitly] set; }
+
+        [Option('s', "set-id-from-file-name", Default = false, Required = false, HelpText = "Get the beatmap set ID from the .osz file name instead of the .osu file. Helpful for old maps where the set ID is not stored in the .osu file.")]
+        public bool GetSetIdFromFileName { get; [UsedImplicitly] set; }
     }
 
     public static int DoDataExtraction2(DatasetOptions2 args) {
@@ -118,6 +121,7 @@ public static class Dataset2 {
         var metadataBatch = new List<BeatmapMetadata>();
         var setsWithIssues = new HashSet<int>();
         var setsWithMismatchedChecksums = new HashSet<int>();
+        var setsSkipped = new HashSet<string>();
 
         // If there is already a metadata file, load it
         string metadataPath = Path.Combine(args.OutputFolder, "metadata.parquet");
@@ -147,6 +151,15 @@ public static class Dataset2 {
             }
         }
 
+        // Save sets skipped
+        string setsSkippedPath = Path.Combine(args.OutputFolder, "sets_skipped.txt");
+        if (File.Exists(setsSkippedPath)) {
+            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Loading_existing_sets_skipped___);
+            foreach (string line in File.ReadLines(setsSkippedPath)) {
+                setsSkipped.Add(line);
+            }
+        }
+
         Console.WriteLine(Strings.Dataset_DoDataExtraction_Finding_beatmap_sets___);
 
         foreach ((string fullName, var oszFile) in FindOszFiles(args.InputFolder)) {
@@ -154,8 +167,44 @@ public static class Dataset2 {
 
             var issues = false;
 
+            // Get the beatmap set ID
+            int setId;
+            if (args.GetSetIdFromFileName) {
+                // Extract the set ID from the file name
+                if (!int.TryParse(Path.GetFileNameWithoutExtension(fullName).Split(' ')[0], out setId)) {
+                    Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Invalid__osz_file_name_format___0___Expected_format___SetID___Artist_____Title__osz, fullName);
+                    if (setsSkipped.Add(fullName))
+                        File.AppendAllLines(setsSkippedPath, [fullName]);
+                    continue;
+                }
+            } else {
+                // Read the 'BeatmapSetID' key in the first .osu entry in the .osz file to get the set ID
+                var firstOsuEntry = oszFile.Entries.FirstOrDefault(e => Path.GetExtension(e.FullName).Equals(".osu", StringComparison.OrdinalIgnoreCase));
+                if (firstOsuEntry is null) {
+                    Console.WriteLine(Strings.Dataset2_DoDataExtraction2_No__osu_file_found_in__0___Skipping_, fullName);
+                    if (setsSkipped.Add(fullName))
+                        File.AppendAllLines(setsSkippedPath, [fullName]);
+                    continue;
+                }
+                using var stream = firstOsuEntry.Open();
+                using var reader = new StreamReader(stream);
+                setId = -1;
+                while (reader.ReadLine() is { } line) {
+                    if (!line.StartsWith("BeatmapSetID:", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (!int.TryParse(line.Split(':')[1].Trim(), out setId)) {
+                        setId = -1;
+                    }
+                    break;
+                }
+                if (setId < 0) {
+                    Console.WriteLine(Strings.Dataset2_DoDataExtraction2_BeatmapSetID_not_found_in__0___Skipping__1__, firstOsuEntry.FullName, fullName);
+                    if (setsSkipped.Add(fullName))
+                        File.AppendAllLines(setsSkippedPath, [fullName]);
+                    continue;
+                }
+            }
+
             // Get the online information for the beatmap set
-            int setId = int.Parse(Path.GetFileNameWithoutExtension(fullName).Split(' ')[0]);
             if (!onlineCache.TryGetValue(setId, out var beatmapsetInfo)) {
                 // Ensure at least 120 ms has passed since the last API call
                 double timeSinceLastCall = (DateTime.Now - lastApiCallTime).TotalMilliseconds;
@@ -317,6 +366,14 @@ public static class Dataset2 {
         if (setsWithMismatchedChecksums.Count > 0) {
             Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Beatmap_sets_with_mismatched_checksums_);
             foreach (int setId in setsWithMismatchedChecksums) {
+                Console.WriteLine(setId);
+            }
+        }
+
+        // Report any skipped beatmap sets
+        if (setsSkipped.Count > 0) {
+            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Beatmap_sets_skipped_due_to_issues_);
+            foreach (string setId in setsSkipped) {
                 Console.WriteLine(setId);
             }
         }
