@@ -58,6 +58,9 @@ public static class Dataset2 {
 
         [Option('r', "require-ranked", Default = false, Required = false, HelpText = "Require the beatmap set to be ranked. If false, will include unranked beatmaps.")]
         public bool RequireRanked { get; [UsedImplicitly] set; }
+
+        [Option('c', "validate-checksums", Default = false, Required = false, HelpText = "Whether to check checksums of beatmaps against the online database. If false, will skip checksum validation.")]
+        public bool ValidateChecksums { get; [UsedImplicitly] set; }
     }
 
     public static int DoDataExtraction2(DatasetOptions2 args) {
@@ -189,17 +192,8 @@ public static class Dataset2 {
                         File.AppendAllLines(setsSkippedPath, [fullName]);
                     continue;
                 }
-                using var stream = firstOsuEntry.Open();
-                using var reader = new StreamReader(stream);
-                setId = -1;
-                while (reader.ReadLine() is { } line) {
-                    if (!line.StartsWith("BeatmapSetID:", StringComparison.OrdinalIgnoreCase)) continue;
-                    if (!int.TryParse(line.Split(':')[1].Trim(), out setId)) {
-                        setId = -1;
-                    }
-                    break;
-                }
-                if (setId < 0) {
+                string? beatmapSetIdLine = GetBeatmapKeyValue(firstOsuEntry, "BeatmapSetID");
+                if (beatmapSetIdLine is null || !int.TryParse(beatmapSetIdLine, out setId)) {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_BeatmapSetID_not_found_in__0___Skipping__1__, firstOsuEntry.FullName, fullName);
                     if (setsSkipped.Add(fullName))
                         File.AppendAllLines(setsSkippedPath, [fullName]);
@@ -252,17 +246,34 @@ public static class Dataset2 {
                 md5Hashes.Add(beatmapInfo.GetProperty("checksum").GetString()!, beatmapInfo);
             }
 
+            // Get the beatmap IDs
+            Dictionary<int, JsonElement> beatmapIds = new();
+            foreach (var beatmapInfo in beatmapsetInfo.GetProperty("beatmaps").EnumerateArray()) {
+                beatmapIds.Add(beatmapInfo.GetProperty("id").GetInt32(), beatmapInfo);
+            }
+
             foreach (var entry in oszFile.Entries) {
                 if (!Path.GetExtension(entry.FullName).Equals(".osu", StringComparison.OrdinalIgnoreCase)) continue;
 
+                // Try to find the online beatmap info entry for this particular file
                 using var hashStream = entry.Open();
                 string checksum = hashStream.ComputeMD5Hash();
 
-                if (!md5Hashes.Remove(checksum, out var beatmapInfo)) {
-                    Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_, entry.FullName);
-                    if (setsWithMismatchedChecksums.Add(setId))
-                        File.AppendAllLines(setsWithMismatchedChecksumsPath, [setId.ToString()]);
-                    continue;
+                if (!md5Hashes.TryGetValue(checksum, out var beatmapInfo)) {
+                    if (args.ValidateChecksums) {
+                        Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_, entry.FullName);
+                        if (setsWithMismatchedChecksums.Add(beatmapSetId))
+                            File.AppendAllLines(setsWithMismatchedChecksumsPath, [beatmapSetId.ToString()]);
+                        continue;
+                    }
+                    // Try to match by beatmap ID if checksums are not validated
+                    string? beatmapIdLine = GetBeatmapKeyValue(entry, "BeatmapID");
+                    if (beatmapIdLine is null || !int.TryParse(beatmapIdLine, out int beatmapId2) || !beatmapIds.TryGetValue(beatmapId2, out beatmapInfo)) {
+                        Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_BeatmapID_is_not_found_, entry.FullName);
+                        if (setsWithMismatchedChecksums.Add(beatmapSetId))
+                            File.AppendAllLines(setsWithMismatchedChecksumsPath, [beatmapSetId.ToString()]);
+                        continue;
+                    }
                 }
 
                 string? beatmapStatus = beatmapInfo.GetProperty("status").GetString();
@@ -461,6 +472,17 @@ public static class Dataset2 {
         Console.WriteLine(Strings.Count_DoDataCount_Total_beatmaps___0_, totalBeatmaps);
 
         return 0;
+    }
+
+    private static string? GetBeatmapKeyValue(ZipArchiveEntry entry, string key) {
+        using var stream = entry.Open();
+        using var reader = new StreamReader(stream);
+        while (reader.ReadLine() is { } line) {
+            if (line.StartsWith(key, StringComparison.OrdinalIgnoreCase)) {
+                return line.Split(':')[1].Trim();
+            }
+        }
+        return null;
     }
 
     private static ZipArchiveEntry? FindAudioFile(ZipArchive oszFile, string audioFilename) {
@@ -696,9 +718,9 @@ public static class Dataset2 {
             BeatmapSetIsScoreable = beatmapset.GetProperty("is_scoreable").GetBoolean(),
             BeatmapSetLastUpdated = beatmapset.GetProperty("last_updated").GetDateTime(),
             BeatmapSetRanked = beatmapset.GetProperty("ranked").GetInt32(),
-            RankedDate = beatmapset.TryGetProperty("ranked_date", out var rankedDateElem) ? rankedDateElem.TryGetDateTime(out var rankedDate) ? rankedDate : null : null,
+            RankedDate = beatmapset.TryGetProperty("ranked_date", out var rankedDateElem) && rankedDateElem.ValueKind != JsonValueKind.Null && rankedDateElem.TryGetDateTime(out var rankedDate) ? rankedDate : null,
             Storyboard = beatmapset.GetProperty("storyboard").GetBoolean(),
-            SubmittedDate = beatmapset.TryGetProperty("submitted_date", out var submittedDateElem) ? submittedDateElem.TryGetDateTime(out var submittedDate) ? submittedDate : null : null,
+            SubmittedDate = beatmapset.TryGetProperty("submitted_date", out var submittedDateElem) && submittedDateElem.ValueKind != JsonValueKind.Null && submittedDateElem.TryGetDateTime(out var submittedDate) ? submittedDate : null,
             Tags = beatmapset.GetProperty("tags").GetString()!,
 
             // Beatmap
@@ -709,11 +731,11 @@ public static class Dataset2 {
             TotalLength = beatmap.GetProperty("total_length").GetInt32(),
             UserId = beatmap.GetProperty("user_id").GetInt32(),
             Version = beatmap.GetProperty("version").GetString()!,
-            Checksum = beatmap.TryGetProperty("checksum", out var checksumElem) ? checksumElem.GetString() : null,
+            Checksum = beatmap.TryGetProperty("checksum", out var checksumElem) && checksumElem.ValueKind != JsonValueKind.Null ? checksumElem.GetString() : null,
             MaxCombo = beatmap.GetProperty("max_combo").GetInt32(),
             Accuracy = beatmap.GetProperty("accuracy").GetSingle(),
             Ar = beatmap.GetProperty("ar").GetSingle(),
-            Bpm = beatmap.TryGetProperty("bpm", out var bpmElem) ? bpmElem.TryGetSingle(out float bpm) ? bpm : null : null,
+            Bpm = beatmap.TryGetProperty("bpm", out var bpmElem) && bpmElem.ValueKind != JsonValueKind.Null && bpmElem.TryGetSingle(out float bpm) ? bpm : null,
             CountCircles = beatmap.GetProperty("count_circles").GetInt32(),
             CountSliders = beatmap.GetProperty("count_sliders").GetInt32(),
             CountSpinners = beatmap.GetProperty("count_spinners").GetInt32(),

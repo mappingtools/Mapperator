@@ -281,4 +281,7 @@ Basic usage:
   <data name="Dataset2_GetAccessToken_Failed_to_get_osu__API_access_token__Make_sure_your_ClientId_and_ClientSecret_are_correctly_set_in_config_json_" xml:space="preserve">
     <value>Failed to get osu! API access token. Make sure your ClientId and ClientSecret are correctly set in config.json.</value>
   </data>
+  <data name="Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_BeatmapID_is_not_found_" xml:space="preserve">
+    <value>Skipping {0} because checksum does not match and BeatmapID is not found.</value>
+  </data>
 </root>

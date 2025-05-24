@@ -372,6 +372,16 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Skipping {0} because checksum does not match and BeatmapID is not found..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_BeatmapID_is_not_found_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_Beatm" +
+                        "apID_is_not_found_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Skipping {0} because it is not ranked..
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Skipping__0__because_it_is_not_ranked_ {
