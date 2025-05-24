@@ -42,6 +42,7 @@ With the verb `dataset2` you can create a dataset in the new format with rich me
 It requires an [osu! OAuth client token](https://osu.ppy.sh/home/account/edit) to be present in the `config.json` file that is automatically generated in the same folder when you run the console app executable.
 
 The input data is given by a path to an input folder. It will search the input folder recursively for any .osz files or .zip archives containing .osz files.
+The input beatmaps must all be uploaded to the osu! website, otherwise there is no metadata to be found.
 
 Repeat runs with the same output folder will generally attempt to append to the existing dataset, skipping over any beatmaps that are already in the dataset. If you instead wish to replace entries with your new input data, you can use the 'override' arguments to specify any categories that you would like to replace.
 
