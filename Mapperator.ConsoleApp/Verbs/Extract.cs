@@ -21,7 +21,7 @@ public static class Extract {
         File.WriteAllLines(Path.ChangeExtension(opts.OutputName, ".txt"),
             DataSerializer.SerializeBeatmapData(DbManager.GetFilteredAndRead(opts)
                 .SelectMany(b => mirrors.Select(m => extractor.ExtractBeatmapData(b, m)))
-            ));
+            ).Prepend(DataSerializer.CurrentHeader));
 
         return 0;
     }
