@@ -55,6 +55,9 @@ public static class Dataset2 {
 
         [Option('s', "set-id-from-file-name", Default = false, Required = false, HelpText = "Get the beatmap set ID from the .osz file name instead of the .osu file. Helpful for old maps where the set ID is not stored in the .osu file.")]
         public bool GetSetIdFromFileName { get; [UsedImplicitly] set; }
+
+        [Option('r', "require-ranked", Default = false, Required = false, HelpText = "Require the beatmap set to be ranked. If false, will include unranked beatmaps.")]
+        public bool RequireRanked { get; [UsedImplicitly] set; }
     }
 
     public static int DoDataExtraction2(DatasetOptions2 args) {
@@ -227,7 +230,7 @@ public static class Dataset2 {
 
             // Make sure the beatmap set is actually ranked
             string? status = beatmapsetInfo.GetProperty("status").GetString();
-            if (status != "ranked" && status != "approved") {
+            if (args.RequireRanked && status != "ranked" && status != "approved") {
                 Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_ìt_is_not_ranked_, fullName);
                 continue;
             }
@@ -263,7 +266,7 @@ public static class Dataset2 {
                 }
 
                 string? beatmapStatus = beatmapInfo.GetProperty("status").GetString();
-                if (beatmapStatus != "ranked" && beatmapStatus != "approved") {
+                if (args.RequireRanked && beatmapStatus != "ranked" && beatmapStatus != "approved") {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_it_is_not_ranked_, entry.FullName);
                     continue;
                 }
