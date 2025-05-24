@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System;
 using System.Linq;
+using NUnit.Framework.Legacy;
 using TrieNet.Ukkonen;
 
 namespace Mapperator.Tests.Matching {

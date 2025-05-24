@@ -37,13 +37,13 @@ public class RhythmDistanceTrieTests {
 
         var result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, new RhythmDistanceTrie.MinLengthProvider(1)).ToArray();
 
-        Assert.AreEqual(1, result.Length);
+        Assert.That(1, Is.EqualTo(result.Length));
         var (pos, length, minMult, maxMult) = result[0];
         Console.WriteLine(result[0]);
-        Assert.AreEqual(0, pos.Value);
-        Assert.AreEqual(0, pos.CharPosition);
-        Assert.AreEqual(7, length);
-        Assert.IsTrue(minMult < 1 && 1 < maxMult);
+        Assert.That(0, Is.EqualTo(pos.Value));
+        Assert.That(0, Is.EqualTo(pos.CharPosition));
+        Assert.That(7, Is.EqualTo(length));
+        Assert.That(minMult < 1 && 1 < maxMult);
     }
 
     [Test]
@@ -60,45 +60,45 @@ public class RhythmDistanceTrieTests {
         var result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, new RhythmDistanceTrie.MinLengthProvider(1))
             .OrderBy(o => o.Item1.CharPosition).ToArray();
 
-        Assert.AreEqual(5, result.Length);
+        Assert.That(5, Is.EqualTo(result.Length));
         var (pos, length, minMult, maxMult) = result[0];
-        Assert.AreEqual(1, pos.CharPosition);
-        Assert.AreEqual(6, length);
-        Assert.IsTrue(minMult < 1 && 1 < maxMult);
+        Assert.That(1, Is.EqualTo(pos.CharPosition));
+        Assert.That(6, Is.EqualTo(length));
+        Assert.That(minMult < 1 && 1 < maxMult);
         (pos, length, minMult, maxMult) = result[1];
-        Assert.AreEqual(2, pos.CharPosition);
-        Assert.AreEqual(2, length);
-        Assert.IsTrue(minMult < 0.6 && 0.6 < maxMult);
+        Assert.That(2, Is.EqualTo(pos.CharPosition));
+        Assert.That(2, Is.EqualTo(length));
+        Assert.That(minMult < 0.6 && 0.6 < maxMult);
         (pos, length, minMult, maxMult) = result[2];
-        Assert.AreEqual(3, pos.CharPosition);
-        Assert.AreEqual(1, length);
-        Assert.IsTrue(minMult < 0.5 && 0.5 < maxMult);
+        Assert.That(3, Is.EqualTo(pos.CharPosition));
+        Assert.That(1, Is.EqualTo(length));
+        Assert.That(minMult < 0.5 && 0.5 < maxMult);
         (pos, length, minMult, maxMult) = result[3];
-        Assert.AreEqual(5, pos.CharPosition);
-        Assert.AreEqual(2, length);
-        Assert.IsTrue(minMult < 1 && 1 < maxMult);
+        Assert.That(5, Is.EqualTo(pos.CharPosition));
+        Assert.That(2, Is.EqualTo(length));
+        Assert.That(minMult < 1 && 1 < maxMult);
         (pos, length, minMult, maxMult) = result[4];
-        Assert.AreEqual(6, pos.CharPosition);
-        Assert.AreEqual(1, length);
-        Assert.IsTrue(minMult < 1 && 1 < maxMult);
+        Assert.That(6, Is.EqualTo(pos.CharPosition));
+        Assert.That(1, Is.EqualTo(length));
+        Assert.That(minMult < 1 && 1 < maxMult);
 
         result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, new RhythmDistanceTrie.MinLengthProvider(2))
             .OrderBy(o => o.Item1.CharPosition).ToArray();
 
-        Assert.AreEqual(3, result.Length);
+        Assert.That(3, Is.EqualTo(result.Length));
         (pos, length, _, _) = result[0];
-        Assert.AreEqual(1, pos.CharPosition);
-        Assert.AreEqual(6, length);
+        Assert.That(1, Is.EqualTo(pos.CharPosition));
+        Assert.That(6, Is.EqualTo(length));
         (pos, length, _, _) = result[1];
-        Assert.AreEqual(2, pos.CharPosition);
-        Assert.AreEqual(2, length);
+        Assert.That(2, Is.EqualTo(pos.CharPosition));
+        Assert.That(2, Is.EqualTo(length));
         (pos, length, _, _) = result[2];
-        Assert.AreEqual(5, pos.CharPosition);
-        Assert.AreEqual(2, length);
+        Assert.That(5, Is.EqualTo(pos.CharPosition));
+        Assert.That(2, Is.EqualTo(length));
 
         result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, new RhythmDistanceTrie.MinLengthProvider(3)).ToArray();
 
-        Assert.AreEqual(1, result.Length);
+        Assert.That(1, Is.EqualTo(result.Length));
     }
 
     [Test]
@@ -115,13 +115,13 @@ public class RhythmDistanceTrieTests {
 
         var result = trie.RetrieveSubstringsDynamicLengthAndDistanceRange(query, new RhythmDistanceTrie.MinLengthProvider(1)).ToArray();
 
-        Assert.AreEqual(1, result.Length);
+        Assert.That(1, Is.EqualTo(result.Length));
         var (pos, length, minMult, maxMult) = result[0];
         Console.WriteLine(result[0]);
-        Assert.AreEqual(0, pos.Value);
-        Assert.AreEqual(0, pos.CharPosition);
-        Assert.AreEqual(7, length);
-        Assert.IsTrue(minMult < 0.5 && 0.5 < maxMult);
+        Assert.That(0, Is.EqualTo(pos.Value));
+        Assert.That(0, Is.EqualTo(pos.CharPosition));
+        Assert.That(7, Is.EqualTo(length));
+        Assert.That(minMult < 0.5 && 0.5 < maxMult);
     }
 
     [Test]

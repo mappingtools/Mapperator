@@ -36,10 +36,10 @@ namespace Mapperator {
                         }
 
                         var t = timing2.UninheritedTimingPoint.MpB / sliderTickRate;
-                        var tick_ts = new List<double>();
+                        var tickTs = new List<double>();
                         while (t + 10 < slider.SpanDuration) {
                             var t2 = t / slider.SpanDuration;
-                            tick_ts.Add(t2);
+                            tickTs.Add(t2);
 
                             t += timing2.UninheritedTimingPoint.MpB / sliderTickRate;
                         }
@@ -48,9 +48,9 @@ namespace Mapperator {
 
                         for (int i = 0; i < slider.SpanCount; i++) {
                             // Do ticks
-                            for (int j = 0; j < tick_ts.Count; j++) {
-                                var k = i % 2 == 0 ? j : tick_ts.Count - j - 1;
-                                var t2 = tick_ts[k];
+                            for (int j = 0; j < tickTs.Count; j++) {
+                                var k = i % 2 == 0 ? j : tickTs.Count - j - 1;
+                                var t2 = tickTs[k];
                                 var pos = path.PositionAt(t2);
                                 var time = (int)(slider.StartTime + i * slider.SpanDuration + (i % 2 == 0 ? t2 : 1 - t2) * slider.SpanDuration);
 

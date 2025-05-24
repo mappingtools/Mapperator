@@ -23,7 +23,7 @@ public static class Build {
         if (opts.OutputStructName is null) throw new ArgumentNullException(nameof(opts));
         if (opts.DataPath is null) throw new ArgumentNullException(nameof(opts));
 
-        var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt")));
+        var (_, trainData) = DataSerializer.DeserializeBeatmapData(File.ReadAllLines(Path.ChangeExtension(opts.DataPath, ".txt")));
         var data = new RhythmDistanceTrieStructure();
 
         if (data is not ISerializable sData) {

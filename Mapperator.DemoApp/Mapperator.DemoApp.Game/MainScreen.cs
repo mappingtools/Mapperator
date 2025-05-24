@@ -222,7 +222,7 @@ namespace Mapperator.DemoApp.Game
 
             pos.MaxValue = obj.NewValue.HitObjects.Count - length - 1;
 
-            pattern = new DataExtractor().ExtractBeatmapData(obj.NewValue).ToArray();
+            pattern = new DataExtractor(1).ExtractBeatmapData(obj.NewValue).ToArray();
             matcher = new TrieDataMatcher(dataStruct, pattern);
             filter = new OnScreenFilter();
             judge = new SuperJudge(pattern);

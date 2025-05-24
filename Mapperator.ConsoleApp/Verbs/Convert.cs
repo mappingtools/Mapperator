@@ -49,9 +49,9 @@ public static class Convert {
         stopwatch.Start();
 
         Console.WriteLine(Strings.Program_DoMapConvert_Extracting_data___);
-        var trainData = DataSerializer.DeserializeBeatmapData(File.ReadLines(Path.ChangeExtension(opts.DataPath, ".txt")));
+        var (trainVersion, trainData) = DataSerializer.DeserializeBeatmapData(File.ReadAllLines(Path.ChangeExtension(opts.DataPath, ".txt")));
         var map = new BeatmapEditor(Path.ChangeExtension(opts.InputBeatmapPath, ".osu")).ReadFile();
-        var input = new DataExtractor().ExtractBeatmapData(map).ToArray();
+        var input = new DataExtractor(trainVersion).ExtractBeatmapData(map).ToArray();
 
         // TODO: add options to automatically add distance spacing
         // TODO: also add options for ignoring angles, nc, or slider attributes
@@ -64,7 +64,7 @@ public static class Convert {
         if (opts.SpacingBeatmapPath is not null) {
             Console.WriteLine(Strings.Program_DoMapConvert_Converting_spacing_to_reference_beatmap___);
             var spacingMap = new BeatmapEditor(Path.ChangeExtension(opts.SpacingBeatmapPath, ".osu")).ReadFile();
-            var spacingMapData = new DataExtractor().ExtractBeatmapData(spacingMap).ToArray();
+            var spacingMapData = new DataExtractor(trainVersion).ExtractBeatmapData(spacingMap).ToArray();
             input = TransferSpacing(spacingMapData, input);
         }
 

@@ -8,8 +8,8 @@
     <ProjectReference Include="..\Mapperator.DemoApp.Game\Mapperator.DemoApp.Game.csproj" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.1.0-alpha.2" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Resources\input.osu" />
