@@ -50,7 +50,7 @@ public static class Dataset2 {
         [Option('v', "validation-data", Required = false, HelpText = "Path to .txt file with all beatmap set IDs that you need.")]
         public string? ValidationData { get; [UsedImplicitly] set; }
 
-        [Option('x', "validate", Default = false, Required = false, HelpText = "Validate the dataset.")]
+        [Option('x', "validate", Default = false, Required = false, HelpText = "Validate the dataset. Makes sure each beatmap in the data folder has a corresponding metadata entry and vice versa.")]
         public bool Validate { get; [UsedImplicitly] set; }
     }
 
