@@ -17,9 +17,23 @@ Extract beatmap data from a specific mapper in your osu! songs folder.
 .\Mapperator.ConsoleApp.exe extract -s Ranked -m Standard -a Sotarks -o SotarksData
 ```
 
-Reconstruct a beatmap using the extracted data
+Reconstruct a beatmap using the extracted data.
 ```
 .\Mapperator.ConsoleApp.exe convert -d SotarksData -i path_to_beatmap.osu -o converted_beatmap
+```
+
+You can specify an osu! folder. There should be a `config.json` next to the executable with some paths. This is the contents:
+```
+{
+  "OsuPath": "C:\\Users\\name\\AppData\\Local\\osu!",
+  "SongsPath": "C:\\Users\\name\\AppData\\Local\\osu!\\Songs"
+}
+```
+
+Create a generic dataset for Machine Learning from your songs folder.
+
+```
+.\Mapperator.ConsoleApp.exe dataset -s Ranked -m Standard -i 200000 -o "path to output folder"
 ```
 
 ## Demo App

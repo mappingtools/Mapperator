@@ -35,4 +35,10 @@ public readonly struct Match {
         MinMult = minMult;
         MaxMult = maxMult;
     }
+
+    public Match Next() {
+        if (Sequence.Length < 2) throw new Exception(@"Can't generate match with next data point, because it would contain no elements.");
+
+        return new Match(Sequence[1..], new WordPosition<int>(SeqPos.CharPosition + 1, SeqPos.Value), MinMult, MaxMult);
+    }
 }

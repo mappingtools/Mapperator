@@ -18,7 +18,6 @@ using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
 using osu.Framework.Graphics.Sprites;
 using osu.Framework.Graphics.UserInterface;
-using osu.Framework.Input;
 using osu.Framework.Screens;
 using osuTK;
 using osuTK.Graphics;
@@ -34,12 +33,13 @@ namespace Mapperator.DemoApp.Game
         private PatternVisualizer newVisualizer;
         private RhythmDistanceTrieStructure dataStruct;
         private MapDataPoint[] pattern;
-        private TrieDataMatcher2 matcher;
+        private TrieDataMatcher matcher;
         private int patternIndex;
         private IEnumerator<Match> matchIterator;
         private BasicButton variantButton;
         private OnScreenFilter filter;
-        private BestScoreOrderFilter sorter;
+        private BestScoreFilter sorter;
+        private SuperJudge judge;
 
         [BackgroundDependencyLoader]
         private void load(BeatmapStore beatmapStore, MapDataStore mapDataStore)
@@ -162,10 +162,10 @@ namespace Mapperator.DemoApp.Game
             patternIndex = pos.Value + length + beatmap.Value.HitObjects.Take(pos.Value + length).Count(o => o is Slider or Spinner);
 
             // Get matches for current index
-            var (endPos, angle, _) = BeatmapConstructor2.GetContinuation(beatmap.Value.HitObjects.GetRange(0, pos.Value + length));
+            var (endPos, angle, _) = new Continuation(beatmap.Value.HitObjects.GetRange(0, pos.Value + length));
             filter.Pos = endPos;
             filter.Angle = angle;
-            sorter.PatternIndex = patternIndex;
+            judge.PatternIndex = patternIndex;
             matcher.MinLength = 1;
             var matches = sorter.FilterMatches(filter.FilterMatches(matcher.FindMatches(patternIndex)));
 
@@ -189,8 +189,9 @@ namespace Mapperator.DemoApp.Game
 
             // Show the matched objects in the right visualizer
             var newHitObjects = beatmap.Value.HitObjects.GetRange(pos.Value, length);
-            var constructor = new BeatmapConstructor2();
-            constructor.Construct(newHitObjects, match, pattern.AsSpan()[patternIndex..], true, null, out _);
+            var constructor = new BeatmapConstructor { SelectNewObjects = true };
+            constructor.Construct(newHitObjects, match, pattern.AsSpan()[patternIndex..]);
+
             newHitObjects.GiveObjectsTimingContext(beatmap.Value.BeatmapTiming);
             newHitObjects.CalculateEndPositions();
             newHitObjects.UpdateStacking(beatmap.Value.Difficulty.StackOffset, beatmap.Value.General.StackLeniency, beatmap.Value.Difficulty.ApproachTime);
@@ -222,9 +223,10 @@ namespace Mapperator.DemoApp.Game
             pos.MaxValue = obj.NewValue.HitObjects.Count - length - 1;
 
             pattern = new DataExtractor(1).ExtractBeatmapData(obj.NewValue).ToArray();
-            matcher = new TrieDataMatcher2(dataStruct, pattern);
+            matcher = new TrieDataMatcher(dataStruct, pattern);
             filter = new OnScreenFilter();
-            sorter = new BestScoreOrderFilter(new SuperJudge(), pattern, matcher);
+            judge = new SuperJudge(pattern);
+            sorter = new BestScoreFilter(judge, 1000) { MinLengthProvider = matcher };
         }
     }
 }

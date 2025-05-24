@@ -6,9 +6,9 @@ using Mapping_Tools_Core.BeatmapHelper.IO.Editor;
 using NUnit.Framework;
 using TrieNet;
 
-namespace Mapperator.Tests.Matching;
+namespace Mapperator.Tests.Matching.DataStructures;
 
-public class TrieDataMatcherTests {
+public class RhythmDistanceTrieStructureTests {
     private RhythmDistanceTrieStructure data;
 
     [OneTimeSetUp]
@@ -39,27 +39,27 @@ public class TrieDataMatcherTests {
 
                     var result = data.Trie.RetrieveSubstrings(query).ToList();
 
-                    Assert.IsTrue(result.Count > 0);
+                    Assert.That(result.Count, Is.GreaterThan(0));
                     foreach (var wordPosition in result) {
                         //var rhythmString = dataRhythmStrings[wordPosition.Value];
                         //Console.WriteLine(string.Join('-', Enumerable.Range(0, searchLength).Select(o => rhythmString.Span[wordPosition.CharPosition + o])));
                         //Console.WriteLine(string.Join('-', query.ToArray()));
-                        Assert.IsTrue(data.WordPositionInRange(wordPosition));
-                        Assert.IsTrue(data.WordPositionInRange(wordPosition, searchLength - 1));
-                        Assert.AreEqual(searchLength, GetMatchLength(wordPosition, query));
+                        Assert.That(data.WordPositionInRange(wordPosition));
+                        Assert.That(data.WordPositionInRange(wordPosition, searchLength - 1));
+                        Assert.That(searchLength, Is.EqualTo(GetMatchLength(wordPosition, query)));
                     }
 
                     var (min, max) = RhythmDistanceTrieStructure.ToDistanceRange(query, 10);
                     var rangeResult = data.Trie.RetrieveSubstringsRange(min, max).ToList();
 
-                    Assert.IsTrue(rangeResult.Count > 0);
+                    Assert.That(rangeResult.Count > 0);
                     foreach (var wordPosition in rangeResult) {
                         //var rhythmString = dataRhythmStrings[wordPosition.Value];
                         //Console.WriteLine(string.Join('-', Enumerable.Range(0, searchLength).Select(o => rhythmString.Span[wordPosition.CharPosition + o])));
                         //Console.WriteLine(string.Join('-', query.ToArray()));
-                        Assert.IsTrue(data.WordPositionInRange(wordPosition));
-                        Assert.IsTrue(data.WordPositionInRange(wordPosition, searchLength - 1));
-                        Assert.AreEqual(searchLength, GetMatchLengthRange(wordPosition, min.Span, max.Span));
+                        Assert.That(data.WordPositionInRange(wordPosition));
+                        Assert.That(data.WordPositionInRange(wordPosition, searchLength - 1));
+                        Assert.That(searchLength, Is.EqualTo(GetMatchLengthRange(wordPosition, min.Span, max.Span)));
                     }
                 }
             }

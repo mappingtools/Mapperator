@@ -7,9 +7,9 @@ using NUnit.Framework;
 
 namespace Mapperator.Tests.Matching.Matchers;
 
-public class TrieDataMatcher2Tests {
+public class TrieDataMatcherTests {
     private readonly RhythmDistanceTrieStructure data = new();
-    private TrieDataMatcher2 matcher;
+    private TrieDataMatcher matcher;
 
     [OneTimeSetUp]
     public void Setup() {
@@ -20,15 +20,15 @@ public class TrieDataMatcher2Tests {
 
     [Test]
     public void TestQuery() {
-        matcher = new TrieDataMatcher2(data, data.Data[0].AsSpan());
+        matcher = new TrieDataMatcher(data, data.Data[0].AsSpan());
 
         var result = matcher.FindMatches(0);
 
         foreach (var match in result) {
             Console.WriteLine(match.Sequence.Length);
             Console.WriteLine(string.Join('-', RhythmDistanceTrieStructure.ToRhythmString(match.Sequence.Span).ToArray()));
-            //Assert.IsTrue(WordPositionInRange(wordPosition));
-            //Assert.IsTrue(WordPositionInRange(wordPosition, searchLength));
+            //Assert.That(WordPositionInRange(wordPosition));
+            //Assert.That(WordPositionInRange(wordPosition, searchLength));
             //Assert.AreEqual(searchLength, GetMatchLength(wordPosition, query));
         }
     }

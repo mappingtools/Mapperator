@@ -1,25 +1,22 @@
-﻿using Mapperator.Model;
-
+﻿
 namespace Mapperator.Matching.Filters;
 
 /// <summary>
-/// Makes sure the filtered matches stay completely on screen when placed in the editor.
+/// Looks ahead by BufferSize and yields the highest score match in the buffer.
+/// This will eventually yield all items.
 /// </summary>
 public class BestScoreOrderFilter : IMatchFilter {
-    private const int BufferSize = 1000;
-
     private readonly IJudge judge;
-    private readonly ReadOnlyMemory<MapDataPoint> pattern;
-    private readonly IMinLengthProvider? minLengthProvider;
+    private readonly PriorityQueue<Match, double> queue;
 
-    private readonly PriorityQueue<Match, double> queue = new(BufferSize);
+    public int BufferSize { get; }
 
-    public int PatternIndex { get; set; }
+    public IMinLengthProvider? MinLengthProvider { get; init; }
 
-    public BestScoreOrderFilter(IJudge judge, ReadOnlyMemory<MapDataPoint> pattern, IMinLengthProvider? minLengthProvider = null) {
+    public BestScoreOrderFilter(IJudge judge, int bufferSize) {
         this.judge = judge;
-        this.pattern = pattern;
-        this.minLengthProvider = minLengthProvider;
+        BufferSize = bufferSize;
+        queue = new PriorityQueue<Match, double>(BufferSize);
     }
 
     public IEnumerable<Match> FilterMatches(IEnumerable<Match> matches) {
@@ -27,7 +24,7 @@ public class BestScoreOrderFilter : IMatchFilter {
         var bestScore = double.NegativeInfinity;
 
         foreach (var match in matches) {
-            var score = RateMatchQuality(match);
+            var score = judge.Judge(match);
 
             if (queue.Count >= BufferSize) {
                 yield return queue.EnqueueDequeue(match, -score);
@@ -35,19 +32,14 @@ public class BestScoreOrderFilter : IMatchFilter {
                 queue.Enqueue(match, -score);
             }
 
-            if (score > bestScore && minLengthProvider is not null) {
-                bestScore = score;
-                minLengthProvider.MinLength = Math.Max(minLengthProvider.MinLength, judge.MinLengthForScore(bestScore));
-            }
+            if (!(score > bestScore) || MinLengthProvider is null) continue;
+
+            bestScore = score;
+            MinLengthProvider.MinLength = Math.Max(MinLengthProvider.MinLength, judge.MinLengthForScore(bestScore));
         }
 
         while (queue.Count > 0) {
             yield return queue.Dequeue();
         }
-    }
-
-    private double RateMatchQuality(Match match) {
-        var mult = match.MinMult == 0 && double.IsPositiveInfinity(match.MaxMult) ? 1 : Math.Sqrt(match.MinMult * match.MaxMult);
-        return judge.Judge(match.Sequence.Span, pattern.Span.Slice(PatternIndex, match.Length), 0, mult);
     }
 }

@@ -72,6 +72,15 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading ML model....
+        /// </summary>
+        internal static string ConvertML_DoMapConvert_Loading_ML_model___ {
+            get {
+                return ResourceManager.GetString("ConvertML_DoMapConvert_Loading_ML_model___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find collection &apos;{0}&apos;..
         /// </summary>
         internal static string CouldNotFindCollection {
@@ -86,6 +95,269 @@ namespace Mapperator.ConsoleApp.Resources {
         internal static string CouldNotFindFile {
             get {
                 return ResourceManager.GetString("CouldNotFindFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total number of beatmap sets: {0}.
+        /// </summary>
+        internal static string Count_DoDataCount_Total_beatmap_sets___0_ {
+            get {
+                return ResourceManager.GetString("Count_DoDataCount_Total_beatmap_sets___0_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total number of beatmaps: {0}.
+        /// </summary>
+        internal static string Count_DoDataCount_Total_beatmaps___0_ {
+            get {
+                return ResourceManager.GetString("Count_DoDataCount_Total_beatmaps___0_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total duration: {0}.
+        /// </summary>
+        internal static string Count_DoDataCount_Total_duration___0_ {
+            get {
+                return ResourceManager.GetString("Count_DoDataCount_Total_duration___0_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total file size: {0} MB.
+        /// </summary>
+        internal static string Count_DoDataCount_Total_file_size___0__MB {
+            get {
+                return ResourceManager.GetString("Count_DoDataCount_Total_file_size___0__MB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copied beatmap set {0}/{1}.
+        /// </summary>
+        internal static string Dataset_DoDataExtraction_Copy_Update {
+            get {
+                return ResourceManager.GetString("Dataset_DoDataExtraction_Copy_Update", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} sets found.
+        /// </summary>
+        internal static string Dataset_DoDataExtraction_Count_Update {
+            get {
+                return ResourceManager.GetString("Dataset_DoDataExtraction_Count_Update", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finding beatmap sets....
+        /// </summary>
+        internal static string Dataset_DoDataExtraction_Finding_beatmap_sets___ {
+            get {
+                return ResourceManager.GetString("Dataset_DoDataExtraction_Finding_beatmap_sets___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Writing dataset....
+        /// </summary>
+        internal static string Dataset_DoDataExtraction_Writing_dataset___ {
+            get {
+                return ResourceManager.GetString("Dataset_DoDataExtraction_Writing_dataset___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OMDB tags file not found.
+        /// </summary>
+        internal static string Dataset_DoDataExtraction2_OMDB_tags_file_not_found {
+            get {
+                return ResourceManager.GetString("Dataset_DoDataExtraction2_OMDB_tags_file_not_found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Corrupt audio file: {0}
+        ///{1}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Audio file {0} not found in {1}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Audio_file__0__not_found_in__1_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Audio_file__0__not_found_in__1_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Beatmap sets with issues:.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Beatmap_sets_with_issues_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Beatmap_sets_with_issues_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Beatmap sets with mismatched checksums:.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Beatmap_sets_with_mismatched_checksums_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Beatmap_sets_with_mismatched_checksums_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking for missing data....
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Checking_for_missing_data___ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Checking_for_missing_data___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking for missing metadata....
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Checking_for_missing_metadata___ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Checking_for_missing_metadata___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Counting total file size and duration in the dataset....
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Counting_total_file_size_and_duration_in_the_dataset___ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Counting_total_file_size_and_duration_in_the_dataset__" +
+                        "_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading existing metadata....
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Loading_existing_metadata___ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Loading_existing_metadata___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading existing sets with issues....
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Loading_existing_sets_with_issues___ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Loading_existing_sets_with_issues___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading existing sets with mismatched checksums....
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Loading_existing_sets_with_mismatched_checksums___ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Loading_existing_sets_with_mismatched_checksums___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading online cache....
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Loading_online_cache___ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Loading_online_cache___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing audio file for {0}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Missing_audio_file_for__0_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Missing_audio_file_for__0_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing beatmap for {0}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Missing_beatmap_for__0_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Missing_beatmap_for__0_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing metadata for {0}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Missing_metadata_for__0_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Missing_metadata_for__0_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing ranked beatmap sets:.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Missing_ranked_beatmap_sets_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Missing_ranked_beatmap_sets_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skipping {0} because checksum does not match..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skipping {0} because it is not ranked..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Skipping__0__because_it_is_not_ranked_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_it_is_not_ranked_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skipping {0} because ìt is not ranked..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Skipping__0__because_ìt_is_not_ranked_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_ìt_is_not_ranked_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rate limited, waiting 10 seconds....
+        /// </summary>
+        internal static string Dataset2_GetBeatmapsetInfo_Rate_limited__waiting_10_seconds___ {
+            get {
+                return ResourceManager.GetString("Dataset2_GetBeatmapsetInfo_Rate_limited__waiting_10_seconds___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Timed-out, waiting 10 seconds....
+        /// </summary>
+        internal static string Dataset2_GetBeatmapsetInfo_Timed_out__waiting_10_seconds___ {
+            get {
+                return ResourceManager.GetString("Dataset2_GetBeatmapsetInfo_Timed_out__waiting_10_seconds___", resourceCulture);
             }
         }
         

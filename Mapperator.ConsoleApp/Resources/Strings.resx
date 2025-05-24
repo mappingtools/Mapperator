@@ -172,4 +172,95 @@ Basic usage:
   <data name="Program_DoMapConvert_Converting_spacing_to_reference_beatmap___" xml:space="preserve">
     <value>Converting spacing to reference beatmap...</value>
   </data>
+  <data name="Count_DoDataCount_Total_file_size___0__MB" xml:space="preserve">
+    <value>Total file size: {0} MB</value>
+  </data>
+  <data name="Count_DoDataCount_Total_duration___0_" xml:space="preserve">
+    <value>Total duration: {0}</value>
+  </data>
+  <data name="Dataset_DoDataExtraction_Finding_beatmap_sets___" xml:space="preserve">
+    <value>Finding beatmap sets...</value>
+  </data>
+  <data name="Dataset_DoDataExtraction_Count_Update" xml:space="preserve">
+    <value>{0} sets found</value>
+  </data>
+  <data name="Dataset_DoDataExtraction_Writing_dataset___" xml:space="preserve">
+    <value>Writing dataset...</value>
+  </data>
+  <data name="Dataset_DoDataExtraction_Copy_Update" xml:space="preserve">
+      <value>Copied beatmap set {0}/{1}</value>
+  </data>
+  <data name="ConvertML_DoMapConvert_Loading_ML_model___" xml:space="preserve">
+    <value>Loading ML model...</value>
+  </data>
+  <data name="Dataset_DoDataExtraction2_OMDB_tags_file_not_found" xml:space="preserve">
+    <value>OMDB tags file not found</value>
+  </data>
+  <data name="Count_DoDataCount_Total_beatmap_sets___0_" xml:space="preserve">
+    <value>Total number of beatmap sets: {0}</value>
+  </data>
+  <data name="Count_DoDataCount_Total_beatmaps___0_" xml:space="preserve">
+    <value>Total number of beatmaps: {0}</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_" xml:space="preserve">
+    <value>Skipping {0} because checksum does not match.</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Skipping__0__because_it_is_not_ranked_" xml:space="preserve">
+    <value>Skipping {0} because it is not ranked.</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Skipping__0__because_ìt_is_not_ranked_" xml:space="preserve">
+    <value>Skipping {0} because ìt is not ranked.</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Loading_online_cache___" xml:space="preserve">
+    <value>Loading online cache...</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Loading_existing_metadata___" xml:space="preserve">
+    <value>Loading existing metadata...</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Loading_existing_sets_with_issues___" xml:space="preserve">
+    <value>Loading existing sets with issues...</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Loading_existing_sets_with_mismatched_checksums___" xml:space="preserve">
+    <value>Loading existing sets with mismatched checksums...</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Audio_file__0__not_found_in__1_" xml:space="preserve">
+    <value>Audio file {0} not found in {1}</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Beatmap_sets_with_issues_" xml:space="preserve">
+    <value>Beatmap sets with issues:</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Beatmap_sets_with_mismatched_checksums_" xml:space="preserve">
+    <value>Beatmap sets with mismatched checksums:</value>
+  </data>
+  <data name="Dataset2_GetBeatmapsetInfo_Rate_limited__waiting_10_seconds___" xml:space="preserve">
+    <value>Rate limited, waiting 10 seconds...</value>
+  </data>
+  <data name="Dataset2_GetBeatmapsetInfo_Timed_out__waiting_10_seconds___" xml:space="preserve">
+    <value>Timed-out, waiting 10 seconds...</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_" xml:space="preserve">
+    <value>Corrupt audio file: {0}
+{1}</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Counting_total_file_size_and_duration_in_the_dataset___" xml:space="preserve">
+    <value>Counting total file size and duration in the dataset...</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Missing_ranked_beatmap_sets_" xml:space="preserve">
+    <value>Missing ranked beatmap sets:</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Checking_for_missing_metadata___" xml:space="preserve">
+    <value>Checking for missing metadata...</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Missing_metadata_for__0_" xml:space="preserve">
+    <value>Missing metadata for {0}</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Checking_for_missing_data___" xml:space="preserve">
+    <value>Checking for missing data...</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Missing_beatmap_for__0_" xml:space="preserve">
+    <value>Missing beatmap for {0}</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Missing_audio_file_for__0_" xml:space="preserve">
+    <value>Missing audio file for {0}</value>
+  </data>
 </root>
