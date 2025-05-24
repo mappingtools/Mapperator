@@ -5,6 +5,9 @@
       <list>
         <option value="$PROJECT_DIR$/Mapperator/bin/Release/net8.0/publish" />
         <option value="$PROJECT_DIR$/Mapperator.ConsoleApp/bin/Release/net8.0/win-x64/publish" />
+        <option value="$PROJECT_DIR$/Mapperator.DemoApp/Mapperator.DemoApp.Desktop/bin/Release/net8.0/linux-x64/publish" />
+        <option value="$PROJECT_DIR$/Mapperator.DemoApp/Mapperator.DemoApp.Desktop/bin/Release/net8.0/win-x64/publish" />
+        <option value="$PROJECT_DIR$/Mapperator.ConsoleApp/bin/Release/net8.0/linux-x64/publish" />
       </list>
     </option>
   </component>
