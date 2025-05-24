@@ -748,6 +748,15 @@ public static class Dataset2 {
             PassCount = beatmap.GetProperty("passcount").GetInt32(),
             PlayCount = beatmap.GetProperty("playcount").GetInt32(),
             Ranked = beatmap.GetProperty("ranked").GetInt32(),
+            Owners = beatmap.TryGetProperty("owners", out var ownersElem) && ownersElem.ValueKind != JsonValueKind.Null
+                ? ownersElem.EnumerateArray().Select(x => x.GetProperty("id").GetInt32()).ToList()
+                : [],
+            TopTagIds = beatmap.TryGetProperty("top_tag_ids", out var topTagIdsElem) && topTagIdsElem.ValueKind != JsonValueKind.Null
+                ? topTagIdsElem.EnumerateArray().Select(x => x.GetProperty("tag_id").GetInt32()).ToList()
+                : [],
+            TopTagCounts = beatmap.TryGetProperty("top_tag_ids", out var topTagCountsElem) && topTagCountsElem.ValueKind != JsonValueKind.Null
+                ? topTagCountsElem.EnumerateArray().Select(x => x.GetProperty("count").GetInt32()).ToList()
+                : [],
         };
     }
 
@@ -816,6 +825,9 @@ public static class Dataset2 {
         public int PassCount { get; set; }
         public int PlayCount { get; set; }
         public int Ranked { get; set; }
+        public List<int> Owners { get; set; } = [];
+        public List<int> TopTagIds { get; set; } = [];
+        public List<int> TopTagCounts { get; set; } = [];
 
         // Star ratings for various speeds
         public List<float> StarRating { get; set; } = [];
