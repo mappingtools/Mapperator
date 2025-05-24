@@ -36,6 +36,107 @@ Create a generic dataset for Machine Learning from your songs folder.
 .\Mapperator.ConsoleApp.exe dataset -s Ranked -m Standard -i 200000 -o "path to output folder"
 ```
 
+### Create a high-quality dataset
+
+With the verb `dataset2` you can create a dataset in the new format with rich metadata from the osu! API.
+It requires an [osu! OAuth client token](https://osu.ppy.sh/home/account/edit) to be present in the `config.json` file that is automatically generated in the same folder when you run the console app executable.
+
+The input data is given by a path to an input folder. It will search the input folder recursively for any .osz files or .zip archives containing .osz files.
+
+Repeat runs with the same output folder will generally attempt to append to the existing dataset, skipping over any beatmaps that are already in the dataset. If you instead wish to replace entries with your new input data, you can use the 'override' arguments to specify any categories that you would like to replace.
+
+```bash
+Mapperator.ConsoleApp.exe dataset2 -i "path/to/osz/files" -o "/datasets/cool_dataset"
+```
+
+<details>
+<summary>Dataset file structure</summary>
+OutputFolder
+├── metadata.parquet
+├── data
+│   ├── 1 Kenji Ninuma - DISCO PRINCE
+│   │   ├── 20.mp3
+│   │   ├── Kenji Ninuma - DISCOPRINCE (peppy) [Normal].osu
+│   ├── 3 Ni-Ni - 1,2,3,4, 007 [Wipeout Series]
+│   │   ├── 1,2,3,4, 007 (Speed Pop Mix).mp3
+│   │   ├── Ni-Ni - 1,2,3,4, 007 [Wipeout Series] (MCXD) [-Breezin-].osu
+│   │   ├── Ni-Ni - 1,2,3,4, 007 [Wipeout Series] (MCXD) [-Crusin-].osu
+│   │   ├── Ni-Ni - 1,2,3,4, 007 [Wipeout Series] (MCXD) [-Hardrock-].osu
+│   │   ├── Ni-Ni - 1,2,3,4, 007 [Wipeout Series] (MCXD) [-Sweatin-].osu
+...
+</details>
+
+<details>
+
+<summary>Included metadata</summary>
+
+```
+>>> df.loc[989342].iloc[0]
+Artist                                     Denkishiki Karen Ongaku Shuudan
+ArtistUnicode                                                    電気式華憐音楽集団
+Creator                                                           OliBomby
+FavouriteCount                                                          87
+Nsfw                                                                 False
+Offset                                                                   0
+BeatmapSetPlayCount                                                 100314
+Source                                                                    
+BeatmapSetStatus                                                    ranked
+Spotlight                                                            False
+Title                                                 Aoki Kotou no Anguis
+TitleUnicode                                                   碧き孤島のアングゥィス
+BeatmapSetUserId                                                   6573093
+Video                                                                False
+Description              <div class='bbcode bbcode--normal-line-height'...
+GenreId                                                                 11
+GenreName                                                            Metal
+LanguageId                                                               3
+LanguageName                                                      Japanese
+PackTags                                                            [S862]
+Ratings                               [0, 4, 1, 0, 0, 1, 1, 3, 2, 13, 116]
+DownloadDisabled                                                     False
+BeatmapSetBpm                                                        197.0
+CanBeHyped                                                           False
+DiscussionLocked                                                     False
+BeatmapSetIsScoreable                                                 True
+BeatmapSetLastUpdated                                  2020-01-28 13:23:12
+BeatmapSetRanked                                                         1
+RankedDate                                             2020-02-06 13:02:45
+Storyboard                                                           False
+SubmittedDate                                          2019-06-18 12:02:28
+Tags                     denkare metal power gothic japanese carnaval t...
+DifficultyRating                                                      6.16
+Mode                                                                   osu
+Status                                                              ranked
+TotalLength                                                            253
+UserId                                                             6573093
+Version                                                        Ardens Spes
+Checksum                                  f05ed490aece35b410421d7009dfb238
+MaxCombo                                                              1779
+Accuracy                                                               9.0
+Ar                                                                     9.3
+Bpm                                                                  197.0
+CountCircles                                                          1014
+CountSliders                                                           362
+CountSpinners                                                            2
+Cs                                                                     4.0
+Drain                                                                  6.0
+HitLength                                                              253
+IsScoreable                                                           True
+LastUpdated                                            2020-01-28 13:23:12
+ModeInt                                                                  0
+PassCount                                                             4653
+PlayCount                                                            51390
+Ranked                                                                   1
+StarRating               [3.5099857, 4.8706975, 6.1123815, 7.53119, 9.0...
+OmdbTags                 [simple, geometric, bursts, stamina, clean, ma...
+AudioFile                                                        audio.mp3
+BeatmapSetFolder         989342 Denkishiki Karen Ongaku Shuudan - Aoki ...
+BeatmapFile              Denkishiki Karen Ongaku Shuudan - Aoki Kotou n...
+Name: 2069601, dtype: object
+```
+
+</details>
+
 ## Demo App
 
 ![](https://i.imgur.com/iU5TE28.png)
