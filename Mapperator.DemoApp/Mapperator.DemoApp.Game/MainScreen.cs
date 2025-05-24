@@ -24,7 +24,7 @@ using osuTK.Graphics;
 
 namespace Mapperator.DemoApp.Game
 {
-    public class MainScreen : Screen
+    public partial class MainScreen : Screen
     {
         private readonly Bindable<Beatmap> beatmap = new();
         private readonly BindableInt pos = new() { MinValue = 0 };

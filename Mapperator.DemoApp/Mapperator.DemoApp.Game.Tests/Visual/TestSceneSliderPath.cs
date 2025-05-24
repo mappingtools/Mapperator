@@ -9,7 +9,7 @@ using osuTK.Graphics;
 namespace Mapperator.DemoApp.Game.Tests.Visual
 {
     [TestFixture]
-    public class TestSceneSliderPath : DemoAppTestScene
+    public partial class TestSceneSliderPath : DemoAppTestScene
     {
         private ManualSliderBody sliderBody;
         private MainCirclePiece circlePiece;

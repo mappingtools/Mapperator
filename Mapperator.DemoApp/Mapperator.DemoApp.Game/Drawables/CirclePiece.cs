@@ -10,7 +10,7 @@ using osuTK;
 
 namespace Mapperator.DemoApp.Game.Drawables
 {
-    public class CirclePiece : CompositeDrawable
+    public partial class CirclePiece : CompositeDrawable
     {
         public CirclePiece()
         {

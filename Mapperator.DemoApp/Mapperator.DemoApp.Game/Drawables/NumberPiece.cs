@@ -7,7 +7,7 @@ using osu.Framework.Graphics.Sprites;
 
 namespace Mapperator.DemoApp.Game.Drawables
 {
-    public class NumberPiece : Container
+    public partial class NumberPiece : Container
     {
         private readonly SpriteText number;
 

@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Mapperator.DemoApp.Game.Tests.Visual
 {
     [TestFixture]
-    public class TestSceneHitObject : DemoAppTestScene
+    public partial class TestSceneHitObject : DemoAppTestScene
     {
         public TestSceneHitObject()
         {

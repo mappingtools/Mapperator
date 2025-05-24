@@ -8,7 +8,7 @@ using osuTK;
 
 namespace Mapperator.DemoApp.Game.Drawables
 {
-    public class MainCirclePiece : CompositeDrawable
+    public partial class MainCirclePiece : CompositeDrawable
     {
         private readonly CirclePiece circle;
         private readonly NumberPiece number;

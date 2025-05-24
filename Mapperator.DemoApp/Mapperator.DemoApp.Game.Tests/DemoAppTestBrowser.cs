@@ -5,7 +5,7 @@ using osu.Framework.Testing;
 
 namespace Mapperator.DemoApp.Game.Tests
 {
-    public class DemoAppTestBrowser : DemoAppGameBase
+    public partial class DemoAppTestBrowser : DemoAppGameBase
     {
         protected override void LoadComplete()
         {

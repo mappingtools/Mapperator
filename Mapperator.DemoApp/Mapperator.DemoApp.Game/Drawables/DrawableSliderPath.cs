@@ -6,7 +6,7 @@ using osuTK.Graphics;
 
 namespace Mapperator.DemoApp.Game.Drawables
 {
-    public abstract class DrawableSliderPath : SmoothPath
+    public abstract partial class DrawableSliderPath : SmoothPath
     {
         protected const float BORDER_PORTION = 0.128f;
         protected const float GRADIENT_PORTION = 1 - BORDER_PORTION;

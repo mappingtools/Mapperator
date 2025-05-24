@@ -11,7 +11,7 @@ using osuTK.Graphics;
 
 namespace Mapperator.DemoApp.Game.Drawables
 {
-    public abstract class SliderBody : CompositeDrawable
+    public abstract partial class SliderBody : CompositeDrawable
     {
         private DrawableSliderPath path;
 
@@ -127,7 +127,7 @@ namespace Mapperator.DemoApp.Game.Drawables
 
         protected virtual DrawableSliderPath CreateSliderPath() => new DefaultDrawableSliderPath();
 
-        private class DefaultDrawableSliderPath : DrawableSliderPath
+        private partial class DefaultDrawableSliderPath : DrawableSliderPath
         {
             private const float opacity_at_centre = 0.3f;
             private const float opacity_at_edge = 0.8f;

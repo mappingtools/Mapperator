@@ -6,7 +6,7 @@ using osu.Framework.Allocation;
 namespace Mapperator.DemoApp.Game.Tests.Visual
 {
     [TestFixture]
-    public class TestScenePatternVisualizer : DemoAppTestScene
+    public partial class TestScenePatternVisualizer : DemoAppTestScene
     {
         private int start;
         private int end;

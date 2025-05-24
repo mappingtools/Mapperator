@@ -4,7 +4,7 @@ using osu.Framework.Screens;
 
 namespace Mapperator.DemoApp.Game
 {
-    public class DemoAppGame : DemoAppGameBase
+    public partial class DemoAppGame : DemoAppGameBase
     {
         private ScreenStack screenStack;
 

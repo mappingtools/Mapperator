@@ -10,7 +10,7 @@ using osuTK.Graphics;
 
 namespace Mapperator.DemoApp.Game.Drawables
 {
-    public class DrawableHitObject : CompositeDrawable
+    public partial class DrawableHitObject : CompositeDrawable
     {
         private readonly HitObject hitObject;
         private readonly Container box;

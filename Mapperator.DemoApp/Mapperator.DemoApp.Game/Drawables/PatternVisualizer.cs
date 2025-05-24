@@ -10,7 +10,7 @@ using osuTK.Graphics;
 
 namespace Mapperator.DemoApp.Game.Drawables;
 
-public class PatternVisualizer : CompositeDrawable
+public partial class PatternVisualizer : CompositeDrawable
 {
     public BindableList<HitObject> HitObjects { get; }
 
