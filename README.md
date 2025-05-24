@@ -51,6 +51,8 @@ Mapperator.ConsoleApp.exe dataset2 -i "path/to/osz/files" -o "/datasets/cool_dat
 
 <details>
 <summary>Dataset file structure</summary>
+  
+```
 OutputFolder
 ├── metadata.parquet
 ├── data
@@ -64,6 +66,7 @@ OutputFolder
 │   │   ├── Ni-Ni - 1,2,3,4, 007 [Wipeout Series] (MCXD) [-Hardrock-].osu
 │   │   ├── Ni-Ni - 1,2,3,4, 007 [Wipeout Series] (MCXD) [-Sweatin-].osu
 ...
+```
 </details>
 
 <details>
