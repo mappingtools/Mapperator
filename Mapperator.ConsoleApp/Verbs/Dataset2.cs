@@ -18,6 +18,7 @@ using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.IO.Decoding;
 using Mapping_Tools_Core.BeatmapHelper.IO.Encoding;
 using Parquet.Serialization;
+using SharpCompress.Archives;
 using TagLib;
 using TagLib.Mpeg;
 using File = System.IO.File;
@@ -567,8 +568,10 @@ public static class Dataset2 {
 
     private static IEnumerable<(string, ZipArchive)> FindOszFiles(string rootDirectory)
     {
-        if (Path.GetExtension(rootDirectory) == ".zip") {
-            foreach (var oszFile in SearchZipForOszFiles(rootDirectory))
+        var validArchiveExtensions = new[] { ".zip", ".rar", ".7z", ".tar", ".tar.gz", ".tar.bz2", ".tar.lz", ".tar.xz" };
+
+        if (validArchiveExtensions.Contains(Path.GetExtension(rootDirectory), StringComparer.OrdinalIgnoreCase)) {
+            foreach (var oszFile in SearchArchiveForOszFiles(rootDirectory))
                 yield return oszFile;
             yield break;
         }
@@ -583,25 +586,24 @@ public static class Dataset2 {
                 using var oszArchive = ZipFile.OpenRead(entry);
                 yield return (entry, oszArchive);
             }
-            else if (Path.GetExtension(entry).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+            else if (validArchiveExtensions.Contains(Path.GetExtension(entry), StringComparer.OrdinalIgnoreCase))
             {
                 // Process .zip files as folders
-                foreach (var oszFile in SearchZipForOszFiles(entry))
+                foreach (var oszFile in SearchArchiveForOszFiles(entry))
                     yield return oszFile;
             }
         }
     }
 
-    private static IEnumerable<(string, ZipArchive)> SearchZipForOszFiles(string zipFilePath) {
-        using var zip = ZipFile.OpenRead(zipFilePath);
-        foreach (var entry in zip.Entries)
-        {
-            if (Path.GetExtension(entry.FullName).Equals(".osz", StringComparison.OrdinalIgnoreCase)) {
-                // Open the .osz file as a stream and treat it as a zip archive
-                using var oszStream = entry.Open();
-                using var oszArchive = new ZipArchive(oszStream, ZipArchiveMode.Read);
-                yield return (entry.FullName, oszArchive);
-            }
+    private static IEnumerable<(string, ZipArchive)> SearchArchiveForOszFiles(string archivePath) {
+        using Stream stream = File.OpenRead(archivePath);
+        using var archive = ArchiveFactory.Open(stream);
+        foreach (var entry in archive.Entries) {
+            if (!Path.GetExtension(entry.Key!).Equals(".osz", StringComparison.OrdinalIgnoreCase)) continue;
+            // Open the .osz file as a stream and treat it as a zip archive
+            using var oszStream = entry.OpenEntryStream();
+            using var oszArchive = new ZipArchive(oszStream, ZipArchiveMode.Read);
+            yield return (entry.Key!, oszArchive);
         }
     }
 
