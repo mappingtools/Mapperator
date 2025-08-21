@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -17,11 +18,9 @@ using Mapperator.ConsoleApp.Utils;
 using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.IO.Decoding;
 using Mapping_Tools_Core.BeatmapHelper.IO.Encoding;
-using osu.Game.IO.FileAbstraction;
+using MediaInfo;
 using Parquet.Serialization;
 using SharpCompress.Archives;
-using TagLib;
-using TagLib.Mpeg;
 using File = System.IO.File;
 
 // ReSharper disable NotAccessedPositionalProperty.Local
@@ -361,12 +360,9 @@ public static class Dataset2 {
                         try {
                             using var memoryStream = new MemoryStream();
                             using (var audioStream = audioEntry.Open()) audioStream.CopyTo(memoryStream);
-                            // Reset the position of the MemoryStream to the beginning before passing it to TagLib.
-                            memoryStream.Position = 0;
-                            var file = TagLib.File.Create(new StreamFileAbstraction(actualAudioFilename, memoryStream));
-                            var duration = file.Properties.Duration;
+                            double duration = GetMediaInfoFromStream(memoryStream, actualAudioFilename).TotalSeconds;
                             int drainTime = beatmapInfo.GetProperty("hit_length").GetInt32();
-                            double percentageMapped = drainTime / duration.TotalSeconds * 100;
+                            double percentageMapped = drainTime / duration * 100;
                             if (percentageMapped < args.MinPercentageOfSongMapped.Value)
                             {
                                 Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_song_, entry.FullName, percentageMapped);
@@ -441,11 +437,6 @@ public static class Dataset2 {
                     allSets.Add(metadata.BeatmapSetId);
                 }
             }
-
-            // Remove the beatmapset folder if it's empty
-            if (Directory.GetFiles(outputSetPath).Length == 0)
-                Directory.Delete(outputSetPath);
-
             if (args.DeleteOnIssues && issues) {
                 Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Deleting_beatmap_set_folder__0__due_to_issues_, outputSetPath);
                 Directory.Delete(outputSetPath, true);
@@ -459,6 +450,10 @@ public static class Dataset2 {
                     File.AppendAllLines(setsSkippedPath, [fullName]);
                 issues = false;  // Prevent reporting issues
             }
+
+            // Remove the beatmapset folder if it's empty
+            if (Directory.Exists(outputSetPath) && Directory.GetFiles(outputSetPath).Length == 0)
+                Directory.Delete(outputSetPath);
 
             // Report any beatmap sets with issues
             if (issues && setsWithIssues.Add(beatmapSetId)) {
@@ -546,9 +541,8 @@ public static class Dataset2 {
 
         foreach (string audioFile in audioFiles) {
             try {
-                var objAf = new AudioFile(audioFile);
-                totalTime += TimeSpan.FromSeconds(objAf.Properties.Duration.TotalSeconds);
-            } catch (CorruptFileException e) {
+                totalTime += GetMediaFileDuration(audioFile);
+            } catch (Exception e) {
                 Console.WriteLine(Strings.Dataset2_DoDataExtraction2_, e.Message, audioFile);
             }
         }
@@ -574,6 +568,72 @@ public static class Dataset2 {
         Console.WriteLine(Strings.Count_DoDataCount_Total_beatmaps___0_, totalBeatmaps);
 
         return 0;
+    }
+
+    private static TimeSpan GetMediaFileDuration(string filePath)
+    {
+        var mi = new MediaInfo.MediaInfo();
+
+        try
+        {
+            mi.Open(filePath);
+
+            string durationString = mi.Get(StreamKind.General, 0, "Duration");
+
+            if (!string.IsNullOrEmpty(durationString) && int.TryParse(durationString, out int durationMs))
+            {
+                return TimeSpan.FromMilliseconds(durationMs);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Could not retrieve duration for file: {filePath}");
+            }
+        }
+        finally
+        {
+            mi.Close();
+        }
+    }
+
+    private static TimeSpan GetMediaInfoFromStream(MemoryStream memoryStream, string fileName)
+    {
+        var mi = new MediaInfo.MediaInfo();
+        GCHandle handle = default;
+
+        try
+        {
+            // Reset the stream's position to the beginning
+            memoryStream.Position = 0;
+            byte[] buffer = memoryStream.ToArray();
+
+            // Pin the byte array in memory so the garbage collector doesn't move it
+            handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            IntPtr bufferPtr = handle.AddrOfPinnedObject();
+
+            // Set up buffer reading
+            mi.OpenBufferInit(memoryStream.Length, 0);
+
+            // Feed the entire buffer to MediaInfo.
+            // You can also feed it in chunks in a loop if the file is very large.
+            IntPtr _ = mi.OpenBufferContinue(bufferPtr, new IntPtr(memoryStream.Length));
+
+            // Finalize the buffer reading process
+            mi.OpenBufferFinalize();
+
+            // Now you can get the properties as usual
+            string durationString = mi.Get(StreamKind.General, 0, "Duration");
+
+            if (!string.IsNullOrEmpty(durationString) && int.TryParse(durationString, out int durationMs))
+                return TimeSpan.FromMilliseconds(durationMs);
+            else
+                throw new InvalidOperationException($"Could not retrieve duration for file: {fileName}");
+        }
+        finally
+        {
+            if (handle.IsAllocated)
+                handle.Free();
+            mi.Close();
+        }
     }
 
     private static string? GetBeatmapKeyValue(ZipArchiveEntry entry, string key) {
@@ -886,7 +946,7 @@ public static class Dataset2 {
         public int? LanguageId { get; set; }
         public string LanguageName { get; set; } = null!;
         public List<string> PackTags { get; set; } = null!;
-        public List<int> Ratings { get; set; } = null!;
+        public List<int>? Ratings { get; set; }
 
         // BeatmapsetExtended
         public bool DownloadDisabled { get; set; }
