@@ -2,7 +2,7 @@
   "profiles": {
     "CreateDataSet2": {
       "commandName": "Project",
-      "commandLineArgs": "dataset2 -t \"C:\\Users\\Olivier\\Documents\\GitHub\\Mapperatorinator\\datasets\\beatmap_descriptors.csv\" -i \"C:\\Users\\Olivier\\Documents\\Collections\\2025 Ranked Sets\" -o \"C:\\Users\\Olivier\\Documents\\Collections\\Beatmap ML Datasets\\test2\" -x -s -r -c"
+      "commandLineArgs": "dataset2 -i \"D:\\Collections\\osu map batch\" -o \"C:\\Users\\Olivier\\Documents\\Collections\\Beatmap ML Datasets\\MMUS\" -x -f -c -p 10 -d 30 -s 40000 -e -n 50"
     },
     "CreateDataSet": {
       "commandName": "Project",

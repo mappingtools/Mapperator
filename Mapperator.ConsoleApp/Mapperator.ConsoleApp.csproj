@@ -18,6 +18,7 @@
     <PackageReference Include="ppy.osu.Game.Rulesets.Osu" Version="2025.424.0" />
     <PackageReference Include="ppy.osu.Game.Rulesets.Taiko" Version="2025.424.0" />
     <PackageReference Include="SharpCompress" Version="0.40.0" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -17,6 +17,7 @@ using Mapperator.ConsoleApp.Utils;
 using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.IO.Decoding;
 using Mapping_Tools_Core.BeatmapHelper.IO.Encoding;
+using osu.Game.IO.FileAbstraction;
 using Parquet.Serialization;
 using SharpCompress.Archives;
 using TagLib;
@@ -54,7 +55,7 @@ public static class Dataset2 {
         [Option('x', "validate", Default = false, Required = false, HelpText = "Validate the dataset. Makes sure each beatmap in the data folder has a corresponding metadata entry and vice versa.")]
         public bool Validate { get; [UsedImplicitly] set; }
 
-        [Option('s', "set-id-from-file-name", Default = false, Required = false, HelpText = "Get the beatmap set ID from the .osz file name instead of the .osu file. Helpful for old maps where the set ID is not stored in the .osu file.")]
+        [Option('f', "set-id-from-file-name", Default = false, Required = false, HelpText = "Get the beatmap set ID from the .osz file name instead of the .osu file. Helpful for old maps where the set ID is not stored in the .osu file.")]
         public bool GetSetIdFromFileName { get; [UsedImplicitly] set; }
 
         [Option('r', "require-ranked", Default = false, Required = false, HelpText = "Require the beatmap set to be ranked. If false, will include unranked beatmaps.")]
@@ -62,6 +63,21 @@ public static class Dataset2 {
 
         [Option('c', "validate-checksums", Default = false, Required = false, HelpText = "Whether to check checksums of beatmaps against the online database. If false, will skip checksum validation.")]
         public bool ValidateChecksums { get; [UsedImplicitly] set; }
+
+        [Option('d', "min-drain-time", Required = false, HelpText = "Minimum drain time in seconds for the beatmap to be included in the dataset.")]
+        public int? MinDrainTime { get; [UsedImplicitly] set; } = null;
+
+        [Option('p', "min-play-count", Required = false, HelpText = "Minimum play count for the beatmap to be included in the dataset.")]
+        public int? MinPlayCount { get; [UsedImplicitly] set; } = null;
+
+        [Option('s', "max-map-set-count", Required = false, HelpText = "Maximum number of beatmaps in a set to be included in the dataset. If null, no limit is applied.")]
+        public int? MaxMapSetCount { get; [UsedImplicitly] set; } = null;
+
+        [Option('e', "delete-on-issues", Default = false, Required = false, HelpText = "If true, delete the beatmap set folder if there are any issues with it.")]
+        public bool DeleteOnIssues { get; [UsedImplicitly] set; } = false;
+
+        [Option('n', "min-percentage-of-song-mapped", Required = false, HelpText = "Minimum percentage of the song that must be mapped for the beatmap to be included in the dataset.")]
+        public int? MinPercentageOfSongMapped { get; [UsedImplicitly] set; } = null;
     }
 
     public static int DoDataExtraction2(DatasetOptions2 args) {
@@ -126,6 +142,7 @@ public static class Dataset2 {
 
         var allMetadata = new Dictionary<int, BeatmapMetadata>();
         var metadataBatch = new List<BeatmapMetadata>();
+        var allSets = new HashSet<int>();
         var setsWithIssues = new HashSet<int>();
         var setsWithMismatchedChecksums = new HashSet<int>();
         var setsSkipped = new HashSet<string>();
@@ -137,6 +154,7 @@ public static class Dataset2 {
             var data = ParquetSerializer.DeserializeAsync<BeatmapMetadata>(metadataPath).Result;
             foreach (var beatmapMetadata in data) {
                 allMetadata[beatmapMetadata.Id] = beatmapMetadata;
+                allSets.Add(beatmapMetadata.BeatmapSetId);
             }
         }
 
@@ -170,7 +188,12 @@ public static class Dataset2 {
         Console.WriteLine(Strings.Dataset_DoDataExtraction_Finding_beatmap_sets___);
 
         foreach ((string fullName, var oszFile) in FindOszFiles(args.InputFolder)) {
-            Console.WriteLine(fullName);
+            if (args.MaxMapSetCount.HasValue && allSets.Count >= args.MaxMapSetCount.Value) {
+                Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Maximum_beatmap_set_count_of__0__reached__Stopping_extraction_, args.MaxMapSetCount);
+                break;
+            }
+
+            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Mapset___0____1_, allSets.Count + 1, fullName);
 
             var issues = false;
 
@@ -211,22 +234,50 @@ public static class Dataset2 {
                 lastApiCallTime = DateTime.Now;
 
                 // Make an API request to get the beatmap set information
-                beatmapsetInfo = GetBeatmapSetInfo(client, setId).Result;
+                try {
+                    beatmapsetInfo = GetBeatmapSetInfo(client, setId).Result;
+                } catch (Exception e) {
+                    Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Failed_to_get_beatmap_set_info_for_ID__0____1_, setId, e.Message);
+                    if (setsSkipped.Add(fullName))
+                        File.AppendAllLines(setsSkippedPath, [fullName]);
+                    continue;
+                }
+
                 // Cache the information by appending to the online cache file
                 onlineCache[setId] = beatmapsetInfo;
                 File.AppendAllLines(onlineCachePath, [beatmapsetInfo.GetRawText()]);
             }
 
-            // Skip the whole beatmap set if it's already processed and we are not overriding
-            if (args is { OverrideMetadata: false, OverrideBeatmaps: false, OverrideAudio: false } &&
-                beatmapsetInfo.GetProperty("beatmaps").EnumerateArray().All(o => allMetadata.ContainsKey(o.GetProperty("id").GetInt32()))) {
+            bool filterBeatmap(JsonElement beatmapInfo) {
+                if (args.RequireRanked && beatmapInfo.GetProperty("status").GetString() != "ranked" && beatmapInfo.GetProperty("status").GetString() != "approved") {
+                    return false;
+                }
+
+                if (args.MinDrainTime.HasValue && beatmapInfo.GetProperty("hit_length").GetInt32() < args.MinDrainTime.Value) {
+                    return false;
+                }
+
+                if (args.MinPlayCount.HasValue && beatmapInfo.GetProperty("playcount").GetInt32() < args.MinPlayCount.Value) {
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Filter beatmaps based on the provided criteria
+            var includedIds = beatmapsetInfo.GetProperty("beatmaps").EnumerateArray()
+                .Where(filterBeatmap)
+                .Select(b => b.GetProperty("id").GetInt32())
+                .ToHashSet();
+
+            // Skip if the beatmap set has no valid beatmaps
+            if (includedIds.Count == 0) {
+                Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_it_has_no_beatmaps_matching_the_criteria_, fullName);
                 continue;
             }
 
-            // Make sure the beatmap set is actually ranked
-            string? status = beatmapsetInfo.GetProperty("status").GetString();
-            if (args.RequireRanked && status != "ranked" && status != "approved") {
-                Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_ìt_is_not_ranked_, fullName);
+            // Skip the whole beatmap set if it's already processed and we are not overriding
+            if (args is { OverrideMetadata: false, OverrideBeatmaps: false, OverrideAudio: false } && includedIds.All(id => allMetadata.ContainsKey(id))) {
                 continue;
             }
 
@@ -277,23 +328,58 @@ public static class Dataset2 {
                     }
                 }
 
-                string? beatmapStatus = beatmapInfo.GetProperty("status").GetString();
-                if (args.RequireRanked && beatmapStatus != "ranked" && beatmapStatus != "approved") {
-                    Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_it_is_not_ranked_, entry.FullName);
+                int beatmapId = beatmapInfo.GetProperty("id").GetInt32();
+
+                if (!includedIds.Contains(beatmapId)) {
+                    Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_it_does_not_match_the_criteria_, entry.FullName);
                     continue;
                 }
 
-                int beatmapId = beatmapInfo.GetProperty("id").GetInt32();
                 if (allMetadata.ContainsKey(beatmapId) && args is { OverrideMetadata: false, OverrideBeatmaps: false, OverrideAudio: false }) {
                     continue;
                 }
 
-                using var stream = entry.Open();
-                using var reader = new StreamReader(stream);
-                string content = reader.ReadToEnd();
-                var beatmap = beatmapDecoder.Decode(content);
+                Beatmap beatmap;
+                try {
+                    using var stream = entry.Open();
+                    using var reader = new StreamReader(stream);
+                    string content = reader.ReadToEnd();
+                    beatmap = beatmapDecoder.Decode(content);
+                } catch (Exception e) {
+                    Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Failed_to_decode_beatmap__0____1_, entry.FullName, e.Message);
+                    issues = true;
+                    continue;
+                }
+
                 string actualAudioFilename = WindowsZipFilenameStrip(FindAudioFile(oszFile, beatmap.General.AudioFilename)?.Name ?? beatmap.General.AudioFilename);
                 string actualBeatmapFilename = WindowsZipFilenameStrip(entry.Name);
+
+                // Filter on percentage of song mapped
+                if (args.MinPercentageOfSongMapped.HasValue) {
+                    var audioEntry = oszFile.GetEntry(actualAudioFilename);
+                    if (audioEntry is not null) {
+                        try {
+                            using var memoryStream = new MemoryStream();
+                            using (var audioStream = audioEntry.Open()) audioStream.CopyTo(memoryStream);
+                            // Reset the position of the MemoryStream to the beginning before passing it to TagLib.
+                            memoryStream.Position = 0;
+                            var file = TagLib.File.Create(new StreamFileAbstraction(actualAudioFilename, memoryStream));
+                            var duration = file.Properties.Duration;
+                            int drainTime = beatmapInfo.GetProperty("hit_length").GetInt32();
+                            double percentageMapped = drainTime / duration.TotalSeconds * 100;
+                            if (percentageMapped < args.MinPercentageOfSongMapped.Value)
+                            {
+                                Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_song_, entry.FullName, percentageMapped);
+                                continue;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Error_reading_audio_duration_for__0____1_, entry.FullName, ex.Message);
+                            issues = true;
+                        }
+                    }
+                }
 
                 // Copy the beatmap file to the output folder
                 string outputOsuFile = Path.Combine(outputSetPath, actualBeatmapFilename);
@@ -352,12 +438,27 @@ public static class Dataset2 {
                     }
 
                     allMetadata[metadata.Id] = metadata;
+                    allSets.Add(metadata.BeatmapSetId);
                 }
             }
 
             // Remove the beatmapset folder if it's empty
             if (Directory.GetFiles(outputSetPath).Length == 0)
                 Directory.Delete(outputSetPath);
+
+            if (args.DeleteOnIssues && issues) {
+                Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Deleting_beatmap_set_folder__0__due_to_issues_, outputSetPath);
+                Directory.Delete(outputSetPath, true);
+                // Remove the metadata entries
+                foreach (int beatmapId in includedIds) {
+                    allMetadata.Remove(beatmapId);
+                }
+                allSets.Remove(beatmapSetId);
+                // Report that we skipped this beatmap set
+                if (setsSkipped.Add(fullName))
+                    File.AppendAllLines(setsSkippedPath, [fullName]);
+                issues = false;  // Prevent reporting issues
+            }
 
             // Report any beatmap sets with issues
             if (issues && setsWithIssues.Add(beatmapSetId)) {
@@ -396,9 +497,8 @@ public static class Dataset2 {
         // Report any missing ranked beatmaps
         if (args.ValidationData is not null) {
             var validationData = File.ReadLines(args.ValidationData).Select(int.Parse).ToHashSet();
-            var processedBeatmaps = allMetadata.Values.Select(x => x.BeatmapSetId).ToHashSet();
             Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Missing_ranked_beatmap_sets_);
-            foreach (int beatmapSetId in validationData.Except(processedBeatmaps)) {
+            foreach (int beatmapSetId in validationData.Except(allSets)) {
                 Console.WriteLine(beatmapSetId);
             }
         }
@@ -431,6 +531,7 @@ public static class Dataset2 {
 
             // Write metadata to a parquet file
             ParquetSerializer.SerializeAsync(allMetadata.Values, metadataPath);
+            allSets = allMetadata.Values.Select(x => x.BeatmapSetId).ToHashSet();
         }
 
         // Count total file size and duration in the dataset
@@ -465,7 +566,7 @@ public static class Dataset2 {
         Console.WriteLine(Strings.Count_DoDataCount_Total_duration___0_, totalTime);
 
         // Count total beatmap sets and beatmaps
-        int totalBeatmapSets = allMetadata.Values.Select(x => x.BeatmapSetId).Distinct().Count();
+        int totalBeatmapSets = allSets.Count;
         int totalBeatmaps = allMetadata.Count;
 
         Console.WriteLine();
@@ -705,9 +806,9 @@ public static class Dataset2 {
             BeatmapSetUserId = beatmapset.GetProperty("user_id").GetInt32(),
             Video = beatmapset.GetProperty("video").GetBoolean(),
             Description = beatmapset.GetProperty("description").GetProperty("description").GetString()!,
-            GenreId = beatmapset.GetProperty("genre").GetProperty("id").GetRawText() == "null" ? -1 : beatmapset.GetProperty("genre").GetProperty("id").GetInt32(),
+            GenreId = beatmapset.GetProperty("genre").TryGetProperty("id", out var genreIdElem) && genreIdElem.ValueKind != JsonValueKind.Null ? genreIdElem.GetInt32() : null,
             GenreName = beatmapset.GetProperty("genre").GetProperty("name").GetString()!,
-            LanguageId = beatmapset.GetProperty("language").GetProperty("id").GetRawText() == "null" ? -1 : beatmapset.GetProperty("language").GetProperty("id").GetInt32(),
+            LanguageId = beatmapset.GetProperty("language").TryGetProperty("id", out var languageIdElem) && languageIdElem.ValueKind != JsonValueKind.Null ? languageIdElem.GetInt32() : null,
             LanguageName = beatmapset.GetProperty("language").GetProperty("name").GetString()!,
             PackTags = beatmapset.GetProperty("pack_tags").EnumerateArray().Select(x => x.GetString()!).ToList(),
             Ratings = beatmapset.GetProperty("ratings").EnumerateArray().Select(x => x.GetInt32()).ToList(),
@@ -734,7 +835,7 @@ public static class Dataset2 {
             UserId = beatmap.GetProperty("user_id").GetInt32(),
             Version = beatmap.GetProperty("version").GetString()!,
             Checksum = beatmap.TryGetProperty("checksum", out var checksumElem) && checksumElem.ValueKind != JsonValueKind.Null ? checksumElem.GetString() : null,
-            MaxCombo = beatmap.GetProperty("max_combo").GetInt32(),
+            MaxCombo = beatmap.TryGetProperty("max_combo", out var maxComboElem) && maxComboElem.ValueKind != JsonValueKind.Null ? maxComboElem.GetInt32() : null,
             Accuracy = beatmap.GetProperty("accuracy").GetSingle(),
             Ar = beatmap.GetProperty("ar").GetSingle(),
             Bpm = beatmap.TryGetProperty("bpm", out var bpmElem) && bpmElem.ValueKind != JsonValueKind.Null && bpmElem.TryGetSingle(out float bpm) ? bpm : null,
@@ -780,9 +881,9 @@ public static class Dataset2 {
         public int BeatmapSetUserId { get; set; }
         public bool Video { get; set; }
         public string Description { get; set; } = null!;
-        public int GenreId { get; set; }
+        public int? GenreId { get; set; }
         public string GenreName { get; set; } = null!;
-        public int LanguageId { get; set; }
+        public int? LanguageId { get; set; }
         public string LanguageName { get; set; } = null!;
         public List<string> PackTags { get; set; } = null!;
         public List<int> Ratings { get; set; } = null!;
@@ -809,7 +910,7 @@ public static class Dataset2 {
         public int UserId { get; set; }
         public string Version { get; set; } = null!;
         public string? Checksum { get; set; }
-        public int MaxCombo { get; set; }
+        public int? MaxCombo { get; set; }
 
         // BeatmapExtended
         public float Accuracy { get; set; }

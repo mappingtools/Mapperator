@@ -263,6 +263,42 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deleting beatmap set folder {0} due to issues..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Deleting_beatmap_set_folder__0__due_to_issues_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Deleting_beatmap_set_folder__0__due_to_issues_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error reading audio duration for {0}: {1}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Error_reading_audio_duration_for__0____1_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Error_reading_audio_duration_for__0____1_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to decode beatmap {0}: {1}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Failed_to_decode_beatmap__0____1_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Failed_to_decode_beatmap__0____1_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to get beatmap set info for ID {0}: {1}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Failed_to_get_beatmap_set_info_for_ID__0____1_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Failed_to_get_beatmap_set_info_for_ID__0____1_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid .osz file name format: {0}. Expected format: &lt;SetID&gt; &lt;Artist&gt; - &lt;Title&gt;.osz.
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Invalid__osz_file_name_format___0___Expected_format___SetID___Artist_____Title__osz {
@@ -314,6 +350,25 @@ namespace Mapperator.ConsoleApp.Resources {
         internal static string Dataset2_DoDataExtraction2_Loading_online_cache___ {
             get {
                 return ResourceManager.GetString("Dataset2_DoDataExtraction2_Loading_online_cache___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mapset #{0}: {1}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Mapset___0____1_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Mapset___0____1_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum beatmap set count of {0} reached. Stopping extraction..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Maximum_beatmap_set_count_of__0__reached__Stopping_extraction_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Maximum_beatmap_set_count_of__0__reached__Stopping_ext" +
+                        "raction_", resourceCulture);
             }
         }
         
@@ -378,6 +433,35 @@ namespace Mapperator.ConsoleApp.Resources {
             get {
                 return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_Beatm" +
                         "apID_is_not_found_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skipping {0} because it does not match the criteria..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Skipping__0__because_it_does_not_match_the_criteria_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_it_does_not_match_the_criteria_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skipping {0} because it has no beatmaps matching the criteria..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Skipping__0__because_it_has_no_beatmaps_matching_the_criteria_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_it_has_no_beatmaps_matching_the_c" +
+                        "riteria_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Skipping {0} because it is mapped for only {1:F2}% of the song..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_song_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_" +
+                        "song_", resourceCulture);
             }
         }
         

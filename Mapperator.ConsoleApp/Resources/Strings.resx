@@ -284,4 +284,31 @@ Basic usage:
   <data name="Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_BeatmapID_is_not_found_" xml:space="preserve">
     <value>Skipping {0} because checksum does not match and BeatmapID is not found.</value>
   </data>
+  <data name="Dataset2_DoDataExtraction2_Skipping__0__because_it_has_no_beatmaps_matching_the_criteria_" xml:space="preserve">
+    <value>Skipping {0} because it has no beatmaps matching the criteria.</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Skipping__0__because_it_does_not_match_the_criteria_" xml:space="preserve">
+    <value>Skipping {0} because it does not match the criteria.</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Failed_to_decode_beatmap__0____1_" xml:space="preserve">
+    <value>Failed to decode beatmap {0}: {1}</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Mapset___0____1_" xml:space="preserve">
+    <value>Mapset #{0}: {1}</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Maximum_beatmap_set_count_of__0__reached__Stopping_extraction_" xml:space="preserve">
+    <value>Maximum beatmap set count of {0} reached. Stopping extraction.</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Deleting_beatmap_set_folder__0__due_to_issues_" xml:space="preserve">
+    <value>Deleting beatmap set folder {0} due to issues.</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Failed_to_get_beatmap_set_info_for_ID__0____1_" xml:space="preserve">
+    <value>Failed to get beatmap set info for ID {0}: {1}</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Error_reading_audio_duration_for__0____1_" xml:space="preserve">
+    <value>Error reading audio duration for {0}: {1}</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_song_" xml:space="preserve">
+    <value>Skipping {0} because it is mapped for only {1:F2}% of the song.</value>
+  </data>
 </root>
