@@ -531,10 +531,21 @@ public static class Dataset2 {
         if (args.Validate) {
             Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Checking_for_missing_metadata___);
             var allMetadataBeatmapFiles = allMetadata.Values.Select(x => x.BeatmapFile).ToHashSet();
+            var toRemove = new List<string>();
             foreach (string osuFile in Directory.EnumerateFiles(Path.Combine(args.OutputFolder, dataFolder), "*.osu", SearchOption.AllDirectories)) {
                 string fileName = Path.GetFileName(osuFile);
                 if (!allMetadataBeatmapFiles.Contains(fileName)) {
+                    toRemove.Add(osuFile);
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Missing_metadata_for__0_, fileName);
+                }
+            }
+            // Remove the files that are missing metadata
+            foreach (string osuFile in toRemove) {
+                File.Delete(osuFile);
+                string folder = Path.GetDirectoryName(osuFile)!;
+                // If the folder contains no more .osu files, remove it
+                if (Directory.GetFiles(folder, "*.osu").Length == 0) {
+                    Directory.Delete(folder, true);
                 }
             }
 

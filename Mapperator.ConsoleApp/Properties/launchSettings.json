@@ -2,7 +2,7 @@
   "profiles": {
     "CreateDataSet2": {
       "commandName": "Project",
-      "commandLineArgs": "dataset2 -i \"D:\\Collections\\osu map batch\" -o \"C:\\Users\\Olivier\\Documents\\Collections\\Beatmap ML Datasets\\MMUS\" -x -f -c -p 10 -d 30 -s 40000 -e -n 50 -l 14"
+      "commandLineArgs": "dataset2 -i \"D:\\Collections\\osu map batch\" -o \"C:\\Users\\Olivier\\Documents\\Collections\\Beatmap ML Datasets\\MMUS\" -x -f -c -p 10 -d 30 -s 40000 -e -n 50 -l 14 -h"
     },
     "CreateDataSet": {
       "commandName": "Project",
