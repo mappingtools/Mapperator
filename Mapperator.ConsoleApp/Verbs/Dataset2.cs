@@ -526,9 +526,10 @@ public static class Dataset2 {
         // Check if each beatmap in the data folder has a corresponding metadata entry
         if (args.Validate) {
             Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Checking_for_missing_metadata___);
+            var allMetadataBeatmapFiles = allMetadata.Values.Select(x => x.BeatmapFile).ToHashSet();
             foreach (string osuFile in Directory.EnumerateFiles(Path.Combine(args.OutputFolder, dataFolder), "*.osu", SearchOption.AllDirectories)) {
                 string fileName = Path.GetFileName(osuFile);
-                if (allMetadata.Values.All(x => x.BeatmapFile != fileName)) {
+                if (!allMetadataBeatmapFiles.Contains(fileName)) {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Missing_metadata_for__0_, fileName);
                 }
             }
