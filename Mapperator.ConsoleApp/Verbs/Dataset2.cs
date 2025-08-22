@@ -761,8 +761,16 @@ public static class Dataset2 {
             {
                 // Yield .osz files directly found in the directory tree
                 // Open the .osz file as a stream and treat it as a zip archive
-                using var oszArchive = ZipFile.OpenRead(entry);
+                ZipArchive oszArchive;
+                try {
+                    oszArchive = ZipFile.OpenRead(entry);
+                } catch (Exception e) {
+                    Console.WriteLine(Strings.Dataset2_SearchArchiveForOszFiles_Error_opening__osz_file__0____1_, entry, e.Message);
+                    continue;
+                }
+
                 yield return (entry, oszArchive);
+                oszArchive.Dispose();
             }
             else if (validArchiveExtensions.Contains(Path.GetExtension(entry), StringComparer.OrdinalIgnoreCase))
             {
@@ -779,9 +787,9 @@ public static class Dataset2 {
         foreach (var entry in archive.Entries) {
             if (!Path.GetExtension(entry.Key!).Equals(".osz", StringComparison.OrdinalIgnoreCase)) continue;
 
+            // Open the .osz file as a stream and treat it as a zip archive
             ZipArchive oszArchive;
             try {
-                // Open the .osz file as a stream and treat it as a zip archive
                 using var oszStream = entry.OpenEntryStream();
                 oszArchive = new ZipArchive(oszStream, ZipArchiveMode.Read);
             } catch (Exception e) {
