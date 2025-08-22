@@ -512,6 +512,15 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error opening .osz file {0}: {1}.
+        /// </summary>
+        internal static string Dataset2_SearchArchiveForOszFiles_Error_opening__osz_file__0____1_ {
+            get {
+                return ResourceManager.GetString("Dataset2_SearchArchiveForOszFiles_Error_opening__osz_file__0____1_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error reading file &apos;{0}&apos;:
         ///{1}.
         /// </summary>

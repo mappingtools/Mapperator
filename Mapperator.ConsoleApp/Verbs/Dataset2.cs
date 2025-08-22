@@ -750,10 +750,19 @@ public static class Dataset2 {
         using var archive = ArchiveFactory.Open(stream);
         foreach (var entry in archive.Entries) {
             if (!Path.GetExtension(entry.Key!).Equals(".osz", StringComparison.OrdinalIgnoreCase)) continue;
-            // Open the .osz file as a stream and treat it as a zip archive
-            using var oszStream = entry.OpenEntryStream();
-            using var oszArchive = new ZipArchive(oszStream, ZipArchiveMode.Read);
+
+            ZipArchive oszArchive;
+            try {
+                // Open the .osz file as a stream and treat it as a zip archive
+                using var oszStream = entry.OpenEntryStream();
+                oszArchive = new ZipArchive(oszStream, ZipArchiveMode.Read);
+            } catch (Exception e) {
+                Console.WriteLine(Strings.Dataset2_SearchArchiveForOszFiles_Error_opening__osz_file__0____1_, entry.Key, e.Message);
+                continue;
+            }
+
             yield return (entry.Key!, oszArchive);
+            oszArchive.Dispose();
         }
     }
 

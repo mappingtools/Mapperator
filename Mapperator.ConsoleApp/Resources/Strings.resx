@@ -311,4 +311,7 @@ Basic usage:
   <data name="Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_song_" xml:space="preserve">
     <value>Skipping {0} because it is mapped for only {1:F2}% of the song.</value>
   </data>
+  <data name="Dataset2_SearchArchiveForOszFiles_Error_opening__osz_file__0____1_" xml:space="preserve">
+    <value>Error opening .osz file {0}: {1}</value>
+  </data>
 </root>
