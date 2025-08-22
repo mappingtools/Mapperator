@@ -199,6 +199,16 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Audio filename is missing in beatmap {0}. Skipping this beatmap..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Audio_filename_is_missing_in_beatmap__0___Skipping_this_beatmap_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Audio_filename_is_missing_in_beatmap__0___Skipping_thi" +
+                        "s_beatmap_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Beatmap sets skipped due to issues:.
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Beatmap_sets_skipped_due_to_issues_ {
@@ -480,6 +490,15 @@ namespace Mapperator.ConsoleApp.Resources {
         internal static string Dataset2_DoDataExtraction2_Skipping__0__because_ìt_is_not_ranked_ {
             get {
                 return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_ìt_is_not_ranked_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected error processing beatmap set {0}: {1} {2}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Unexpected_error_processing_beatmap_set__0____1___2_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Unexpected_error_processing_beatmap_set__0____1___2_", resourceCulture);
             }
         }
         
