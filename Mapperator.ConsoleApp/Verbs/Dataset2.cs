@@ -139,6 +139,8 @@ public static class Dataset2 {
         const int rateLimitInterval = 120;  // Milliseconds
         var lastApiCallTime = DateTime.MinValue;
 
+        const int metadataCheckpointInterval = 100;  // Number of metadata entries to write before checkpointing
+        int metadataCounter = 0;
         var allMetadata = new Dictionary<int, BeatmapMetadata>();
         var allSets = new HashSet<int>();
         var setsWithIssues = new HashSet<int>();
@@ -424,12 +426,9 @@ public static class Dataset2 {
                     }
 
                     // Append to the parquet file
-                    if (!args.OverrideMetadata) {
-                        metadataBatch.Add(metadata);
-                        if (metadataBatch.Count >= 100) {
-                            ParquetSerializer.SerializeAsync(metadataBatch, metadataPath, new ParquetSerializerOptions { Append = File.Exists(metadataPath) });
-                            metadataBatch.Clear();
-                        }
+                    if (metadataCounter++ >= metadataCheckpointInterval) {
+                        ParquetSerializer.SerializeAsync(allMetadata.Values, metadataPath);
+                        metadataCounter = 0;
                     }
 
                     allMetadata[metadata.Id] = metadata;
