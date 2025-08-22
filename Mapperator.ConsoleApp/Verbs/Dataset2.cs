@@ -77,6 +77,9 @@ public static class Dataset2 {
 
         [Option('n', "min-percentage-of-song-mapped", Required = false, HelpText = "Minimum percentage of the song that must be mapped for the beatmap to be included in the dataset.")]
         public int? MinPercentageOfSongMapped { get; [UsedImplicitly] set; } = null;
+
+        [Option('l', "max-star-rating", Required = false, HelpText = "Maximum star rating for the beatmap to be included in the dataset.")]
+        public float? MaxStarRating { get; [UsedImplicitly] set; } = null;
     }
 
     public static int DoDataExtraction2(DatasetOptions2 args) {
@@ -262,6 +265,10 @@ public static class Dataset2 {
                     }
 
                     if (args.MinPlayCount.HasValue && beatmapInfo.GetProperty("playcount").GetInt32() < args.MinPlayCount.Value) {
+                        return false;
+                    }
+
+                    if (args.MaxStarRating.HasValue && beatmapInfo.GetProperty("difficulty_rating").GetSingle() > args.MaxStarRating.Value) {
                         return false;
                     }
 
