@@ -19,6 +19,7 @@ using Mapping_Tools_Core.BeatmapHelper;
 using Mapping_Tools_Core.BeatmapHelper.IO.Decoding;
 using Mapping_Tools_Core.BeatmapHelper.IO.Encoding;
 using MediaInfo;
+using MoreLinq;
 using Parquet.Serialization;
 using SharpCompress.Archives;
 using File = System.IO.File;
@@ -30,7 +31,7 @@ namespace Mapperator.ConsoleApp.Verbs;
 public static class Dataset2 {
     [Verb("dataset2", HelpText = "Extract a ML dataset from a folder with a bunch of .osz files.")]
     public class DatasetOptions2 {
-        [Option('i', "input", Required = true, HelpText = "Folder with .osz files.")]
+        [Option('i', "input", Required = true, HelpText = "Folder with input .osz files.")]
         public string? InputFolder { get; [UsedImplicitly] set; }
 
         [Option('o', "output", Required = true, HelpText = "Folder to output the dataset to.")]
@@ -80,6 +81,9 @@ public static class Dataset2 {
 
         [Option('l', "max-star-rating", Required = false, HelpText = "Maximum star rating for the beatmap to be included in the dataset.")]
         public float? MaxStarRating { get; [UsedImplicitly] set; } = null;
+
+        [Option('h', "shuffle", Default = false, Required = false, HelpText = "Shuffle the input data. This is useful in combination with 'max-map-set-count' if you want a uniform sample of data.")]
+        public bool Shuffle { get; [UsedImplicitly] set; } = false;
     }
 
     public static int DoDataExtraction2(DatasetOptions2 args) {
@@ -190,7 +194,7 @@ public static class Dataset2 {
 
         Console.WriteLine(Strings.Dataset_DoDataExtraction_Finding_beatmap_sets___);
 
-        foreach ((string fullName, var oszFile) in FindOszFiles(args.InputFolder)) {
+        foreach ((string fullName, var oszFile) in FindOszFiles(args.InputFolder, args.Shuffle)) {
             if (args.MaxMapSetCount.HasValue && allSets.Count >= args.MaxMapSetCount.Value) {
                 Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Maximum_beatmap_set_count_of__0__reached__Stopping_extraction_, args.MaxMapSetCount);
                 break;
@@ -744,18 +748,20 @@ public static class Dataset2 {
         return omdbTags;
     }
 
-    private static IEnumerable<(string, ZipArchive)> FindOszFiles(string rootDirectory)
+    private static IEnumerable<(string, ZipArchive)> FindOszFiles(string rootDirectory, bool shuffle = false)
     {
         var validArchiveExtensions = new[] { ".zip", ".rar", ".7z", ".tar", ".tar.gz", ".tar.bz2", ".tar.lz", ".tar.xz" };
 
         if (validArchiveExtensions.Contains(Path.GetExtension(rootDirectory), StringComparer.OrdinalIgnoreCase)) {
-            foreach (var oszFile in SearchArchiveForOszFiles(rootDirectory))
+            foreach (var oszFile in SearchArchiveForOszFiles(rootDirectory, shuffle))
                 yield return oszFile;
             yield break;
         }
 
         // Check all files and directories in the root directory
-        foreach (string entry in Directory.EnumerateFileSystemEntries(rootDirectory, "*", SearchOption.AllDirectories))
+        var fileSystemEnumerable = Directory.EnumerateFileSystemEntries(rootDirectory, "*", SearchOption.AllDirectories);
+        if (shuffle) fileSystemEnumerable = fileSystemEnumerable.Shuffle();
+        foreach (string entry in fileSystemEnumerable)
         {
             if (Path.GetExtension(entry).Equals(".osz", StringComparison.OrdinalIgnoreCase))
             {
@@ -775,16 +781,18 @@ public static class Dataset2 {
             else if (validArchiveExtensions.Contains(Path.GetExtension(entry), StringComparer.OrdinalIgnoreCase))
             {
                 // Process .zip files as folders
-                foreach (var oszFile in SearchArchiveForOszFiles(entry))
+                foreach (var oszFile in SearchArchiveForOszFiles(entry, shuffle))
                     yield return oszFile;
             }
         }
     }
 
-    private static IEnumerable<(string, ZipArchive)> SearchArchiveForOszFiles(string archivePath) {
+    private static IEnumerable<(string, ZipArchive)> SearchArchiveForOszFiles(string archivePath, bool shuffle = false) {
         using Stream stream = File.OpenRead(archivePath);
         using var archive = ArchiveFactory.Open(stream);
-        foreach (var entry in archive.Entries) {
+        var entriesEnumerable = archive.Entries.Where(e => e.Key != null && Path.GetExtension(e.Key).Equals(".osz", StringComparison.OrdinalIgnoreCase));
+        if (shuffle) entriesEnumerable = entriesEnumerable.Shuffle();
+        foreach (var entry in entriesEnumerable) {
             if (!Path.GetExtension(entry.Key!).Equals(".osz", StringComparison.OrdinalIgnoreCase)) continue;
 
             // Open the .osz file as a stream and treat it as a zip archive
