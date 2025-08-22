@@ -140,7 +140,6 @@ public static class Dataset2 {
         var lastApiCallTime = DateTime.MinValue;
 
         var allMetadata = new Dictionary<int, BeatmapMetadata>();
-        var metadataBatch = new List<BeatmapMetadata>();
         var allSets = new HashSet<int>();
         var setsWithIssues = new HashSet<int>();
         var setsWithMismatchedChecksums = new HashSet<int>();
@@ -581,13 +580,9 @@ public static class Dataset2 {
             string durationString = mi.Get(StreamKind.General, 0, "Duration");
 
             if (!string.IsNullOrEmpty(durationString) && int.TryParse(durationString, out int durationMs))
-            {
                 return TimeSpan.FromMilliseconds(durationMs);
-            }
             else
-            {
                 throw new InvalidOperationException($"Could not retrieve duration for file: {filePath}");
-            }
         }
         finally
         {
@@ -597,43 +592,38 @@ public static class Dataset2 {
 
     private static TimeSpan GetMediaInfoFromStream(MemoryStream memoryStream, string fileName)
     {
-        var mi = new MediaInfo.MediaInfo();
-        GCHandle handle = default;
+        using var mi = new MediaInfo.MediaInfo();
 
-        try
+        // Reset the stream's position to the beginning
+        memoryStream.Position = 0;
+
+        mi.OpenBufferInit(memoryStream.Length, 0);
+
+        const int chunkSize = 64 * 1024; // 64KB
+        var buffer = new byte[chunkSize];
+        int read;
+        while ((read = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
         {
-            // Reset the stream's position to the beginning
-            memoryStream.Position = 0;
-            byte[] buffer = memoryStream.ToArray();
-
-            // Pin the byte array in memory so the garbage collector doesn't move it
-            handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            IntPtr bufferPtr = handle.AddrOfPinnedObject();
-
-            // Set up buffer reading
-            mi.OpenBufferInit(memoryStream.Length, 0);
-
-            // Feed the entire buffer to MediaInfo.
-            // You can also feed it in chunks in a loop if the file is very large.
-            IntPtr _ = mi.OpenBufferContinue(bufferPtr, new IntPtr(memoryStream.Length));
-
-            // Finalize the buffer reading process
-            mi.OpenBufferFinalize();
-
-            // Now you can get the properties as usual
-            string durationString = mi.Get(StreamKind.General, 0, "Duration");
-
-            if (!string.IsNullOrEmpty(durationString) && int.TryParse(durationString, out int durationMs))
-                return TimeSpan.FromMilliseconds(durationMs);
-            else
-                throw new InvalidOperationException($"Could not retrieve duration for file: {fileName}");
-        }
-        finally
-        {
-            if (handle.IsAllocated)
+            var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            try
+            {
+                mi.OpenBufferContinue(handle.AddrOfPinnedObject(), read);
+            }
+            finally
+            {
                 handle.Free();
-            mi.Close();
+            }
         }
+
+        mi.OpenBufferFinalize();
+
+        // Now you can get the properties as usual
+        string durationString = mi.Get(StreamKind.General, 0, "Duration");
+
+        if (string.IsNullOrEmpty(durationString) || !int.TryParse(durationString, out int durationMs))
+            throw new InvalidOperationException($"Could not retrieve duration for file: {fileName}");
+
+        return TimeSpan.FromMilliseconds(durationMs);
     }
 
     private static string? GetBeatmapKeyValue(ZipArchiveEntry entry, string key) {
