@@ -193,8 +193,6 @@ public static class Dataset2 {
 
         Console.WriteLine(Strings.Dataset_DoDataExtraction_Finding_beatmap_sets___);
 
-        foreach ((string fullName, var oszFile) in FindOszFiles(args.InputFolder, args.Shuffle)) {
-            if (args.MaxMapSetCount.HasValue && allSets.Count >= args.MaxMapSetCount.Value) {
         bool filterBeatmap(JsonElement beatmapInfo) {
             if (args.RequireRanked && beatmapInfo.GetProperty("status").GetString() != "ranked" && beatmapInfo.GetProperty("status").GetString() != "approved") {
                 return false;
