@@ -4,6 +4,10 @@
       "commandName": "Project",
       "commandLineArgs": "dataset2 -i \"D:\\Collections\\osu map batch\" -o \"C:\\Users\\Olivier\\Documents\\Collections\\Beatmap ML Datasets\\MMUS40000\" -x -f -c -p 10 -d 30 -s 40000 -e -n 50 -l 14 -h"
     },
+    "CreateDataSet2MetadataOnly": {
+      "commandName": "Project",
+      "commandLineArgs": "dataset2 -o \"C:\\Users\\Olivier\\Documents\\Collections\\Beatmap ML Datasets\\MMRS39389\" -m"
+    },
     "CreateDataSet": {
       "commandName": "Project",
       "commandLineArgs": "dataset -m Standard -s Ranked -i 20000 -x 25000 -r 4 -o \"D:\\Osu! Dingen\\Beatmap ML Datasets\\old_test\""

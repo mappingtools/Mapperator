@@ -320,4 +320,11 @@ Basic usage:
   <data name="Dataset2_DoDataExtraction2_Unexpected_error_processing_beatmap_set__0____1___2_" xml:space="preserve">
     <value>Unexpected error processing beatmap set {0}: {1} {2}</value>
   </data>
+  <data name="Dataset2_DoDataExtraction2_Could_not_find_beatmap_with_ID__0__in_the_beatmap_set__1___Skipping_" xml:space="preserve">
+    <value>Could not find beatmap with ID {0} in the beatmap set {1}. Skipping.</value>
+  </data>
+  <data name="Dataset2_DoDataExtraction2_Unexpected_error_processing_beatmap" xml:space="preserve">
+    <value>Unexpected error processing beatmap {0}: {1}
+{2}</value>
+  </data>
 </root>

@@ -263,6 +263,16 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find beatmap with ID {0} in the beatmap set {1}. Skipping..
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Could_not_find_beatmap_with_ID__0__in_the_beatmap_set__1___Skipping_ {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Could_not_find_beatmap_with_ID__0__in_the_beatmap_set_" +
+                        "_1___Skipping_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Counting total file size and duration in the dataset....
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Counting_total_file_size_and_duration_in_the_dataset___ {
@@ -490,6 +500,16 @@ namespace Mapperator.ConsoleApp.Resources {
         internal static string Dataset2_DoDataExtraction2_Skipping__0__because_ìt_is_not_ranked_ {
             get {
                 return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_ìt_is_not_ranked_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected error processing beatmap {0}: {1}
+        ///{2}.
+        /// </summary>
+        internal static string Dataset2_DoDataExtraction2_Unexpected_error_processing_beatmap {
+            get {
+                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Unexpected_error_processing_beatmap", resourceCulture);
             }
         }
         
