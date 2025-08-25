@@ -159,8 +159,8 @@ public static class Dataset2 {
             Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Loading_existing_metadata___);
             var data = ParquetSerializer.DeserializeAsync<BeatmapMetadata>(metadataPath).Result;
             foreach (var beatmapMetadata in data) {
-                allMetadata[beatmapMetadata.Id] = beatmapMetadata;
-                allSets.Add(beatmapMetadata.BeatmapSetId);
+                allMetadata[beatmapMetadata.Id.Value] = beatmapMetadata;
+                allSets.Add(beatmapMetadata.BeatmapSetId.Value);
             }
         }
 
@@ -247,7 +247,7 @@ public static class Dataset2 {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Mapset___0____1_, ++i, metadata.BeatmapSetFolder);
 
                     // Get the beatmap set ID
-                    int setId = metadata.BeatmapSetId;
+                    int setId = metadata.BeatmapSetId.Value;
 
                     // Get the online information for the beatmap set
                     if (!tryGetBeatmapSetInfo(setId, out var beatmapsetInfo, beatmapId.ToString())) continue;
@@ -281,7 +281,7 @@ public static class Dataset2 {
                     else
                         newMetadata.OmdbTags = metadata.OmdbTags;
 
-                    allMetadata[metadata.Id] = metadata;
+                    allMetadata[beatmapId] = newMetadata;
                 }
                 catch (Exception e) {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Unexpected_error_processing_beatmap, beatmapId, e.Message, e.StackTrace);
@@ -510,8 +510,8 @@ public static class Dataset2 {
                                 metadataCounter = 0;
                             }
 
-                            allMetadata[metadata.Id] = metadata;
-                            allSets.Add(metadata.BeatmapSetId);
+                            allMetadata[metadata.Id.Value] = metadata;
+                            allSets.Add(metadata.BeatmapSetId.Value);
                         }
                     }
 
@@ -613,19 +613,19 @@ public static class Dataset2 {
                 string osuFile = Path.Combine(args.OutputFolder, dataFolder, metadata.BeatmapSetFolder, metadata.BeatmapFile);
                 if (!File.Exists(osuFile)) {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Missing_beatmap_for__0_, osuFile);
-                    allMetadata.Remove(metadata.Id);
+                    allMetadata.Remove(metadata.Id.Value);
                 }
 
                 string audioFile = Path.Combine(args.OutputFolder, dataFolder, metadata.BeatmapSetFolder, metadata.AudioFile);
                 if (!File.Exists(audioFile)) {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Missing_audio_file_for__0_, audioFile);
-                    allMetadata.Remove(metadata.Id);
+                    allMetadata.Remove(metadata.Id.Value);
                 }
             }
 
             // Write metadata to a parquet file
             ParquetSerializer.SerializeAsync(allMetadata.Values, metadataPath);
-            allSets = allMetadata.Values.Select(x => x.BeatmapSetId).ToHashSet();
+            allSets = allMetadata.Values.Select(x => x.BeatmapSetId.Value).ToHashSet();
         }
 
         // Count total file size and duration in the dataset
@@ -774,15 +774,15 @@ public static class Dataset2 {
         return entry.Trim();
     }
 
-    private static List<float> CalculateDifficultyValues(string beatmapPath) {
+    private static List<float?> CalculateDifficultyValues(string beatmapPath) {
         var beatmap = DifficultyCalculatorUtils.GetBeatmap(beatmapPath);
         var difficultyCalculator = DifficultyCalculatorUtils.CreateDifficultyCalculator(beatmap);
         float[] speeds = [0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f];
-        var starRating = new List<float>();
+        var starRating = new List<float?>();
 
         foreach (float speed in speeds) {
             var mod = DifficultyCalculatorUtils.GetRateAdjust(beatmap, speed);
-            starRating.Add((float)difficultyCalculator.Calculate([mod]).StarRating);
+            starRating.Add((float?)difficultyCalculator.Calculate([mod]).StarRating);
         }
 
         return starRating;
@@ -982,7 +982,7 @@ public static class Dataset2 {
             LanguageId = beatmapset.GetProperty("language").TryGetProperty("id", out var languageIdElem) && languageIdElem.ValueKind != JsonValueKind.Null ? languageIdElem.GetInt32() : null,
             LanguageName = beatmapset.GetProperty("language").GetProperty("name").GetString()!,
             PackTags = beatmapset.GetProperty("pack_tags").EnumerateArray().Select(x => x.GetString()!).ToList(),
-            Ratings = beatmapset.GetProperty("ratings").EnumerateArray().Select(x => x.GetInt32()).ToList(),
+            Ratings = beatmapset.GetProperty("ratings").EnumerateArray().Select(x => (int?)x.GetInt32()).ToList(),
 
             // BeatmapsetExtended
             DownloadDisabled = beatmapset.GetProperty("availability").GetProperty("download_disabled").GetBoolean(),
@@ -1039,72 +1039,72 @@ public static class Dataset2 {
         public string Artist { get; set; } = null!;
         public string ArtistUnicode { get; set; } = null!;
         public string Creator { get; set; } = null!;
-        public int FavouriteCount { get; set; }
-        public int BeatmapSetId { get; set; }
-        public bool Nsfw { get; set; }
-        public int Offset { get; set; }
-        public int BeatmapSetPlayCount { get; set; }
+        public int? FavouriteCount { get; set; }
+        public int? BeatmapSetId { get; set; }
+        public bool? Nsfw { get; set; }
+        public int? Offset { get; set; }
+        public int? BeatmapSetPlayCount { get; set; }
         public string Source { get; set; } = null!;
         public string BeatmapSetStatus { get; set; } = null!;
-        public bool Spotlight { get; set; }
+        public bool? Spotlight { get; set; }
         public string Title { get; set; } = null!;
         public string TitleUnicode { get; set; } = null!;
-        public int BeatmapSetUserId { get; set; }
-        public bool Video { get; set; }
+        public int? BeatmapSetUserId { get; set; }
+        public bool? Video { get; set; }
         public string Description { get; set; } = null!;
         public int? GenreId { get; set; }
         public string GenreName { get; set; } = null!;
         public int? LanguageId { get; set; }
         public string LanguageName { get; set; } = null!;
         public List<string> PackTags { get; set; } = null!;
-        public List<int>? Ratings { get; set; }
+        public List<int?>? Ratings { get; set; }
 
         // BeatmapsetExtended
-        public bool DownloadDisabled { get; set; }
-        public float BeatmapSetBpm { get; set; }
-        public bool CanBeHyped { get; set; }
-        public bool DiscussionLocked { get; set; }
-        public bool BeatmapSetIsScoreable { get; set; }
-        public DateTime BeatmapSetLastUpdated { get; set; }
-        public int BeatmapSetRanked { get; set; }
+        public bool? DownloadDisabled { get; set; }
+        public float? BeatmapSetBpm { get; set; }
+        public bool? CanBeHyped { get; set; }
+        public bool? DiscussionLocked { get; set; }
+        public bool? BeatmapSetIsScoreable { get; set; }
+        public DateTime? BeatmapSetLastUpdated { get; set; }
+        public int? BeatmapSetRanked { get; set; }
         public DateTime? RankedDate { get; set; }
-        public bool Storyboard { get; set; }
+        public bool? Storyboard { get; set; }
         public DateTime? SubmittedDate { get; set; }
         public string Tags { get; set; } = null!;
 
         // Beatmap
-        public float DifficultyRating { get; set; }
-        public int Id { get; set; }
+        public float? DifficultyRating { get; set; }
+        public int? Id { get; set; }
         public string Mode { get; set; } = null!;
         public string Status { get; set; } = null!;
-        public int TotalLength { get; set; }
-        public int UserId { get; set; }
+        public int? TotalLength { get; set; }
+        public int? UserId { get; set; }
         public string Version { get; set; } = null!;
         public string? Checksum { get; set; }
         public int? MaxCombo { get; set; }
 
         // BeatmapExtended
-        public float Accuracy { get; set; }
-        public float Ar { get; set; }
+        public float? Accuracy { get; set; }
+        public float? Ar { get; set; }
         public float? Bpm { get; set; }
-        public int CountCircles { get; set; }
-        public int CountSliders { get; set; }
-        public int CountSpinners { get; set; }
-        public float Cs { get; set; }
-        public float Drain { get; set; }
-        public int HitLength { get; set; }
-        public bool IsScoreable { get; set; }
-        public DateTime LastUpdated { get; set; }
-        public int ModeInt { get; set; }
-        public int PassCount { get; set; }
-        public int PlayCount { get; set; }
-        public int Ranked { get; set; }
+        public int? CountCircles { get; set; }
+        public int? CountSliders { get; set; }
+        public int? CountSpinners { get; set; }
+        public float? Cs { get; set; }
+        public float? Drain { get; set; }
+        public int? HitLength { get; set; }
+        public bool? IsScoreable { get; set; }
+        public DateTime? LastUpdated { get; set; }
+        public int? ModeInt { get; set; }
+        public int? PassCount { get; set; }
+        public int? PlayCount { get; set; }
+        public int? Ranked { get; set; }
         public List<int> Owners { get; set; } = [];
         public List<int> TopTagIds { get; set; } = [];
         public List<int> TopTagCounts { get; set; } = [];
 
         // Star ratings for various speeds
-        public List<float> StarRating { get; set; } = [];
+        public List<float?> StarRating { get; set; } = [];
 
         // OMDB
         public List<string> OmdbTags { get; set; } = [];
