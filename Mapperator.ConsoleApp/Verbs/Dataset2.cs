@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -22,6 +21,7 @@ using MediaInfo;
 using MoreLinq;
 using Parquet.Serialization;
 using SharpCompress.Archives;
+using SharpCompress.Archives.Zip;
 using File = System.IO.File;
 
 // ReSharper disable NotAccessedPositionalProperty.Local
@@ -31,10 +31,10 @@ namespace Mapperator.ConsoleApp.Verbs;
 public static class Dataset2 {
     [Verb("dataset2", HelpText = "Extract a ML dataset from a folder with a bunch of .osz files.")]
     public class DatasetOptions2 {
-        [Option('i', "input", Required = false, HelpText = "Folder with input .osz files.")]
+        [Option('i', "input", Required = false, HelpText = "Path to the folder with input .osz files or archives containing .osz files. Alternatively this can be the name of a collection in osu! stable.")]
         public string? InputFolder { get; [UsedImplicitly] set; }
 
-        [Option('o', "output", Required = true, HelpText = "Folder to output the dataset to.")]
+        [Option('o', "output", Required = true, HelpText = "Path to the folder to write the dataset to.")]
         public string? OutputFolder { get; [UsedImplicitly] set; }
 
         [Option('t', "tags", Required = false, HelpText = "Path to .csv file with OMDB tags for each beatmap ID.")]
@@ -159,8 +159,8 @@ public static class Dataset2 {
             Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Loading_existing_metadata___);
             var data = ParquetSerializer.DeserializeAsync<BeatmapMetadata>(metadataPath).Result;
             foreach (var beatmapMetadata in data) {
-                allMetadata[beatmapMetadata.Id.Value] = beatmapMetadata;
-                allSets.Add(beatmapMetadata.BeatmapSetId.Value);
+                allMetadata[beatmapMetadata.Id!.Value] = beatmapMetadata;
+                allSets.Add(beatmapMetadata.BeatmapSetId!.Value);
             }
         }
 
@@ -247,7 +247,7 @@ public static class Dataset2 {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Mapset___0____1_, ++i, metadata.BeatmapSetFolder);
 
                     // Get the beatmap set ID
-                    int setId = metadata.BeatmapSetId.Value;
+                    int setId = metadata.BeatmapSetId!.Value;
 
                     // Get the online information for the beatmap set
                     if (!tryGetBeatmapSetInfo(setId, out var beatmapsetInfo, beatmapId.ToString())) continue;
@@ -292,7 +292,7 @@ public static class Dataset2 {
             }
         }
         else if (!string.IsNullOrEmpty(args.InputFolder)) {
-            foreach ((string fullName, var oszFile) in FindOszFiles(args.InputFolder, args.Shuffle)) {
+            foreach ((string fullName, var oszFile) in EnumerateInputFilesFromVariableSource(args.InputFolder, args.Shuffle)) {
                 if (args.MaxMapSetCount.HasValue && allSets.Count >= args.MaxMapSetCount.Value) {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Maximum_beatmap_set_count_of__0__reached__Stopping_extraction_, args.MaxMapSetCount);
                     break;
@@ -316,7 +316,7 @@ public static class Dataset2 {
                     }
                     else {
                         // Read the 'BeatmapSetID' key in the first .osu entry in the .osz file to get the set ID
-                        var firstOsuEntry = oszFile.Entries.FirstOrDefault(e => Path.GetExtension(e.FullName).Equals(".osu", StringComparison.OrdinalIgnoreCase));
+                        var firstOsuEntry = oszFile.Entries.FirstOrDefault(e => Path.GetExtension(e.Key!).Equals(".osu", StringComparison.OrdinalIgnoreCase));
                         if (firstOsuEntry is null) {
                             Console.WriteLine(Strings.Dataset2_DoDataExtraction2_No__osu_file_found_in__0___Skipping_, fullName);
                             if (setsSkipped.Add(fullName))
@@ -326,7 +326,7 @@ public static class Dataset2 {
 
                         string? beatmapSetIdLine = GetBeatmapKeyValue(firstOsuEntry, "BeatmapSetID");
                         if (beatmapSetIdLine is null || !int.TryParse(beatmapSetIdLine, out setId)) {
-                            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_BeatmapSetID_not_found_in__0___Skipping__1__, firstOsuEntry.FullName, fullName);
+                            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_BeatmapSetID_not_found_in__0___Skipping__1__, firstOsuEntry.Key, fullName);
                             if (setsSkipped.Add(fullName))
                                 File.AppendAllLines(setsSkippedPath, [fullName]);
                             continue;
@@ -377,15 +377,15 @@ public static class Dataset2 {
                     }
 
                     foreach (var entry in oszFile.Entries) {
-                        if (!Path.GetExtension(entry.FullName).Equals(".osu", StringComparison.OrdinalIgnoreCase)) continue;
+                        if (!Path.GetExtension(entry.Key!).Equals(".osu", StringComparison.OrdinalIgnoreCase)) continue;
 
                         // Try to find the online beatmap info entry for this particular file
-                        using var hashStream = entry.Open();
+                        using var hashStream = entry.OpenEntryStream();
                         string checksum = hashStream.ComputeMD5Hash();
 
                         if (!md5Hashes.TryGetValue(checksum, out var beatmapInfo)) {
                             if (args.ValidateChecksums) {
-                                Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_, entry.FullName);
+                                Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_, entry.Key);
                                 if (setsWithMismatchedChecksums.Add(beatmapSetId))
                                     File.AppendAllLines(setsWithMismatchedChecksumsPath, [beatmapSetId.ToString()]);
                                 continue;
@@ -394,7 +394,7 @@ public static class Dataset2 {
                             // Try to match by beatmap ID if checksums are not validated
                             string? beatmapIdLine = GetBeatmapKeyValue(entry, "BeatmapID");
                             if (beatmapIdLine is null || !int.TryParse(beatmapIdLine, out int beatmapId2) || !beatmapIds.TryGetValue(beatmapId2, out beatmapInfo)) {
-                                Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_BeatmapID_is_not_found_, entry.FullName);
+                                Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_BeatmapID_is_not_found_, entry.Key);
                                 if (setsWithMismatchedChecksums.Add(beatmapSetId))
                                     File.AppendAllLines(setsWithMismatchedChecksumsPath, [beatmapSetId.ToString()]);
                                 continue;
@@ -404,7 +404,7 @@ public static class Dataset2 {
                         int beatmapId = beatmapInfo.GetProperty("id").GetInt32();
 
                         if (!includedIds.Contains(beatmapId)) {
-                            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_it_does_not_match_the_criteria_, entry.FullName);
+                            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_it_does_not_match_the_criteria_, entry.Key);
                             continue;
                         }
 
@@ -414,44 +414,44 @@ public static class Dataset2 {
 
                         Beatmap beatmap;
                         try {
-                            using var stream = entry.Open();
+                            using var stream = entry.OpenEntryStream();
                             using var reader = new StreamReader(stream);
                             string content = reader.ReadToEnd();
                             beatmap = beatmapDecoder.Decode(content);
                         }
                         catch (Exception e) {
-                            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Failed_to_decode_beatmap__0____1_, entry.FullName, e.Message);
+                            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Failed_to_decode_beatmap__0____1_, entry.Key, e.Message);
                             issues = true;
                             continue;
                         }
 
                         if (string.IsNullOrEmpty(beatmap.General.AudioFilename)) {
-                            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Audio_filename_is_missing_in_beatmap__0___Skipping_this_beatmap_, entry.FullName);
+                            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Audio_filename_is_missing_in_beatmap__0___Skipping_this_beatmap_, entry.Key);
                             issues = true;
                             continue;
                         }
 
-                        string actualAudioFilename = WindowsZipFilenameStrip(FindAudioFile(oszFile, beatmap.General.AudioFilename)?.Name ?? beatmap.General.AudioFilename);
-                        string actualBeatmapFilename = WindowsZipFilenameStrip(entry.Name);
+                        string actualAudioFilename = WindowsZipFilenameStrip(FindAudioFile(oszFile, beatmap.General.AudioFilename)?.Key ?? beatmap.General.AudioFilename);
+                        string actualBeatmapFilename = WindowsZipFilenameStrip(entry.Key!);
 
                         // Filter on percentage of song mapped
                         if (args.MinPercentageOfSongMapped.HasValue) {
-                            var audioEntry = oszFile.GetEntry(actualAudioFilename);
+                            var audioEntry = oszFile.Entries.FirstOrDefault(e => e.Key == actualAudioFilename);
                             if (audioEntry is not null) {
                                 try {
                                     using var memoryStream = new MemoryStream();
-                                    using (var audioStream = audioEntry.Open()) audioStream.CopyTo(memoryStream);
+                                    using (var audioStream = audioEntry.OpenEntryStream()) audioStream.CopyTo(memoryStream);
                                     double duration = GetMediaInfoFromStream(memoryStream, actualAudioFilename).TotalSeconds;
                                     int drainTime = beatmapInfo.GetProperty("hit_length").GetInt32();
                                     double percentageMapped = drainTime / duration * 100;
                                     if (percentageMapped < args.MinPercentageOfSongMapped.Value) {
-                                        Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_song_, entry.FullName,
+                                        Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_song_, entry.Key,
                                             percentageMapped);
                                         continue;
                                     }
                                 }
                                 catch (Exception ex) {
-                                    Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Error_reading_audio_duration_for__0____1_, entry.FullName, ex.Message);
+                                    Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Error_reading_audio_duration_for__0____1_, entry.Key, ex.Message);
                                     issues = true;
                                 }
                             }
@@ -477,13 +477,13 @@ public static class Dataset2 {
                         string outputAudioFile = Path.Combine(outputSetPath, actualAudioFilename);
                         if (!File.Exists(outputAudioFile) || args.OverrideAudio) {
                             // Find the audio file in the .osz file
-                            var audioEntry = oszFile.GetEntry(actualAudioFilename);
+                            var audioEntry = oszFile.Entries.FirstOrDefault(e => e.Key == actualAudioFilename);
                             if (audioEntry is null) {
                                 Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Audio_file__0__not_found_in__1_, actualAudioFilename, fullName);
                                 issues = true;
                             }
                             else {
-                                using var audioStream = audioEntry.Open();
+                                using var audioStream = audioEntry.OpenEntryStream();
                                 using var audioFile = File.Create(outputAudioFile);
                                 audioStream.CopyTo(audioFile);
                             }
@@ -510,8 +510,8 @@ public static class Dataset2 {
                                 metadataCounter = 0;
                             }
 
-                            allMetadata[metadata.Id.Value] = metadata;
-                            allSets.Add(metadata.BeatmapSetId.Value);
+                            allMetadata[metadata.Id!.Value] = metadata;
+                            allSets.Add(metadata.BeatmapSetId!.Value);
                         }
                     }
 
@@ -613,19 +613,19 @@ public static class Dataset2 {
                 string osuFile = Path.Combine(args.OutputFolder, dataFolder, metadata.BeatmapSetFolder, metadata.BeatmapFile);
                 if (!File.Exists(osuFile)) {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Missing_beatmap_for__0_, osuFile);
-                    allMetadata.Remove(metadata.Id.Value);
+                    allMetadata.Remove(metadata.Id!.Value);
                 }
 
                 string audioFile = Path.Combine(args.OutputFolder, dataFolder, metadata.BeatmapSetFolder, metadata.AudioFile);
                 if (!File.Exists(audioFile)) {
                     Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Missing_audio_file_for__0_, audioFile);
-                    allMetadata.Remove(metadata.Id.Value);
+                    allMetadata.Remove(metadata.Id!.Value);
                 }
             }
 
             // Write metadata to a parquet file
             ParquetSerializer.SerializeAsync(allMetadata.Values, metadataPath);
-            allSets = allMetadata.Values.Select(x => x.BeatmapSetId.Value).ToHashSet();
+            allSets = allMetadata.Values.Select(x => x.BeatmapSetId!.Value).ToHashSet();
         }
 
         // Count total file size and duration in the dataset
@@ -726,8 +726,8 @@ public static class Dataset2 {
         return TimeSpan.FromMilliseconds(durationMs);
     }
 
-    private static string? GetBeatmapKeyValue(ZipArchiveEntry entry, string key) {
-        using var stream = entry.Open();
+    private static string? GetBeatmapKeyValue(IArchiveEntry entry, string key) {
+        using var stream = entry.OpenEntryStream();
         using var reader = new StreamReader(stream);
         while (reader.ReadLine() is { } line) {
             if (line.StartsWith(key, StringComparison.OrdinalIgnoreCase)) {
@@ -737,9 +737,9 @@ public static class Dataset2 {
         return null;
     }
 
-    private static ZipArchiveEntry? FindAudioFile(ZipArchive oszFile, string audioFilename) {
-        var result = oszFile.GetEntry(audioFilename);
-        return result ?? oszFile.Entries.FirstOrDefault(entry => WindowsZipFilenameStrip(entry.Name).Equals(audioFilename, StringComparison.OrdinalIgnoreCase));
+    private static IArchiveEntry? FindAudioFile(IArchive oszFile, string audioFilename) {
+        var result = oszFile.Entries.FirstOrDefault(e => e.Key == audioFilename);
+        return result ?? oszFile.Entries.FirstOrDefault(entry => WindowsZipFilenameStrip(entry.Key!).Equals(audioFilename, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string TrimBeatmapSetFolderName(string folderName) {
@@ -817,8 +817,42 @@ public static class Dataset2 {
         return omdbTags;
     }
 
-    private static IEnumerable<(string, ZipArchive)> FindOszFiles(string rootDirectory, bool shuffle = false)
+    private static IEnumerable<(string, IArchive)> EnumerateInputFilesFromVariableSource(string input, bool shuffle = false) {
+        if (Directory.Exists(input) || File.Exists(input)) {
+            Console.WriteLine(Strings.Dataset2_EnumerateInputFiles_Looking_for__osz_files_in_directory_or_archive___0_, input);
+            return FindOszFiles(input, shuffle);
+        }
+        // Attempt to interpret the input as an osu! collection name
+        Console.WriteLine(Strings.Dataset2_EnumerateInputFilesFromVariableSource_Input_does_not_appear_to_be_a_valid_directory_or_archive__Attempting_to_interpret_as_an_osu__collection_name___0_, input);
+        return FindCollectionOszFiles(input, shuffle);
+    }
+
+    private static IEnumerable<(string, IArchive)> FindCollectionOszFiles(string collectionName, bool shuffle = false) {
+        var beatmaps = DbManager.GetCollection(collectionName);
+        var beatmapSets = beatmaps.GroupBy(b => b.FolderName);
+        if (shuffle) beatmapSets = beatmapSets.Shuffle();
+        foreach (var beatmapSet in beatmapSets) {
+            string beatmapSetPath = Path.Join(ConfigManager.Config.SongsPath, beatmapSet.Key);
+
+            if (!Directory.Exists(beatmapSetPath)) {
+                Console.WriteLine(Strings.Dataset2_FindCollectionOszFiles_Beatmap_set_folder_not_found___0_, beatmapSetPath);
+                continue;
+            }
+
+            // Ignore any .osu files that are not part of the collection
+            var beatmapSetFiles = Directory.EnumerateFileSystemEntries(beatmapSetPath, "*", SearchOption.AllDirectories);
+            beatmapSetFiles = beatmapSetFiles.Where(f => !Path.GetExtension(f).Equals(".osu", StringComparison.OrdinalIgnoreCase) ||
+                beatmapSet.Any(b => Path.GetFileName(f).Equals(b.FileName, StringComparison.OrdinalIgnoreCase)));
+
+            yield return (beatmapSetPath, new DirectoryArchive(beatmapSetPath, beatmapSetFiles));
+        }
+    }
+
+    private static IEnumerable<(string, IArchive)> FindOszFiles(string rootDirectory, bool shuffle = false)
     {
+        if (!Directory.Exists(rootDirectory) && !File.Exists(rootDirectory))
+            throw new DirectoryNotFoundException($"Input root directory not found: {rootDirectory}");
+
         var validArchiveExtensions = new[] { ".zip", ".rar", ".7z", ".tar", ".tar.gz", ".tar.bz2", ".tar.lz", ".tar.xz" };
 
         if (validArchiveExtensions.Contains(Path.GetExtension(rootDirectory), StringComparer.OrdinalIgnoreCase)) {
@@ -838,7 +872,7 @@ public static class Dataset2 {
                 // Open the .osz file as a stream and treat it as a zip archive
                 ZipArchive oszArchive;
                 try {
-                    oszArchive = ZipFile.OpenRead(entry);
+                    oszArchive = ZipArchive.Open(entry);
                 } catch (Exception e) {
                     Console.WriteLine(Strings.Dataset2_SearchArchiveForOszFiles_Error_opening__osz_file__0____1_, entry, e.Message);
                     continue;
@@ -856,7 +890,7 @@ public static class Dataset2 {
         }
     }
 
-    private static IEnumerable<(string, ZipArchive)> SearchArchiveForOszFiles(string archivePath, bool shuffle = false) {
+    private static IEnumerable<(string, IArchive)> SearchArchiveForOszFiles(string archivePath, bool shuffle = false) {
         using Stream stream = File.OpenRead(archivePath);
         using var archive = ArchiveFactory.Open(stream);
         var entriesEnumerable = archive.Entries.Where(e => e.Key != null && Path.GetExtension(e.Key).Equals(".osz", StringComparison.OrdinalIgnoreCase));
@@ -868,7 +902,7 @@ public static class Dataset2 {
             ZipArchive oszArchive;
             try {
                 using var oszStream = entry.OpenEntryStream();
-                oszArchive = new ZipArchive(oszStream, ZipArchiveMode.Read);
+                oszArchive = ZipArchive.Open(oszStream);
             } catch (Exception e) {
                 Console.WriteLine(Strings.Dataset2_SearchArchiveForOszFiles_Error_opening__osz_file__0____1_, entry.Key, e.Message);
                 continue;

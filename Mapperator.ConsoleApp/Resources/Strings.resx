@@ -327,4 +327,13 @@ Basic usage:
     <value>Unexpected error processing beatmap {0}: {1}
 {2}</value>
   </data>
+  <data name="Dataset2_EnumerateInputFiles_Looking_for__osz_files_in_directory_or_archive___0_" xml:space="preserve">
+    <value>Looking for .osz files in directory or archive: {0}</value>
+  </data>
+  <data name="Dataset2_EnumerateInputFilesFromVariableSource_Input_does_not_appear_to_be_a_valid_directory_or_archive__Attempting_to_interpret_as_an_osu__collection_name___0_" xml:space="preserve">
+    <value>Input does not appear to be a valid directory or archive. Attempting to interpret as an osu! collection name: {0}</value>
+  </data>
+  <data name="Dataset2_FindCollectionOszFiles_Beatmap_set_folder_not_found___0_" xml:space="preserve">
+    <value>Beatmap set folder not found: {0}</value>
+  </data>
 </root>

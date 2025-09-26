@@ -523,6 +523,34 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Looking for .osz files in directory or archive: {0}.
+        /// </summary>
+        internal static string Dataset2_EnumerateInputFiles_Looking_for__osz_files_in_directory_or_archive___0_ {
+            get {
+                return ResourceManager.GetString("Dataset2_EnumerateInputFiles_Looking_for__osz_files_in_directory_or_archive___0_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Input does not appear to be a valid directory or archive. Attempting to interpret as an osu! collection name: {0}.
+        /// </summary>
+        internal static string Dataset2_EnumerateInputFilesFromVariableSource_Input_does_not_appear_to_be_a_valid_directory_or_archive__Attempting_to_interpret_as_an_osu__collection_name___0_ {
+            get {
+                return ResourceManager.GetString("Dataset2_EnumerateInputFilesFromVariableSource_Input_does_not_appear_to_be_a_vali" +
+                        "d_directory_or_archive__Attempting_to_interpret_as_an_osu__collection_name___0_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Beatmap set folder not found: {0}.
+        /// </summary>
+        internal static string Dataset2_FindCollectionOszFiles_Beatmap_set_folder_not_found___0_ {
+            get {
+                return ResourceManager.GetString("Dataset2_FindCollectionOszFiles_Beatmap_set_folder_not_found___0_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to get osu! API access token. Make sure your ClientId and ClientSecret are correctly set in config.json..
         /// </summary>
         internal static string Dataset2_GetAccessToken_Failed_to_get_osu__API_access_token__Make_sure_your_ClientId_and_ClientSecret_are_correctly_set_in_config_json_ {
