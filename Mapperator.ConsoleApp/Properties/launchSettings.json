@@ -12,6 +12,10 @@
       "commandName": "Project",
       "commandLineArgs": "dataset -m Standard -s Ranked -i 20000 -x 25000 -r 4 -o \"D:\\Osu! Dingen\\Beatmap ML Datasets\\old_test\""
     },
+    "BeatmapUserMap": {
+      "commandName": "Project",
+      "commandLineArgs": "beatmap-user-map -i \"C:\\Users\\Olivier\\Downloads\\metadata.csv\" -o \"C:\\Users\\Olivier\\Documents\\GitHub\\Mapperatorinator\\datasets\\beatmap_users2.json\""
+    },
     "CountData": {
       "commandName": "Project",
       "commandLineArgs": "count -m Standard -s Ranked"

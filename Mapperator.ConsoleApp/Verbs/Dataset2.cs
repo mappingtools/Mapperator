@@ -2,14 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using CommandLine;
 using JetBrains.Annotations;
 using Mapperator.ConsoleApp.Resources;
@@ -99,11 +94,7 @@ public static class Dataset2 {
             omdbTags = LoadOmdbTags(args.OmdbTags);
         }
 
-        // Get OAuth token
-        string token = GetAccessToken(ConfigManager.Config.ClientId, ConfigManager.Config.ClientSecret).Result;
-        var client = new HttpClient();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using var osuApiClient = new OsuApiV2Client(ConfigManager.Config.ClientId, ConfigManager.Config.ClientSecret);
 
         // Dataset file structure:
         // OutputFolder
@@ -123,27 +114,6 @@ public static class Dataset2 {
         const string dataFolder = "data";
         var beatmapDecoder = new OsuBeatmapDecoder();
         var beatmapEncoder = new OsuBeatmapEncoder();
-
-        // Cache online beatmap set information
-        var onlineCache = new Dictionary<int, JsonElement>();
-        // Load from .jsonl file if it exists
-        const string onlineCachePath = "online_cache.jsonl";
-        if (File.Exists(onlineCachePath)) {
-            Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Loading_online_cache___);
-            foreach (string line in File.ReadLines(onlineCachePath)) {
-                // Parse the JSON object
-                var json = JsonSerializer.Deserialize<JsonElement>(line);
-                int id = json.GetProperty("id").GetInt32();
-                onlineCache[id] = json;
-            }
-        } else {
-            // Create the file if it doesn't exist
-            File.Create(onlineCachePath).Dispose();
-        }
-
-        // Make sure we don't exceed the API rate limit
-        const int rateLimitInterval = 120;  // Milliseconds
-        var lastApiCallTime = DateTime.MinValue;
 
         const int metadataCheckpointInterval = 100;  // Number of metadata entries to write before checkpointing
         int metadataCounter = 0;
@@ -214,30 +184,18 @@ public static class Dataset2 {
         }
 
         bool tryGetBeatmapSetInfo(int setId, out JsonElement beatmapsetInfo, string? identifier=null) {
-            if (onlineCache.TryGetValue(setId, out beatmapsetInfo)) return true;
-
-            // Ensure at least 120 ms has passed since the last API call
-            double timeSinceLastCall = (DateTime.Now - lastApiCallTime).TotalMilliseconds;
-            if (timeSinceLastCall < rateLimitInterval)
-                Thread.Sleep(rateLimitInterval - (int)timeSinceLastCall);
-            lastApiCallTime = DateTime.Now;
-
-            // Make an API request to get the beatmap set information
             try {
-                beatmapsetInfo = GetBeatmapSetInfo(client, setId).Result;
+                beatmapsetInfo = osuApiClient.GetBeatmapSetInfo(setId);
+                return true;
             }
             catch (Exception e) {
                 identifier ??= setId.ToString();
                 Console.WriteLine(Strings.Dataset2_DoDataExtraction2_Failed_to_get_beatmap_set_info_for_ID__0____1_, identifier, e.Message);
                 if (setsSkipped.Add(identifier))
                     File.AppendAllLines(setsSkippedPath, [identifier]);
+                beatmapsetInfo = default;
                 return false;
             }
-
-            // Cache the information by appending to the online cache file
-            onlineCache[setId] = beatmapsetInfo;
-            File.AppendAllLines(onlineCachePath, [beatmapsetInfo.GetRawText()]);
-            return true;
         }
 
         if (string.IsNullOrEmpty(args.InputFolder) && args.OverrideMetadata) {
@@ -924,73 +882,6 @@ public static class Dataset2 {
         sb.BackgroundAndVideoEvents.Clear();
     }
 
-    private const string TokenUrl = "https://osu.ppy.sh/oauth/token";
-
-    private static async Task<string> GetAccessToken(string clientId, string clientSecret) {
-        using var client = new HttpClient();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        var requestBody = new FormUrlEncodedContent([
-            new KeyValuePair<string, string>("client_id", clientId),
-            new KeyValuePair<string, string>("client_secret", clientSecret),
-            new KeyValuePair<string, string>("grant_type", "client_credentials"),
-            new KeyValuePair<string, string>("scope", "public")
-        ]);
-
-        var response = await client.PostAsync(TokenUrl, requestBody);
-        if (response.IsSuccessStatusCode)
-        {
-            string jsonResponse = await response.Content.ReadAsStringAsync();
-            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(jsonResponse);
-            return tokenResponse!.AccessToken;
-        }
-
-        Console.WriteLine(Strings.Dataset2_GetAccessToken_Failed_to_get_osu__API_access_token__Make_sure_your_ClientId_and_ClientSecret_are_correctly_set_in_config_json_);
-        throw new Exception($"Error: {response.StatusCode}");
-    }
-
-    public class TokenResponse {
-        [JsonPropertyName("token_type")] public string TokenType { get; set; } = null!;
-        [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; }
-        [JsonPropertyName("access_token")] public string AccessToken { get; set; } = null!;
-    }
-
-    private const string ApiUrl = "https://osu.ppy.sh/api/v2/beatmapsets";
-
-    private static async Task<JsonElement> GetBeatmapSetInfo(HttpClient client, int setId) {
-        const int maxRetries = 10;
-        var retries = 0;
-        HttpResponseMessage? response = null;
-        while (retries++ < maxRetries) {
-            response = await client.GetAsync($"{ApiUrl}/{setId}");
-
-            if (response.IsSuccessStatusCode) {
-                break;
-            }
-
-            if (retries >= maxRetries) {
-                throw new Exception($"Failed to fetch beatmapset info: {response.StatusCode}");
-            }
-
-            switch (response.StatusCode) {
-                case System.Net.HttpStatusCode.TooManyRequests:
-                    Console.WriteLine(Strings.Dataset2_GetBeatmapsetInfo_Rate_limited__waiting_10_seconds___);
-                    Thread.Sleep(10000);
-                    break;
-                case System.Net.HttpStatusCode.GatewayTimeout:
-                case System.Net.HttpStatusCode.RequestTimeout:
-                    Console.WriteLine(Strings.Dataset2_GetBeatmapsetInfo_Timed_out__waiting_10_seconds___);
-                    Thread.Sleep(10000);
-                    break;
-                default: {
-                    throw new Exception($"Failed to fetch beatmapset info: {response.StatusCode}");
-                }
-            }
-        }
-
-        string jsonResponse = await response!.Content.ReadAsStringAsync();
-        return JsonSerializer.Deserialize<JsonElement>(jsonResponse);
-    }
 
     private static BeatmapMetadata ParseBeatmapMetadata(JsonElement beatmapset, JsonElement beatmap) {
         return new BeatmapMetadata {

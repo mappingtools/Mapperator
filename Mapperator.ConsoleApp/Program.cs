@@ -17,7 +17,8 @@ namespace Mapperator.ConsoleApp {
                     Analyze.AnalyzeOptions,
                     Extract2.Extract2Options,
                     Dataset.DatasetOptions,
-                    Dataset2.DatasetOptions2
+                    Dataset2.DatasetOptions2,
+                    BeatmapUserMap.BeatmapUserMapOptions
                 >(args)
                 .MapResult(
                     (Count.CountOptions opts) => Count.DoDataCount(opts),
@@ -29,6 +30,7 @@ namespace Mapperator.ConsoleApp {
                     (Extract2.Extract2Options opts) => Extract2.DoDataExtraction(opts),
                     (Dataset.DatasetOptions opts) => Dataset.DoDataExtraction(opts),
                     (Dataset2.DatasetOptions2 opts) => Dataset2.DoDataExtraction2(opts),
+                    (BeatmapUserMap.BeatmapUserMapOptions opts) => BeatmapUserMap.DoBeatmapUserMap(opts),
                     _ => 1);
         }
     }

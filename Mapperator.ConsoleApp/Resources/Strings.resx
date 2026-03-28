@@ -336,4 +336,13 @@ Basic usage:
   <data name="Dataset2_FindCollectionOszFiles_Beatmap_set_folder_not_found___0_" xml:space="preserve">
     <value>Beatmap set folder not found: {0}</value>
   </data>
+  <data name="BeatmapUserMap_DoBeatmapUserMap_Loaded__0__beatmap_IDs_across__1__beatmapsets_from___2___" xml:space="preserve">
+    <value>Loaded {0} beatmap IDs across {1} beatmapsets from '{2}'.</value>
+  </data>
+  <data name="BeatmapUserMap_DoBeatmapUserMap_Fetching_beatmapset__0___1____2_" xml:space="preserve">
+    <value>Fetching beatmapset {0}/{1}: {2}</value>
+  </data>
+  <data name="BeatmapUserMap_DoBeatmapUserMap_Wrote__0__beatmap_user_mappings_to___1___" xml:space="preserve">
+    <value>Wrote {0} beatmap-user mappings to '{1}'.</value>
+  </data>
 </root>

@@ -26,7 +26,9 @@ You can specify an osu! folder. There should be a `config.json` next to the exec
 ```
 {
   "OsuPath": "C:\\Users\\name\\AppData\\Local\\osu!",
-  "SongsPath": "C:\\Users\\name\\AppData\\Local\\osu!\\Songs"
+  "SongsPath": "C:\\Users\\name\\AppData\\Local\\osu!\\Songs",
+  "ClientId": "your osu oauth client id",
+  "ClientSecret": "your osu oauth client secret"
 }
 ```
 
@@ -48,6 +50,15 @@ Repeat runs with the same output folder will generally attempt to append to the 
 
 ```bash
 Mapperator.ConsoleApp.exe dataset2 -i "path/to/osz/files" -o "/datasets/cool_dataset"
+```
+
+### Create a beatmap-to-user mapping from `metadata.csv`
+
+Use the `beatmap-user-map` verb to read a `metadata.csv` file containing `beatmap_id` and `beatmapset_id` columns, fetch the referenced beatmapsets from the osu! v2 API, and write a JSON object that maps each `beatmap_id` to the beatmap's `user_id` from the API.
+The command reuses the same `online_cache.jsonl` beatmapset cache as `dataset2` by default, and you can override the cache location with `--cache` if needed.
+
+```bash
+Mapperator.ConsoleApp.exe beatmap-user-map -i "path/to/metadata.csv" -o "path/to/beatmap_user_ids.json"
 ```
 
 <details>
@@ -150,4 +161,3 @@ The left view shows the [original beatmap](https://osu.ppy.sh/beatmapsets/989342
 Clicking the **prev** or **next** buttons or clicking the timeline allows for seeking to different parts of the beatmap. Clicking the **variant** button generates the next best reconstruction of the pattern.
 
 The Demo App uses the SotarksData dataset which contains all of Sotarks' ranked beatmaps and GD's.
-

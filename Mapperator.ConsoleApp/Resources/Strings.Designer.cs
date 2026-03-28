@@ -72,6 +72,34 @@ namespace Mapperator.ConsoleApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fetching beatmapset {0}/{1}: {2}.
+        /// </summary>
+        internal static string BeatmapUserMap_DoBeatmapUserMap_Fetching_beatmapset__0___1____2_ {
+            get {
+                return ResourceManager.GetString("BeatmapUserMap_DoBeatmapUserMap_Fetching_beatmapset__0___1____2_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loaded {0} beatmap IDs across {1} beatmapsets from &apos;{2}&apos;..
+        /// </summary>
+        internal static string BeatmapUserMap_DoBeatmapUserMap_Loaded__0__beatmap_IDs_across__1__beatmapsets_from___2___ {
+            get {
+                return ResourceManager.GetString(("BeatmapUserMap_DoBeatmapUserMap_Loaded__0__beatmap_IDs_across__1__beatmapsets_fro" +
+                        "m___2___"), resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrote {0} beatmap-user mappings to &apos;{1}&apos;..
+        /// </summary>
+        internal static string BeatmapUserMap_DoBeatmapUserMap_Wrote__0__beatmap_user_mappings_to___1___ {
+            get {
+                return ResourceManager.GetString("BeatmapUserMap_DoBeatmapUserMap_Wrote__0__beatmap_user_mappings_to___1___", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading ML model....
         /// </summary>
         internal static string ConvertML_DoMapConvert_Loading_ML_model___ {
@@ -203,8 +231,8 @@ namespace Mapperator.ConsoleApp.Resources {
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Audio_filename_is_missing_in_beatmap__0___Skipping_this_beatmap_ {
             get {
-                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Audio_filename_is_missing_in_beatmap__0___Skipping_thi" +
-                        "s_beatmap_", resourceCulture);
+                return ResourceManager.GetString(("Dataset2_DoDataExtraction2_Audio_filename_is_missing_in_beatmap__0___Skipping_thi" +
+                        "s_beatmap_"), resourceCulture);
             }
         }
         
@@ -267,8 +295,8 @@ namespace Mapperator.ConsoleApp.Resources {
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Could_not_find_beatmap_with_ID__0__in_the_beatmap_set__1___Skipping_ {
             get {
-                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Could_not_find_beatmap_with_ID__0__in_the_beatmap_set_" +
-                        "_1___Skipping_", resourceCulture);
+                return ResourceManager.GetString(("Dataset2_DoDataExtraction2_Could_not_find_beatmap_with_ID__0__in_the_beatmap_set_" +
+                        "_1___Skipping_"), resourceCulture);
             }
         }
         
@@ -277,8 +305,8 @@ namespace Mapperator.ConsoleApp.Resources {
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Counting_total_file_size_and_duration_in_the_dataset___ {
             get {
-                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Counting_total_file_size_and_duration_in_the_dataset__" +
-                        "_", resourceCulture);
+                return ResourceManager.GetString(("Dataset2_DoDataExtraction2_Counting_total_file_size_and_duration_in_the_dataset__" +
+                        "_"), resourceCulture);
             }
         }
         
@@ -323,8 +351,8 @@ namespace Mapperator.ConsoleApp.Resources {
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Invalid__osz_file_name_format___0___Expected_format___SetID___Artist_____Title__osz {
             get {
-                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Invalid__osz_file_name_format___0___Expected_format___" +
-                        "SetID___Artist_____Title__osz", resourceCulture);
+                return ResourceManager.GetString(("Dataset2_DoDataExtraction2_Invalid__osz_file_name_format___0___Expected_format___" +
+                        "SetID___Artist_____Title__osz"), resourceCulture);
             }
         }
         
@@ -387,8 +415,8 @@ namespace Mapperator.ConsoleApp.Resources {
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Maximum_beatmap_set_count_of__0__reached__Stopping_extraction_ {
             get {
-                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Maximum_beatmap_set_count_of__0__reached__Stopping_ext" +
-                        "raction_", resourceCulture);
+                return ResourceManager.GetString(("Dataset2_DoDataExtraction2_Maximum_beatmap_set_count_of__0__reached__Stopping_ext" +
+                        "raction_"), resourceCulture);
             }
         }
         
@@ -451,8 +479,8 @@ namespace Mapperator.ConsoleApp.Resources {
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_BeatmapID_is_not_found_ {
             get {
-                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_Beatm" +
-                        "apID_is_not_found_", resourceCulture);
+                return ResourceManager.GetString(("Dataset2_DoDataExtraction2_Skipping__0__because_checksum_does_not_match_and_Beatm" +
+                        "apID_is_not_found_"), resourceCulture);
             }
         }
         
@@ -470,8 +498,8 @@ namespace Mapperator.ConsoleApp.Resources {
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Skipping__0__because_it_has_no_beatmaps_matching_the_criteria_ {
             get {
-                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_it_has_no_beatmaps_matching_the_c" +
-                        "riteria_", resourceCulture);
+                return ResourceManager.GetString(("Dataset2_DoDataExtraction2_Skipping__0__because_it_has_no_beatmaps_matching_the_c" +
+                        "riteria_"), resourceCulture);
             }
         }
         
@@ -480,8 +508,8 @@ namespace Mapperator.ConsoleApp.Resources {
         /// </summary>
         internal static string Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_song_ {
             get {
-                return ResourceManager.GetString("Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_" +
-                        "song_", resourceCulture);
+                return ResourceManager.GetString(("Dataset2_DoDataExtraction2_Skipping__0__because_it_is_mapped_only__1_F2___of_the_" +
+                        "song_"), resourceCulture);
             }
         }
         
@@ -536,8 +564,8 @@ namespace Mapperator.ConsoleApp.Resources {
         /// </summary>
         internal static string Dataset2_EnumerateInputFilesFromVariableSource_Input_does_not_appear_to_be_a_valid_directory_or_archive__Attempting_to_interpret_as_an_osu__collection_name___0_ {
             get {
-                return ResourceManager.GetString("Dataset2_EnumerateInputFilesFromVariableSource_Input_does_not_appear_to_be_a_vali" +
-                        "d_directory_or_archive__Attempting_to_interpret_as_an_osu__collection_name___0_", resourceCulture);
+                return ResourceManager.GetString(("Dataset2_EnumerateInputFilesFromVariableSource_Input_does_not_appear_to_be_a_vali" +
+                        "d_directory_or_archive__Attempting_to_interpret_as_an_osu__collection_name___0_"), resourceCulture);
             }
         }
         
@@ -555,8 +583,8 @@ namespace Mapperator.ConsoleApp.Resources {
         /// </summary>
         internal static string Dataset2_GetAccessToken_Failed_to_get_osu__API_access_token__Make_sure_your_ClientId_and_ClientSecret_are_correctly_set_in_config_json_ {
             get {
-                return ResourceManager.GetString("Dataset2_GetAccessToken_Failed_to_get_osu__API_access_token__Make_sure_your_Clien" +
-                        "tId_and_ClientSecret_are_correctly_set_in_config_json_", resourceCulture);
+                return ResourceManager.GetString(("Dataset2_GetAccessToken_Failed_to_get_osu__API_access_token__Make_sure_your_Clien" +
+                        "tId_and_ClientSecret_are_correctly_set_in_config_json_"), resourceCulture);
             }
         }
         
