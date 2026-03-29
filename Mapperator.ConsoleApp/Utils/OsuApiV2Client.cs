@@ -42,17 +42,21 @@ public sealed class OsuApiV2Client : IDisposable {
         LoadOnlineCache();
     }
 
-    public JsonElement GetBeatmapSetInfo(int setId) {
-        if (onlineCache.TryGetValue(setId, out var beatmapsetInfo)) {
+    public JsonElement GetBeatmapSetInfo(int setId, bool bypassCache = false) {
+        if (!bypassCache && onlineCache.TryGetValue(setId, out var beatmapsetInfo)) {
             return beatmapsetInfo;
         }
 
         EnsureRateLimit();
         beatmapsetInfo = GetBeatmapSetInfoFromApi(setId).GetAwaiter().GetResult();
+        SaveBeatmapSetInfoToCache(beatmapsetInfo);
+        return beatmapsetInfo;
+    }
 
+    private void SaveBeatmapSetInfoToCache(JsonElement beatmapsetInfo) {
+        int setId = beatmapsetInfo.GetProperty("id").GetInt32();
         onlineCache[setId] = beatmapsetInfo;
         File.AppendAllLines(onlineCachePath, [beatmapsetInfo.GetRawText()]);
-        return beatmapsetInfo;
     }
 
     private void LoadOnlineCache() {

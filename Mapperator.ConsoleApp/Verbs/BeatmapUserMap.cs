@@ -33,24 +33,19 @@ public static class BeatmapUserMap {
             throw new ArgumentNullException(nameof(args.OutputJsonPath));
         }
 
-        var beatmapSetIdsByBeatmapId = ReadBeatmapSetIdsByBeatmapId(args.MetadataCsvPath);
-        int[] distinctBeatmapSetIds = [.. beatmapSetIdsByBeatmapId.Values.Distinct()];
+        var beatmapIdsByBeatmapSetId = ReadBeatmapIdsByBeatmapSetId(args.MetadataCsvPath);
+        int beatmapCount = beatmapIdsByBeatmapSetId.Values.Sum(beatmapIds => beatmapIds.Count);
 
-        Console.WriteLine(Strings.BeatmapUserMap_DoBeatmapUserMap_Loaded__0__beatmap_IDs_across__1__beatmapsets_from___2___, beatmapSetIdsByBeatmapId.Count, distinctBeatmapSetIds.Length, args.MetadataCsvPath);
+        Console.WriteLine(Strings.BeatmapUserMap_DoBeatmapUserMap_Loaded__0__beatmap_IDs_across__1__beatmapsets_from___2___, beatmapCount, beatmapIdsByBeatmapSetId.Count,
+            args.MetadataCsvPath);
 
-        var beatmapsetsById = new Dictionary<int, JsonElement>(distinctBeatmapSetIds.Length);
+        Dictionary<int, int> beatmapUserIds;
         using (var osuApiClient = new OsuApiV2Client(
                    ConfigManager.Config.ClientId,
                    ConfigManager.Config.ClientSecret,
                    args.OnlineCachePath)) {
-            for (var i = 0; i < distinctBeatmapSetIds.Length; i++) {
-                int setId = distinctBeatmapSetIds[i];
-                Console.WriteLine(Strings.BeatmapUserMap_DoBeatmapUserMap_Fetching_beatmapset__0___1____2_, i + 1, distinctBeatmapSetIds.Length, setId);
-                beatmapsetsById[setId] = osuApiClient.GetBeatmapSetInfo(setId);
-            }
+            beatmapUserIds = BuildBeatmapUserIds(beatmapIdsByBeatmapSetId, osuApiClient);
         }
-
-        var beatmapUserIds = BuildBeatmapUserIds(beatmapSetIdsByBeatmapId, setId => beatmapsetsById[setId]);
 
         string? outputDirectory = Path.GetDirectoryName(args.OutputJsonPath);
         if (!string.IsNullOrWhiteSpace(outputDirectory)) {
@@ -66,7 +61,7 @@ public static class BeatmapUserMap {
         return 0;
     }
 
-     public static Dictionary<int, int> ReadBeatmapSetIdsByBeatmapId(string metadataCsvPath) {
+    public static Dictionary<int, List<int>> ReadBeatmapIdsByBeatmapSetId(string metadataCsvPath) {
         if (!File.Exists(metadataCsvPath)) {
             throw new FileNotFoundException("metadata.csv file not found.", metadataCsvPath);
         }
@@ -86,6 +81,7 @@ public static class BeatmapUserMap {
             int beatmapIdIndex = FindRequiredHeaderIndex(headers, "beatmap_id");
             int beatmapsetIdIndex = FindRequiredHeaderIndex(headers, "beatmapset_id");
 
+            var beatmapIdsByBeatmapSetId = new Dictionary<int, List<int>>();
             var beatmapSetIdsByBeatmapId = new Dictionary<int, int>();
 
             while (!parser.EndOfData) {
@@ -107,31 +103,64 @@ public static class BeatmapUserMap {
                     throw new InvalidDataException($"Line {lineNumber} has an invalid beatmapset_id value: '{values[beatmapsetIdIndex]}'.");
                 }
 
-                if (beatmapSetIdsByBeatmapId.TryGetValue(beatmapId, out int existingBeatmapsetId) && existingBeatmapsetId != beatmapsetId) {
-                    throw new InvalidDataException($"Beatmap {beatmapId} is associated with multiple beatmapsets: {existingBeatmapsetId} and {beatmapsetId}.");
+                if (beatmapSetIdsByBeatmapId.TryGetValue(beatmapId, out int existingBeatmapsetId)) {
+                    if (existingBeatmapsetId != beatmapsetId) {
+                        throw new InvalidDataException($"Beatmap {beatmapId} is associated with multiple beatmapsets: {existingBeatmapsetId} and {beatmapsetId}.");
+                    }
+
+                    continue;
                 }
 
                 beatmapSetIdsByBeatmapId[beatmapId] = beatmapsetId;
+                if (!beatmapIdsByBeatmapSetId.TryGetValue(beatmapsetId, out var beatmapIds)) {
+                    beatmapIds = [];
+                    beatmapIdsByBeatmapSetId[beatmapsetId] = beatmapIds;
+                }
+
+                beatmapIds.Add(beatmapId);
             }
 
-            return beatmapSetIdsByBeatmapId;
-        } catch (MalformedLineException ex) {
+            return beatmapIdsByBeatmapSetId;
+        }
+        catch (MalformedLineException ex) {
             long lineNumber = parser.ErrorLineNumber > 0 ? parser.ErrorLineNumber : parser.LineNumber;
             throw new InvalidDataException($"Line {lineNumber} is not valid CSV: {ex.Message}", ex);
         }
     }
 
-    public static Dictionary<int, int> BuildBeatmapUserIds(IReadOnlyDictionary<int, int> beatmapSetIdsByBeatmapId, Func<int, JsonElement> beatmapsetResolver) {
-        var beatmapsets = beatmapSetIdsByBeatmapId.Values
-            .Distinct()
-            .ToDictionary(setId => setId, beatmapsetResolver);
+    public static Dictionary<int, int> BuildBeatmapUserIds(IReadOnlyDictionary<int, List<int>> beatmapIdsByBeatmapSetId, OsuApiV2Client client) {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(beatmapIdsByBeatmapSetId);
 
-        var result = new Dictionary<int, int>(beatmapSetIdsByBeatmapId.Count);
-        foreach ((int beatmapId, int beatmapsetId) in beatmapSetIdsByBeatmapId) {
-            JsonElement beatmapset = beatmapsets[beatmapsetId];
-            JsonElement beatmap = beatmapset.GetProperty("beatmaps")
+        int totalBeatmaps = beatmapIdsByBeatmapSetId.Values.Sum(beatmapIds => beatmapIds.Count);
+        var result = new Dictionary<int, int>(totalBeatmaps);
+        var i = 0;
+
+        foreach ((int beatmapsetId, var beatmapIds) in beatmapIdsByBeatmapSetId) {
+            Console.WriteLine(Strings.BeatmapUserMap_DoBeatmapUserMap_Fetching_beatmapset__0___1____2_, ++i, beatmapIdsByBeatmapSetId.Count, beatmapsetId);
+            var beatmapset = client.GetBeatmapSetInfo(beatmapsetId);
+
+            try {
+                BuildBeatmapUserIdsForBeatmapSet(beatmapsetId, beatmapIds, beatmapset, result);
+            }
+            catch (InvalidDataException) {
+                beatmapset = client.GetBeatmapSetInfo(beatmapsetId, true);
+                BuildBeatmapUserIdsForBeatmapSet(beatmapsetId, beatmapIds, beatmapset, result);
+            }
+        }
+
+        return result;
+    }
+
+    private static void BuildBeatmapUserIdsForBeatmapSet(int beatmapsetId, List<int> beatmapIds, JsonElement beatmapset, Dictionary<int, int> result) {
+        if (!beatmapset.TryGetProperty("beatmaps", out var beatmapsProperty) || beatmapsProperty.ValueKind != JsonValueKind.Array) {
+            throw new InvalidDataException($"Beatmapset {beatmapsetId} does not contain a valid beatmaps array in the osu! API response.");
+        }
+
+        foreach (int beatmapId in beatmapIds) {
+            var beatmap = beatmapsProperty
                 .EnumerateArray()
-                .FirstOrDefault(b => b.GetProperty("id").GetInt32() == beatmapId);
+                .FirstOrDefault(b => b.TryGetProperty("id", out var idProperty) && idProperty.GetInt32() == beatmapId);
 
             if (beatmap.ValueKind == JsonValueKind.Undefined) {
                 throw new InvalidDataException($"Beatmap {beatmapId} was not found in beatmapset {beatmapsetId} from the osu! API response.");
@@ -143,8 +172,6 @@ public static class BeatmapUserMap {
 
             result[beatmapId] = userIdProperty.GetInt32();
         }
-
-        return result;
     }
 
     private static int FindRequiredHeaderIndex(IReadOnlyList<string> headers, string columnName) {
